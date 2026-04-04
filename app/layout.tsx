@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { Figtree } from "next/font/google";
+import { Figtree, Geist } from "next/font/google";
 
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -22,7 +25,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`h-full antialiased ${figtree.className}`}
+      className={cn("h-full", "antialiased", figtree.className, "font-sans", geist.variable)}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
