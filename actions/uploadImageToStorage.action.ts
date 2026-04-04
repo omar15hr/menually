@@ -1,3 +1,5 @@
+"use server";
+
 import { createClient } from "@/lib/supabase/server";
 
 export async function uploadImageToStorage(file: File) {
@@ -15,7 +17,7 @@ export async function uploadImageToStorage(file: File) {
   }
 
   const fileExt = file.name.split(".").pop();
-  const fileName = `${user.id}-${Date.now}.${fileExt}`;
+  const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
   const { error } = await supabase.storage
     .from("images")

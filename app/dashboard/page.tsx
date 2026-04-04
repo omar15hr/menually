@@ -1,23 +1,25 @@
-export default function DashboardPage() {
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import DashboardForms from "./forms";
+
+export default async function DashboardPage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { data: menu } = await supabase
+    .from("menus")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-      <form className="flex flex-col max-w-sm border p-4">
-        <span>Formulario de menu</span>
-        <input type="text" placeholder="nobre" className="border" />
-        <button type="submit">Enviar</button>
-      </form>
-
-      <form className="flex flex-col max-w-sm border p-4">
-        <span>Formulario de categoria</span>
-        <input type="text" placeholder="nobre" className="border" />
-        <button type="submit">Enviar</button>
-      </form>
-
-      <form className="flex flex-col max-w-sm border p-4">
-        <span>Formulario de productos</span>
-        <input type="text" placeholder="nobre" className="border" />
-        <button type="submit">Enviar</button>
-      </form>
+      <DashboardForms menu={menu} />
     </div>
   );
 }
