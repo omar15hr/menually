@@ -21,7 +21,6 @@ export async function signIn(
   if (!validated.success) {
     return {
       success: false,
-      message: "Por favor corrige los errores",
       error: "Error al iniciar sesión",
     };
   }
@@ -35,7 +34,6 @@ export async function signIn(
   if (error) {
     return {
       success: false,
-      message: "Error al iniciar sesión",
       error: error.message,
     };
   }
@@ -61,7 +59,6 @@ export async function signUp(
   if (!validated.success) {
     return {
       success: false,
-      message: "Por favor corrige los errores",
       error: "Error al validar los campos",
     };
   }
@@ -80,7 +77,6 @@ export async function signUp(
   if (error) {
     return {
       success: false,
-      message: "Error al crear usuario",
       error: "Error al crear usuario",
     };
   }
@@ -92,7 +88,6 @@ export async function signUp(
   if (user && !user.email_confirmed_at) {
     return {
       success: true,
-      message: "Revisa tu correo electrónico para confirmar tu cuenta",
       error: "Error al crear usuario",
     };
   }
