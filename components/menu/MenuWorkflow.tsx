@@ -13,7 +13,7 @@ interface Props {
   menu: Menu | null;
 }
 
-export default function DashboardForms({ menu: initialMenu }: Props) {
+export default function MenuWorkflow({ menu: initialMenu }: Props) {
   const [menu, setMenu] = useState<Menu | null>(initialMenu);
   const [editMenu, setEditMenu] = useState<Menu | null>(initialMenu);
   const [error, setError] = useState<string | null>(null);

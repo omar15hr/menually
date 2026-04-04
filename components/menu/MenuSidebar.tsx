@@ -12,17 +12,16 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import QRIcon from "../icons/QRIcon";
-import UserSidebarInfo from "./UserCardInfo";
 import MenuallyIcon from "../icons/MenuallyIcon";
 import MenuallyText from "../icons/MenuallyText";
 import SettingsIcon from "../icons/SettingsIcon";
-import OpenBookIcon from "../icons/OpenBookIcon";
-import AnalyticsIcon from "../icons/AnalyticsIcon";
 import SquareGroupIcon from "../icons/SquareGroupIcon";
+import UserSidebarInfo from "../dashboard/UserCardInfo";
+import PaintIcon from "../icons/PaintIcon";
+import QR2Icon from "../icons/QR2Icon";
+import ContentIcon from "../icons/ContentIcon";
 
 const menuLinks = [
   {
@@ -31,29 +30,28 @@ const menuLinks = [
     icon: SquareGroupIcon,
   },
   {
-    name: "Analíticas",
-    url: "/dashboard/analytics",
-    icon: AnalyticsIcon,
+    name: "Gestión de contenidos",
+    url: "/dashboard",
+    icon: ContentIcon,
   },
   {
-    name: "Mi menú",
+    name: "Diseño",
     url: "/dashboard/menu/menu-appearance",
-    icon: OpenBookIcon,
+    icon: PaintIcon,
   },
   {
-    name: "QR",
+    name: "QR y enlace",
     url: "/dashboard/qr",
-    icon: QRIcon,
+    icon: QR2Icon,
   },
 ];
 
-export function AppSidebar() {
+export function MenuSidebar() {
   const { state } = useSidebar();
   const pathname = usePathname();
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarTrigger />
       <SidebarContent className="bg-white">
         <SidebarHeader className="text-2xl text-[#114821] font-bold pb-8 bg-white">
           {state === "collapsed" ? (

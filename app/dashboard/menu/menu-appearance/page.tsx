@@ -1,8 +1,9 @@
+
+import MenuWorkflow from "@/components/menu/MenuWorkflow";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import DashboardForms from "./forms";
 
-export default async function DashboardPage() {
+export default async function MenuAppearancePage() {
   const supabase = await createClient();
 
   const {
@@ -16,10 +17,9 @@ export default async function DashboardPage() {
     .select("*")
     .eq("user_id", user.id)
     .maybeSingle();
-
   return (
-    <div className="p-6">
-      <DashboardForms menu={menu} />
+    <div>
+      <MenuWorkflow menu={menu} />
     </div>
   );
 }
