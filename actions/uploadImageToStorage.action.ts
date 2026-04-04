@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 
-export async function uploadImageToStorage(file: File) {
+export async function uploadImageToStorage(file: File, imagePath: string) {
   const supabase = await createClient();
 
   const {
@@ -20,7 +20,7 @@ export async function uploadImageToStorage(file: File) {
   const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
   const { error } = await supabase.storage
-    .from("images")
+    .from(`/images/${imagePath}`)
     .upload(fileName, file, {
       cacheControl: "3600",
       upsert: false,
@@ -35,7 +35,7 @@ export async function uploadImageToStorage(file: File) {
 
   const {
     data: { publicUrl },
-  } = await supabase.storage.from("images").getPublicUrl(fileName);
+  } = await supabase.storage.from(`/images/${imagePath}`).getPublicUrl(fileName);
 
   return {
     success: true,

@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 
-import type { Database } from "@/types/database.types";
 import CameraIcon from "../icons/CameraIcon";
+import type { Database } from "@/types/database.types";
+import PhotoUpload from "../shared/PhotoUpload";
+import { useState } from "react";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
@@ -44,11 +46,11 @@ const EDITABLE_FIELDS: EditableField[] = [
       { value: "circle", label: "Circular" },
     ],
   },
-  { label: "Color primario", field: "primary_color", type: "color" },
-  { label: "Color de texto", field: "text_color", type: "color" },
-  { label: "Color de fondo", field: "bg_color", type: "color" },
-  { label: "Color de precio", field: "price_color", type: "color" },
-  { label: "Color descripción", field: "description_color", type: "color" },
+  { label: "Primario", field: "primary_color", type: "color" },
+  { label: "Texto", field: "text_color", type: "color" },
+  { label: "Fondo", field: "bg_color", type: "color" },
+  { label: "Precio", field: "price_color", type: "color" },
+  { label: "Descripción", field: "description_color", type: "color" },
   { label: "Mostrar precio", field: "show_price", type: "toggle" },
   {
     label: "Mostrar descripciones",
@@ -57,6 +59,9 @@ const EDITABLE_FIELDS: EditableField[] = [
   },
   { label: "Mostrar filtros", field: "show_filters", type: "toggle" },
 ];
+
+const colorFields = EDITABLE_FIELDS.filter((f) => f.type === "color");
+const otherFields = EDITABLE_FIELDS.filter((f) => f.type !== "color");
 
 interface Props {
   menu: Menu;
@@ -75,6 +80,8 @@ export function MenuEditTable({
   error,
   successMsg,
 }: Props) {
+  const [formData, setFormData] = useState<string>("");
+
   return (
     <div className="flex flex-col w-full max-w-sm bg-white border border-[#E4E4E6]">
       <div className="flex flex-col p-4 border-b">
@@ -95,38 +102,77 @@ export function MenuEditTable({
           <span className="text-sm text-[#1C1C1C] font-semibold shrink-0">
             Logo
           </span>
-          <div className="flex gap-4 justify-center border-2 border-dashed rounded-2xl border-[#E4E4E6] p-4">
-            <div className="flex items-center justify-center bg-[#E5E7EA] size-14 p-4 rounded-full">
-              <CameraIcon />
+          <PhotoUpload
+            imagePath={"logos"}
+            onPhotoUploaded={(url) => {
+              setFormData(url);
+            }}
+          >
+            <div className="flex gap-4 justify-center border-2 border-dashed rounded-2xl border-[#E4E4E6] p-4 cursor-pointer hover:border-[#25B205] transition-colors items-center">
+              {formData ? (
+                <Image
+                  src={formData}
+                  alt="Image placeholder"
+                  width={56}
+                  height={56}
+                  className="rounded-full size-15"
+                />
+              ) : (
+                <span className="bg-[#E5E7EA] px-2.5 py-4 rounded-full">
+                  <CameraIcon />
+                </span>
+              )}
+              <div className="text-sm">
+                <h2 className="text-[#1C1C1C] font-semibold">
+                  Sube una imagen
+                </h2>
+                <p className="text-[#58606E]">Recomendado 328 x 200px PNG.</p>
+                <span className="text-[#25B205]">Seleccionar archivo</span>
+              </div>
             </div>
-            <div className="text-sm">
-              <h2 className="text-[#1C1C1C] font-semibold">Sube una imagen</h2>
-              <p className="text-[#58606E]">Recomendado 328 x 200px PNG.</p>
-              <span className="text-[#25B205]">Seleccionar archivo</span>
-            </div>
-          </div>
+          </PhotoUpload>
         </div>
 
         <div className="flex flex-col gap-2 p-4">
           <span className="text-sm text-[#1C1C1C] font-semibold shrink-0">
             Portada
           </span>
-          <div className="flex gap-4 justify-center border-2 border-dashed rounded-2xl border-[#E4E4E6] p-4">
-            <div className="flex items-center justify-center bg-[#E5E7EA] size-14 p-4 rounded-full">
-              <CameraIcon />
+          <PhotoUpload
+            imagePath={"backgrounds"}
+            onPhotoUploaded={(url) => {
+              setFormData(url);
+            }}
+          >
+            <div className="flex gap-4 justify-center border-2 border-dashed rounded-2xl border-[#E4E4E6] p-4 cursor-pointer hover:border-[#25B205] transition-colors items-center">
+              {formData ? (
+                <Image
+                  src={formData}
+                  alt="Image placeholder"
+                  width={56}
+                  height={56}
+                  className="rounded-full size-15"
+                />
+              ) : (
+                <span className="bg-[#E5E7EA] px-2.5 py-4 rounded-full">
+                  <CameraIcon />
+                </span>
+              )}
+              <div className="text-sm">
+                <h2 className="text-[#1C1C1C] font-semibold">
+                  Sube una imagen
+                </h2>
+                <p className="text-[#58606E]">Recomendado 328 x 200px PNG.</p>
+                <span className="text-[#25B205]">Seleccionar archivo</span>
+              </div>
             </div>
-            <div className="text-sm">
-              <h2 className="text-[#1C1C1C] font-semibold">Sube una imagen</h2>
-              <p className="text-[#58606E]">Recomendado 328 x 200px PNG.</p>
-              <span className="text-[#25B205]">Seleccionar archivo</span>
-            </div>
-          </div>
+          </PhotoUpload>
         </div>
 
-        {EDITABLE_FIELDS.map(({ label, field, type, options }) => (
-          <Row key={field} label={label}>
-            {type === "color" && (
-              <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col gap-2 px-4 py-3">
+          <span className="text-sm text-[#1C1C1C] font-semibold">Colores</span>
+          <div className="flex flex-row flex-wrap gap-x-4 gap-y-3">
+            {colorFields.map(({ label, field }) => (
+              <div key={field} className="flex flex-col items-center gap-1">
                 <input
                   id={`edit-${field}`}
                   type="color"
@@ -134,12 +180,19 @@ export function MenuEditTable({
                   onChange={(e) => onChange(field, e.target.value)}
                   className="size-10 rounded-md cursor-pointer p-0.5"
                 />
-                <span className="text-xs text-gray-400 font-mono">
+                <span className="text-xs font-mono text-gray-400">
                   {menu[field] as string}
                 </span>
+                <span className="text-xs text-[#58606E] text-center leading-tight max-w-14">
+                  {label}
+                </span>
               </div>
-            )}
+            ))}
+          </div>
+        </div>
 
+        {otherFields.map(({ label, field, type, options }) => (
+          <Row key={field} label={label}>
             {type === "select" && options && (
               <select
                 id={`edit-${field}`}
@@ -207,7 +260,7 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-start justify-between px-4 py-3 min-h-12">
+    <div className="flex flex-col items-start px-4 py-3 min-h-12 gap-2">
       <span className="text-sm text-[#1C1C1C] font-semibold shrink-0">
         {label}
       </span>

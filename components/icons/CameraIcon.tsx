@@ -1,8 +1,8 @@
 export default function CameraIcon() {
   return (
     <svg
-      width="32"
-      height="29"
+      width="38"
+      height="25"
       viewBox="0 0 32 29"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
