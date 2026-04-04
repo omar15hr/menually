@@ -1,8 +1,12 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/utils/slug";
 import { createClient } from "@/lib/supabase/server";
+import {
+  updateMenuSchema,
+  type UpdateMenuSchema,
+} from "@/lib/validations/menu.schemas";
 
 async function resolveUniqueSlug(baseSlug: string) {
   const supabase = await createClient();
@@ -45,7 +49,7 @@ export async function createMenu() {
     return {
       success: false,
       error: "Completa tu perfil antes de crear un menú",
-      data: null
+      data: null,
     };
   }
 
@@ -62,10 +66,11 @@ export async function createMenu() {
     return {
       success: false,
       error: null,
+      data: null,
     };
   }
 
-  const { error } = await supabase.from("menus").insert({
+  const { data, error } = await supabase.from("menus").insert({
     user_id: user.id,
     slug,
   });
@@ -73,9 +78,51 @@ export async function createMenu() {
   if (error) {
     return {
       success: false,
+      data: null,
       error: "Error al crear el menú. Intenta de nuevo.",
     };
   }
 
-  redirect(`/dashboard`);
+  revalidatePath(`/dashboard`);
+  return { success: true, data, error: null };
+}
+
+export async function updateMenu(menuId: string, data: UpdateMenuSchema) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "No autenticado" };
+  }
+
+  const { data: existing } = await supabase
+    .from("menus")
+    .select("id")
+    .eq("id", menuId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!existing) {
+    return { success: false, error: "Menú no encontrado" };
+  }
+
+  const parsed = updateMenuSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const { error } = await supabase
+    .from("menus")
+    .update(parsed.data)
+    .eq("id", menuId);
+
+  if (error) {
+    return { success: false, error: "Error al actualizar el menú" };
+  }
+
+  revalidatePath("/dashboard");
+  return { success: true, error: null };
 }

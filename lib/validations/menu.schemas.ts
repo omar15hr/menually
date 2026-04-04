@@ -1,24 +1,20 @@
-// lib/validations/menu.schema.ts
 import { z } from "zod";
 
-export const menuSchema = z.object({
-  slug: z
-    .string()
-    .min(3, "Mínimo 3 caracteres")
-    .max(60, "Máximo 60 caracteres")
-    .regex(/^[a-z0-9-]+$/, "Solo letras minúsculas, números y guiones"),
-  primary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color inválido"),
-  text_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color inválido"),
-  bg_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color inválido"),
-  price_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color inválido"),
-  bg_image_url: z.string().url("URL inválida").or(z.literal("")),
-  logo_url: z.string().url("URL inválida").or(z.literal("")).optional(),
-  typography: z.enum(["inter", "playfair", "roboto", "poppins", "lato"]),
+export const updateMenuSchema = z.object({
+  is_active: z.boolean(),
+  show_price: z.boolean(),
+  show_filters: z.boolean(),
+  show_descriptions: z.boolean(),
   layout_card: z.enum(["grid", "list", "masonry"]),
+  typography: z.enum(["inter", "roboto", "montserrat"]),
+  logo_url: z.string().url("URL inválida").or(z.literal("")),
   image_product_shape: z.enum(["square", "rounded", "circle"]),
-  show_price: z.enum(["true", "false"]),
-  show_descriptions: z.enum(["true", "false"]),
-  show_filters: z.enum(["true", "false"]),
+  bg_image_url: z.string().url("URL inválida").or(z.literal("")),
+  bg_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color inválido"),
+  text_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color inválido"),
+  price_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color inválido"),
+  primary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color inválido"),
+  description_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color inválido"),
 });
 
-export type MenuSchema = z.infer<typeof menuSchema>;
+export type UpdateMenuSchema = z.infer<typeof updateMenuSchema>;
