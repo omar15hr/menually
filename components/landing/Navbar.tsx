@@ -33,13 +33,13 @@ export function Navbar() {
 
           <div className="flex items-center gap-3">
             <Link
-              href="/signin"
+              href="/auth/signin"
               className="border border-[#114821] text-[#114821] bg-white px-4 py-2 rounded-lg font-bold text-base cursor-pointer"
             >
               Iniciar sesión
             </Link>
             <Link
-              href="/signup"
+              href="/auth/signup"
               className="border border-[#CDF545] bg-[#CDF545] text-[#114821] px-4 py-2 rounded-lg font-bold text-base cursor-pointer"
             >
               Regístrate
