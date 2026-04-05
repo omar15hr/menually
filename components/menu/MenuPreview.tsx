@@ -8,6 +8,8 @@ type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
 interface Props {
   menu: Menu;
+  logoUrlSelected: string;
+  coverUrlSelected: string;
 }
 
 const MOCK_PRODUCTS = [
@@ -43,11 +45,13 @@ const MOCK_PRODUCTS = [
 
 const MOCK_TABS = ["Nombre tab", "Nombre tab", "Nombre tab"];
 
-export function MenuPreview({ menu }: Props) {
+export function MenuPreview({ menu, logoUrlSelected, coverUrlSelected }: Props) {
   const [activeTab, setActiveTab] = useState(0);
 
-  const formatPrice = (price: number) =>
-    `$${price.toLocaleString("es-CL")}`;
+  const formatPrice = (price: number) => `$${price.toLocaleString("es-CL")}`;
+
+  const coverImage = coverUrlSelected ? coverUrlSelected : menu.bg_image_url;
+  const logoImage = logoUrlSelected ? logoUrlSelected : menu.logo_url;
 
   return (
     <div
@@ -57,12 +61,15 @@ export function MenuPreview({ menu }: Props) {
         height: 600,
         flexShrink: 0,
         fontFamily: menu.typography || "inherit",
-        backgroundColor: menu.bg_color
+        backgroundColor: menu.bg_color,
       }}
     >
-      <div className="relative w-full flex items-center justify-center" style={{ height: 160 }}>
+      <div
+        className="relative w-full flex items-center justify-center"
+        style={{ height: 160 }}
+      >
         <Image
-          src={menu.bg_image_url}
+          src={coverImage}
           alt="Portada del menú"
           fill
           className="object-cover rounded-2xl"
@@ -72,7 +79,7 @@ export function MenuPreview({ menu }: Props) {
           className="absolute bg-[#D1D5DB] border-2 border-white rounded-full overflow-hidden flex items-center justify-center"
           style={{ width: 52, height: 52, bottom: -26, left: 16 }}
         >
-          <Image src={menu.logo_url} alt="Logo" fill className="object-cover" />
+          <Image src={logoImage} alt="Logo" fill className="object-cover" />
         </div>
       </div>
 
@@ -81,22 +88,31 @@ export function MenuPreview({ menu }: Props) {
           <p
             className="font-bold text-base leading-tight"
             style={{ color: menu.text_color || "#000000" }}
-          >Nombre del local</p>
+          >
+            Nombre del local
+          </p>
           <p
             className="text-sm leading-tight mt-0.5"
             style={{ color: menu.description_color || "#6B7280" }}
-          >Bajada o slogan</p>
+          >
+            Bajada o slogan
+          </p>
         </div>
-        {
-          menu.show_filters && (
-            <button className="flex items-center gap-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-600 font-medium whitespace-nowrap shrink-0 mt-0.5">
-              Español
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-          )
-        }
+        {menu.show_filters && (
+          <button className="flex items-center gap-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-600 font-medium whitespace-nowrap shrink-0 mt-0.5">
+            Español
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+        )}
       </div>
 
       <div className="flex border-b border-gray-100 px-4 gap-5 mt-1">
@@ -106,8 +122,12 @@ export function MenuPreview({ menu }: Props) {
             onClick={() => setActiveTab(i)}
             className="pb-2 text-base font-bold whitespace-nowrap"
             style={{
-              color: activeTab === i ? (menu.primary_color || "#2563EB") : "#9CA3AF",
-              borderBottom: activeTab === i ? `2px solid ${menu.primary_color || "#2563EB"}` : "2px solid transparent",
+              color:
+                activeTab === i ? menu.primary_color || "#2563EB" : "#9CA3AF",
+              borderBottom:
+                activeTab === i
+                  ? `2px solid ${menu.primary_color || "#2563EB"}`
+                  : "2px solid transparent",
             }}
           >
             {tab}
@@ -147,7 +167,9 @@ export function MenuPreview({ menu }: Props) {
               </div>
 
               {/* Text + Price */}
-              <div className={`flex min-w-0 ${isVertical ? "flex-col" : "flex-1 flex-row items-center gap-3"}`}>
+              <div
+                className={`flex min-w-0 ${isVertical ? "flex-col" : "flex-1 flex-row items-center gap-3"}`}
+              >
                 <div className="flex-1 min-w-0">
                   <p
                     className="font-semibold text-sm leading-tight truncate"

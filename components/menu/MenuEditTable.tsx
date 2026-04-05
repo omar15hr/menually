@@ -3,9 +3,8 @@
 import Image from "next/image";
 
 import CameraIcon from "../icons/CameraIcon";
-import type { Database } from "@/types/database.types";
 import PhotoUpload from "../shared/PhotoUpload";
-import { useState } from "react";
+import type { Database } from "@/types/database.types";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
@@ -65,11 +64,15 @@ const otherFields = EDITABLE_FIELDS.filter((f) => f.type !== "color");
 
 interface Props {
   menu: Menu;
-  onChange: (field: keyof Menu, value: string | boolean) => void;
   onSave: () => void;
   isPending: boolean;
   error: string | null;
   successMsg: string | null;
+  logoUrl: string;
+  coverUrl: string;
+  onLogoUrlSelected: (url: string) => void;
+  onCoverUrlSelected: (url: string) => void;
+  onChange: (field: keyof Menu, value: string | boolean) => void;
 }
 
 export function MenuEditTable({
@@ -79,8 +82,12 @@ export function MenuEditTable({
   isPending,
   error,
   successMsg,
+  logoUrl,
+  coverUrl,
+  onLogoUrlSelected,
+  onCoverUrlSelected,
 }: Props) {
-  const [formData, setFormData] = useState<string>("");
+  
 
   return (
     <div className="flex flex-col w-full max-w-sm bg-white border border-[#E4E4E6]">
@@ -104,14 +111,12 @@ export function MenuEditTable({
           </span>
           <PhotoUpload
             imagePath={"logos"}
-            onPhotoUploaded={(url) => {
-              setFormData(url);
-            }}
+            onPhotoUploaded={onLogoUrlSelected}
           >
             <div className="flex gap-4 justify-center border-2 border-dashed rounded-2xl border-[#E4E4E6] p-4 cursor-pointer hover:border-[#25B205] transition-colors items-center">
-              {formData ? (
+              {logoUrl ? (
                 <Image
-                  src={formData}
+                  src={logoUrl}
                   alt="Image placeholder"
                   width={56}
                   height={56}
@@ -139,14 +144,12 @@ export function MenuEditTable({
           </span>
           <PhotoUpload
             imagePath={"backgrounds"}
-            onPhotoUploaded={(url) => {
-              setFormData(url);
-            }}
+            onPhotoUploaded={onCoverUrlSelected}
           >
             <div className="flex gap-4 justify-center border-2 border-dashed rounded-2xl border-[#E4E4E6] p-4 cursor-pointer hover:border-[#25B205] transition-colors items-center">
-              {formData ? (
+              {coverUrl ? (
                 <Image
-                  src={formData}
+                  src={coverUrl}
                   alt="Image placeholder"
                   width={56}
                   height={56}
@@ -170,7 +173,7 @@ export function MenuEditTable({
 
         <div className="flex flex-col gap-2 px-4 py-3">
           <span className="text-sm text-[#1C1C1C] font-semibold">Colores</span>
-          <div className="flex flex-row flex-wrap gap-x-4 gap-y-3">
+          <div className="flex flex-row flex-wrap gap-x-4 gap-y-3 justify-between px-2">
             {colorFields.map(({ label, field }) => (
               <div key={field} className="flex flex-col items-center gap-1">
                 <input

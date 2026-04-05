@@ -42,7 +42,7 @@ export default function PhotoUpload({ onPhotoUploaded, imagePath, children }: Pr
         setError(result.error ?? "Error al subir la imagen");
       }
     } catch (err) {
-      setError("Fallo al subir la imagen");
+      setError(`${err}: Fallo al subir la imagen`);
     } finally {
       setUploading(false);
     }

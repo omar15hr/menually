@@ -19,6 +19,8 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [logoUrl, setLogoUrl] = useState<string>("");
+  const [coverUrl, setCoverUrl] = useState<string>("");
 
   function handleCreate() {
     setError(null);
@@ -55,7 +57,8 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
       logo_url: editMenu.logo_url,
       typography: editMenu.typography as UpdateMenuSchema["typography"],
       layout_card: editMenu.layout_card as UpdateMenuSchema["layout_card"],
-      image_product_shape: editMenu.image_product_shape as UpdateMenuSchema["image_product_shape"],
+      image_product_shape:
+        editMenu.image_product_shape as UpdateMenuSchema["image_product_shape"],
       show_price: editMenu.show_price,
       show_descriptions: editMenu.show_descriptions,
       show_filters: editMenu.show_filters,
@@ -94,15 +97,23 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
   return (
     <div className="flex gap-6 bg-[#FBFBFA] items-start">
       <MenuEditTable
+        error={error}
         menu={editMenu}
-        onChange={handleFieldChange}
         onSave={handleSave}
         isPending={isPending}
-        error={error}
         successMsg={successMsg}
+        onChange={handleFieldChange}
+        logoUrl={logoUrl}
+        onLogoUrlSelected={setLogoUrl}
+        coverUrl={coverUrl}
+        onCoverUrlSelected={setCoverUrl}
       />
 
-      <MenuPreview menu={editMenu} />
+      <MenuPreview
+        menu={editMenu}
+        logoUrlSelected={logoUrl}
+        coverUrlSelected={coverUrl}
+      />
     </div>
   );
 }
