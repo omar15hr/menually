@@ -19,8 +19,8 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [logoUrl, setLogoUrl] = useState<string>("");
-  const [coverUrl, setCoverUrl] = useState<string>("");
+  const [logoUrl, setLogoUrl] = useState<string>(initialMenu?.logo_url ?? "");
+  const [coverUrl, setCoverUrl] = useState<string>(initialMenu?.bg_image_url ?? "");
 
   function handleCreate() {
     setError(null);
@@ -34,6 +34,16 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
       setMenu(result.data);
       setEditMenu(result.data);
     });
+  }
+
+  function handleLogoUrlSelected(url: string) {
+    setLogoUrl(url);
+    setEditMenu((prev) => (prev ? { ...prev, logo_url: url } : prev));
+  }
+
+  function handleCoverUrlSelected(url: string) {
+    setCoverUrl(url);
+    setEditMenu((prev) => (prev ? { ...prev, bg_image_url: url } : prev));
   }
 
   function handleFieldChange(field: keyof Menu, value: string | boolean) {
@@ -67,12 +77,15 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
     startTransition(async () => {
       const result = await updateMenu(editMenu.id, payload);
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         setError(result.error ?? "Error desconocido");
         return;
       }
 
-      setMenu(editMenu);
+      setMenu(result.data);
+      setEditMenu(result.data);
+      setLogoUrl(result.data.logo_url ?? "");
+      setCoverUrl(result.data.bg_image_url ?? "");
       setSuccessMsg("Menú actualizado correctamente");
       setTimeout(() => setSuccessMsg(null), 3000);
     });
@@ -112,9 +125,9 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
           successMsg={successMsg}
           onChange={handleFieldChange}
           logoUrl={logoUrl}
-          onLogoUrlSelected={setLogoUrl}
+          onLogoUrlSelected={handleLogoUrlSelected}
           coverUrl={coverUrl}
-          onCoverUrlSelected={setCoverUrl}
+          onCoverUrlSelected={handleCoverUrlSelected}
         />
 
         <MenuPreview

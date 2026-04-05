@@ -110,19 +110,23 @@ export async function updateMenu(menuId: string, data: UpdateMenuSchema) {
   }
 
   const parsed = updateMenuSchema.safeParse(data);
+  console.log(parsed)
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
   }
 
-  const { error } = await supabase
+  const { data: updatedMenu, error: updateError } = await supabase
     .from("menus")
     .update(parsed.data)
-    .eq("id", menuId);
+    .eq("id", menuId)
+    .select()
+    .single();
 
-  if (error) {
+  if (updateError) {
+    console.log("UPDATE ERROR:", updateError);
     return { success: false, error: "Error al actualizar el menú" };
   }
 
   revalidatePath("/dashboard");
-  return { success: true, error: null };
+  return { success: true, data: updatedMenu, error: null };
 }
