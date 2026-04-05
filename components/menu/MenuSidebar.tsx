@@ -31,7 +31,7 @@ const menuLinks = [
   },
   {
     name: "Gestión de contenidos",
-    url: "/dashboard",
+    url: "/dashboard/menu/menu-content",
     icon: ContentIcon,
   },
   {
