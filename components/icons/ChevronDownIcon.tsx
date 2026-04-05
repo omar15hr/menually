@@ -1,16 +1,23 @@
-export default function ChevronDownIcon() {
+interface Props {
+  className?: string;
+}
+
+export default function ChevronDownIcon({ className }: Props) {
   return (
     <svg
-      width="8"
-      height="5"
-      viewBox="0 0 8 5"
-      fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`"icon icon-tabler icons-tabler-outline icon-tabler-chevron-down" ${className}`}
     >
-      <path
-        d="M1.14167 0.195L3.72833 2.78167L6.315 0.195C6.575 -0.065 6.995 -0.065 7.255 0.195C7.515 0.455 7.515 0.875 7.255 1.135L4.195 4.195C3.935 4.455 3.515 4.455 3.255 4.195L0.195 1.135C-0.065 0.875 -0.065 0.455 0.195 0.195C0.455 -0.0583333 0.881667 -0.065 1.14167 0.195Z"
-        fill="#58606E"
-      />
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M6 9l6 6l6 -6" />
     </svg>
   );
 }

@@ -5,6 +5,13 @@ import Image from "next/image";
 import CameraIcon from "../icons/CameraIcon";
 import PhotoUpload from "../shared/PhotoUpload";
 import type { Database } from "@/types/database.types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
@@ -109,8 +116,8 @@ export function MenuEditTable({
                 <Image
                   src={logoUrl}
                   alt="Image placeholder"
-                  width={56}
-                  height={56}
+                  width={300}
+                  height={300}
                   className="rounded-full size-15"
                 />
               ) : (
@@ -142,8 +149,8 @@ export function MenuEditTable({
                 <Image
                   src={coverUrl}
                   alt="Image placeholder"
-                  width={56}
-                  height={56}
+                  width={300}
+                  height={300}
                   className="rounded-full size-15"
                 />
               ) : (
@@ -191,39 +198,13 @@ export function MenuEditTable({
             label={label}
             layout={type === "toggle" ? "row" : "col"}
           >
-            {type === "select" && options && (
-              <select
-                id={`edit-${field}`}
-                value={menu[field] as string}
-                onChange={(e) => onChange(field, e.target.value)}
-                className="px-2.5 py-1.5 border border-[#E4E4E6] rounded-lg text-sm bg-[#FBFBFA] focus:outline-none focus:ring-2 focus:ring-black/10 transition-shadow cursor-pointer"
-              >
-                {options.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {type === "toggle" && (
-              <button
-                id={`edit-${field}`}
-                type="button"
-                role="switch"
-                aria-checked={menu[field] as boolean}
-                onClick={() => onChange(field, !(menu[field] as boolean))}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:ring-offset-2 ${
-                  menu[field] ? "bg-[#114821]" : "bg-gray-200"
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transform ring-0 transition duration-200 ease-in-out ${
-                    menu[field] ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
-              </button>
-            )}
+            <FieldInput
+              field={field}
+              type={type}
+              value={menu[field]}
+              options={options}
+              onChange={onChange}
+            />
           </Row>
         ))}
       </div>
@@ -265,4 +246,62 @@ function Row({
       {children}
     </div>
   );
+}
+
+interface FieldInputProps {
+  field: keyof Menu;
+  type: EditableField["type"];
+  value: Menu[keyof Menu];
+  options?: EditableField["options"];
+  onChange: (field: keyof Menu, value: string | boolean) => void;
+}
+
+function FieldInput({
+  field,
+  type,
+  value,
+  options,
+  onChange,
+}: FieldInputProps) {
+  if (type === "select" && options) {
+    return (
+      <Select
+        value={value as string}
+        onValueChange={(val) => onChange(field, val)}
+      >
+        <SelectTrigger className="w-full border-[#E4E4E6] bg-[#FBFBFA] text-sm focus:ring-black/10">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+
+  if (type === "toggle") {
+    return (
+      <button
+        type="button"
+        role="switch"
+        aria-checked={value as boolean}
+        onClick={() => onChange(field, !(value as boolean))}
+        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:ring-offset-2 ${
+          value ? "bg-[#114821]" : "bg-gray-200"
+        }`}
+      >
+        <span
+          className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transform ring-0 transition duration-200 ease-in-out ${
+            value ? "translate-x-5" : "translate-x-0"
+          }`}
+        />
+      </button>
+    );
+  }
+
+  return null;
 }
