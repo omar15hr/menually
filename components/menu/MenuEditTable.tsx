@@ -88,8 +88,6 @@ interface Props {
 export function MenuEditTable({
   menu,
   onChange,
-  error,
-  successMsg,
   logoUrl,
   coverUrl,
   onLogoUrlSelected,
@@ -269,17 +267,6 @@ export function MenuEditTable({
           ))}
         </div>
       </div>
-
-      {error && (
-        <div className="mt-3 px-4 py-2.5 text-red-700 text-sm bg-red-50 border border-red-200 rounded-lg">
-          {error}
-        </div>
-      )}
-      {successMsg && (
-        <div className="mt-3 px-4 py-2.5 text-green-700 text-sm bg-green-50 border border-green-200 rounded-lg">
-          {successMsg}
-        </div>
-      )}
     </div>
   );
 }

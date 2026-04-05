@@ -45,13 +45,26 @@ const MOCK_PRODUCTS = [
 
 const MOCK_TABS = ["Nombre tab", "Nombre tab", "Nombre tab"];
 
-export function MenuPreview({ menu, logoUrlSelected, coverUrlSelected }: Props) {
+const shapeMap: Record<string, string> = {
+  square: "rounded-none",
+  rounded: "rounded-xl",
+  circle: "rounded-full",
+};
+
+export function MenuPreview({
+  menu,
+  logoUrlSelected,
+  coverUrlSelected,
+}: Props) {
   const [activeTab, setActiveTab] = useState(0);
 
   const formatPrice = (price: number) => `$${price.toLocaleString("es-CL")}`;
 
   const coverImage = coverUrlSelected ? coverUrlSelected : menu.bg_image_url;
   const logoImage = logoUrlSelected ? logoUrlSelected : menu.logo_url;
+
+  const imageShape =
+    shapeMap[menu.image_product_shape ?? "rounded"] ?? "rounded-xl";
 
   return (
     <div
@@ -145,7 +158,7 @@ export function MenuPreview({ menu, logoUrlSelected, coverUrlSelected }: Props) 
               className={`flex gap-3 py-3 ${isVertical ? "flex-col" : "flex-row items-center"}`}
             >
               <div
-                className={`rounded-xl overflow-hidden bg-[#F5EEE8] shrink-0 flex items-center justify-center ${isVertical ? "w-full" : ""}`}
+                className={`${imageShape} overflow-hidden bg-[#F5EEE8] shrink-0 flex items-center justify-center ${isVertical ? "w-full" : ""}`}
                 style={isVertical ? { height: 120 } : { width: 56, height: 56 }}
               >
                 <svg

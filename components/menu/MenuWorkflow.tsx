@@ -6,6 +6,7 @@ import { createMenu, updateMenu } from "@/actions/menu.action";
 import type { Database } from "@/types/database.types";
 import type { UpdateMenuSchema } from "@/lib/validations/menu.schemas";
 import React, { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
@@ -20,7 +21,9 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [logoUrl, setLogoUrl] = useState<string>(initialMenu?.logo_url ?? "");
-  const [coverUrl, setCoverUrl] = useState<string>(initialMenu?.bg_image_url ?? "");
+  const [coverUrl, setCoverUrl] = useState<string>(
+    initialMenu?.bg_image_url ?? "",
+  );
 
   function handleCreate() {
     setError(null);
@@ -79,6 +82,7 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
 
       if (!result.success || !result.data) {
         setError(result.error ?? "Error desconocido");
+        toast.error("Error desconocido");
         return;
       }
 
@@ -86,8 +90,7 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
       setEditMenu(result.data);
       setLogoUrl(result.data.logo_url ?? "");
       setCoverUrl(result.data.bg_image_url ?? "");
-      setSuccessMsg("Menú actualizado correctamente");
-      setTimeout(() => setSuccessMsg(null), 3000);
+      toast.success("Menú actualizado correctamente");
     });
   }
 

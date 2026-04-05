@@ -110,7 +110,6 @@ export async function updateMenu(menuId: string, data: UpdateMenuSchema) {
   }
 
   const parsed = updateMenuSchema.safeParse(data);
-  console.log(parsed)
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
   }
