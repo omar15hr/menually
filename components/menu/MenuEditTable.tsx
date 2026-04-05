@@ -64,8 +64,6 @@ const otherFields = EDITABLE_FIELDS.filter((f) => f.type !== "color");
 
 interface Props {
   menu: Menu;
-  onSave: () => void;
-  isPending: boolean;
   error: string | null;
   successMsg: string | null;
   logoUrl: string;
@@ -78,8 +76,6 @@ interface Props {
 export function MenuEditTable({
   menu,
   onChange,
-  onSave,
-  isPending,
   error,
   successMsg,
   logoUrl,
@@ -87,8 +83,6 @@ export function MenuEditTable({
   onLogoUrlSelected,
   onCoverUrlSelected,
 }: Props) {
-  
-
   return (
     <div className="flex flex-col w-full max-w-sm bg-white border border-[#E4E4E6]">
       <div className="flex flex-col p-4 border-b">
@@ -109,10 +103,7 @@ export function MenuEditTable({
           <span className="text-sm text-[#1C1C1C] font-semibold shrink-0">
             Logo
           </span>
-          <PhotoUpload
-            imagePath={"logos"}
-            onPhotoUploaded={onLogoUrlSelected}
-          >
+          <PhotoUpload imagePath={"logos"} onPhotoUploaded={onLogoUrlSelected}>
             <div className="flex gap-4 justify-center border-2 border-dashed rounded-2xl border-[#E4E4E6] p-4 cursor-pointer hover:border-[#25B205] transition-colors items-center">
               {logoUrl ? (
                 <Image
@@ -195,7 +186,11 @@ export function MenuEditTable({
         </div>
 
         {otherFields.map(({ label, field, type, options }) => (
-          <Row key={field} label={label}>
+          <Row
+            key={field}
+            label={label}
+            layout={type === "toggle" ? "row" : "col"}
+          >
             {type === "select" && options && (
               <select
                 id={`edit-${field}`}
@@ -219,7 +214,7 @@ export function MenuEditTable({
                 aria-checked={menu[field] as boolean}
                 onClick={() => onChange(field, !(menu[field] as boolean))}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:ring-offset-2 ${
-                  menu[field] ? "bg-black" : "bg-gray-200"
+                  menu[field] ? "bg-[#114821]" : "bg-gray-200"
                 }`}
               >
                 <span
@@ -243,14 +238,6 @@ export function MenuEditTable({
           {successMsg}
         </div>
       )}
-
-      <button
-        onClick={onSave}
-        disabled={isPending}
-        className="mt-4 w-full px-4 py-2.5 text-sm font-medium bg-black text-white rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isPending ? "Guardando..." : "Guardar cambios"}
-      </button>
     </div>
   );
 }
@@ -258,12 +245,20 @@ export function MenuEditTable({
 function Row({
   label,
   children,
+  layout = "col",
 }: {
   label: string;
   children: React.ReactNode;
+  layout?: "row" | "col";
 }) {
   return (
-    <div className="flex flex-col items-start px-4 py-3 min-h-12 gap-2">
+    <div
+      className={`flex px-4 py-3 min-h-12 ${
+        layout === "row"
+          ? "flex-row items-center justify-between"
+          : "flex-col items-start gap-2"
+      }`}
+    >
       <span className="text-sm text-[#1C1C1C] font-semibold shrink-0">
         {label}
       </span>

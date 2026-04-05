@@ -55,7 +55,7 @@ export function MenuPreview({ menu, logoUrlSelected, coverUrlSelected }: Props) 
 
   return (
     <div
-      className="relative flex flex-col bg-white rounded-2xl overflow-hidden p-2 border border-[#E4E4E6] my-6"
+      className="relative flex flex-col bg-white rounded-2xl overflow-hidden p-2 border border-[#E4E4E6] my-10 mx-auto"
       style={{
         width: 344,
         height: 600,
@@ -144,7 +144,6 @@ export function MenuPreview({ menu, logoUrlSelected, coverUrlSelected }: Props) 
               key={product.id}
               className={`flex gap-3 py-3 ${isVertical ? "flex-col" : "flex-row items-center"}`}
             >
-              {/* Image */}
               <div
                 className={`rounded-xl overflow-hidden bg-[#F5EEE8] shrink-0 flex items-center justify-center ${isVertical ? "w-full" : ""}`}
                 style={isVertical ? { height: 120 } : { width: 56, height: 56 }}
@@ -166,7 +165,6 @@ export function MenuPreview({ menu, logoUrlSelected, coverUrlSelected }: Props) 
                 </svg>
               </div>
 
-              {/* Text + Price */}
               <div
                 className={`flex min-w-0 ${isVertical ? "flex-col" : "flex-1 flex-row items-center gap-3"}`}
               >

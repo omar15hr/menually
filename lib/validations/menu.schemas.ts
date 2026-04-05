@@ -5,7 +5,7 @@ export const updateMenuSchema = z.object({
   show_price: z.boolean(),
   show_filters: z.boolean(),
   show_descriptions: z.boolean(),
-  layout_card: z.enum(["grid", "list", "masonry"]),
+  layout_card: z.enum(["horizontal", "vertical"]),
   typography: z.enum(["inter", "roboto", "montserrat"]),
   logo_url: z.string().url("URL inválida").or(z.literal("")),
   image_product_shape: z.enum(["square", "rounded", "circle"]),
