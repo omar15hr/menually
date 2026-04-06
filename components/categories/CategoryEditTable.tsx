@@ -13,6 +13,7 @@ import { createCategory } from "@/actions/categories.action";
 import { toast } from "sonner";
 import GrapIcon from "../icons/GrapIcon";
 import { cn } from "@/lib/utils";
+import { useMenuStore } from "@/store/useMenuStore";
 
 type CategoryWithProducts = Category & {
   products: Tables<"products">[];
@@ -20,21 +21,17 @@ type CategoryWithProducts = Category & {
 
 interface Props {
   menuId: string;
-  categories: CategoryWithProducts[];
-  selectedCategoryId: string | null;
-  selectedProductId: string | null;
-  onSelectCategory: (id: string) => void;
-  onSelectProduct: (id: string) => void;
 }
 
-export default function CategoryEditTable({
-  categories,
-  menuId,
-  selectedCategoryId,
-  selectedProductId,
-  onSelectCategory,
-  onSelectProduct,
-}: Props) {
+export default function CategoryEditTable({ menuId }: Props) {
+  const {
+    categories,
+    selectedCategoryId,
+    selectedProductId,
+    selectCategory,
+    selectProduct,
+  } = useMenuStore();
+
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
@@ -110,7 +107,7 @@ export default function CategoryEditTable({
                     : "2px solid transparent",
                 }}
                 onClick={() => {
-                  onSelectCategory(category.id);
+                  selectCategory(category.id);
                 }}
                 aria-pressed={isSelected}
               >
@@ -125,7 +122,7 @@ export default function CategoryEditTable({
                     return (
                       <button
                         key={product.id}
-                        onClick={() => onSelectProduct(product.id)}
+                        onClick={() => selectProduct(product.id)}
                         className={cn(
                           "block w-full text-left p-2 text-xs text-[#58606E] my-1",
                           isProductSelected && "bg-gray-200",

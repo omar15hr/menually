@@ -28,7 +28,6 @@ const OPTIONS = [
   { label: "Vegetariano", value: "vegetarian" },
 ];
 
-
 interface Props {
   categoryId: string;
   product?: Product | null;
@@ -93,10 +92,7 @@ export default function ProductForm({ categoryId, product }: Props) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label
-          htmlFor="product-description"
-          className="text-[#58606E] text-sm"
-        >
+        <Label htmlFor="product-description" className="text-[#58606E] text-sm">
           Descripción del producto
         </Label>
         <Textarea
@@ -122,7 +118,10 @@ export default function ProductForm({ categoryId, product }: Props) {
 
       <div className="flex flex-col gap-2">
         <span className="text-[#58606E] text-sm">Imagen del producto</span>
-        <PhotoUpload imagePath={"products"} onPhotoUploaded={setProductImageUrl}>
+        <PhotoUpload
+          imagePath={"products"}
+          onPhotoUploaded={setProductImageUrl}
+        >
           <div
             className={cn(
               "flex gap-4 justify-center rounded-2xl p-4 cursor-pointer transition-colors items-center",
@@ -150,9 +149,7 @@ export default function ProductForm({ categoryId, product }: Props) {
                   <h2 className="text-[#1C1C1C] font-semibold">
                     Sube una imagen
                   </h2>
-                  <p className="text-[#58606E]">
-                    Recomendado 328 x 200px PNG.
-                  </p>
+                  <p className="text-[#58606E]">Recomendado 328 x 200px PNG.</p>
                   <span className="text-[#25B205]">Seleccionar archivo</span>
                 </div>
               ) : (
@@ -165,9 +162,6 @@ export default function ProductForm({ categoryId, product }: Props) {
           </div>
         </PhotoUpload>
       </div>
-<div>
-  {product?.image_url}
-</div>
       <div className="flex items-center justify-between">
         <Button
           type="submit"

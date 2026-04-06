@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { Database } from "@/types/database.types";
+import { useEffect } from "react";
 import CategoryEditTable from "./CategoryEditTable";
 import ProductPanel from "../products/ProductPanel";
+import { useMenuStore } from "@/store/useMenuStore";
+import type { Database } from "@/types/database.types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
@@ -17,39 +18,26 @@ interface Props {
 }
 
 export default function CategoriesWorkflow({ menuId, categories }: Props) {
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    () => categories[0]?.id ?? null,
-  );
+  const { setCategories, selectCategory, selectedCategoryId } = useMenuStore();
 
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(
-    null,
-  );
+  // Hydrate store with categories from server
+  useEffect(() => {
+    setCategories(categories);
+  }, [categories, setCategories]);
 
-  const selectedCategory = useMemo(
-    () => categories.find((c) => c.id === selectedCategoryId),
-    [categories, selectedCategoryId],
-  );
+  // Select first category if none selected
+  useEffect(() => {
+    if (!selectedCategoryId && categories.length > 0) {
+      selectCategory(categories[0].id);
+    }
+  }, [categories, selectedCategoryId, selectCategory]);
 
   return (
     <div className="flex flex-col">
       <div className="flex gap-6 bg-[#FBFBFA] items-start">
-        <CategoryEditTable
-          menuId={menuId}
-          categories={categories}
-          selectedCategoryId={selectedCategoryId}
-          selectedProductId={selectedProductId}
-          onSelectCategory={(id) => {
-            setSelectedCategoryId(id);
-            setSelectedProductId(null);
-          }}
-          onSelectProduct={(id) => setSelectedProductId(id)}
-        />
+        <CategoryEditTable menuId={menuId} />
 
-        <ProductPanel
-          category={selectedCategory}
-          selectedProductId={selectedProductId}
-          onSelectProduct={(id) => setSelectedProductId(id)}
-        />
+        <ProductPanel />
       </div>
     </div>
   );

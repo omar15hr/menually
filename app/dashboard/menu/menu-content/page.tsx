@@ -23,13 +23,7 @@ export default async function MenuContentPage() {
   .from("categories")
   .select(`
     *,
-    products (
-      id,
-      name,
-      price,
-      description,
-      category_id
-    )
+    products (*)
   `)
   .eq("menu_id", menu.id)
   .order("position", { ascending: true });

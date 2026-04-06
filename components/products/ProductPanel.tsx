@@ -2,32 +2,18 @@
 
 import PencilIcon from "../icons/PencilIcont";
 import ProductForm from "./ProductForm";
-import { Database } from "@/types/database.types";
+import { useMenuStore } from "@/store/useMenuStore";
 
-type Product = Database["public"]["Tables"]["products"]["Row"];
+export default function ProductPanel() {
+  const { getSelectedCategory, getSelectedProduct, selectedProductId, selectProduct } =
+    useMenuStore();
 
-type CategoryWithProducts =
-  Database["public"]["Tables"]["categories"]["Row"] & {
-    products: Product[];
-  };
+  const category = getSelectedCategory();
+  const selectedProduct = getSelectedProduct();
 
-interface Props {
-  category: CategoryWithProducts | undefined;
-  selectedProductId: string | null;
-  onSelectProduct: (id: string | null) => void;
-}
-
-export default function ProductPanel({
-  category,
-  selectedProductId,
-  onSelectProduct,
-}: Props) {
   if (!category) {
     return <div className="p-6">Selecciona una categoría</div>;
   }
-
-  const selectedProduct =
-    category.products?.find((p) => p.id === selectedProductId) ?? null;
 
   return (
     <div className="flex-1 p-6 flex flex-col gap-6">
@@ -38,7 +24,11 @@ export default function ProductPanel({
 
       <div className="flex flex-col gap-3">
         <h3 className="text-base font-semibold text-[#1C1C1C]">Productos</h3>
-        <ProductForm product={selectedProduct} categoryId={category.id} />
+        <ProductForm
+          key={selectedProductId ?? `new-${category.id}`}
+          product={selectedProduct}
+          categoryId={category.id}
+        />
       </div>
 
       {category.products && category.products.length > 0 && (
@@ -50,7 +40,7 @@ export default function ProductPanel({
                 key={product.id}
                 type="button"
                 onClick={() =>
-                  onSelectProduct(isSelected ? null : product.id)
+                  selectProduct(isSelected ? null : product.id)
                 }
                 className={`w-full text-left p-4 rounded-lg border transition-all ${isSelected
                   ? "border-[#114821] bg-[#CDF5454D]"
