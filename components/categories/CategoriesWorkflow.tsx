@@ -11,7 +11,6 @@ type CategoryWithProducts = Database["public"]["Tables"]["categories"]["Row"] & 
   products: Product[];
 };
 
-
 interface Props {
   menuId: string;
   categories: CategoryWithProducts[];
@@ -31,14 +30,6 @@ export default function CategoriesWorkflow({ menuId, categories }: Props) {
     [categories, selectedCategoryId],
   );
 
-  const selectedProduct = useMemo(
-    () =>
-      selectedCategory?.products?.find(
-        (p) => p.id === selectedProductId,
-      ) ?? null,
-    [selectedCategory, selectedProductId],
-  );
-
   return (
     <div className="flex flex-col">
       <div className="flex gap-6 bg-[#FBFBFA] items-start">
@@ -56,7 +47,8 @@ export default function CategoriesWorkflow({ menuId, categories }: Props) {
 
         <ProductPanel
           category={selectedCategory}
-          product={selectedProduct}
+          selectedProductId={selectedProductId}
+          onSelectProduct={(id) => setSelectedProductId(id)}
         />
       </div>
     </div>

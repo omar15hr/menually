@@ -18,10 +18,11 @@ export async function uploadImageToStorage(file: File, imagePath: string) {
 
   const fileExt = file.name.split(".").pop();
   const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+  const filePath = `${imagePath}/${fileName}`;
 
   const { error } = await supabase.storage
-    .from(`/images/${imagePath}`)
-    .upload(fileName, file, {
+    .from(`/images`)
+    .upload(filePath, file, {
       cacheControl: "3600",
       upsert: false,
     });
@@ -35,7 +36,7 @@ export async function uploadImageToStorage(file: File, imagePath: string) {
 
   const {
     data: { publicUrl },
-  } = await supabase.storage.from(`/images/${imagePath}`).getPublicUrl(fileName);
+  } = await supabase.storage.from(`/images`).getPublicUrl(filePath);
 
   return {
     success: true,

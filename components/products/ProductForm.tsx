@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import LoaderIcon from "../icons/LoaderIcon";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -13,22 +13,52 @@ import CameraIcon from "../icons/CameraIcon";
 import XIcon from "../icons/XIcon";
 import Image from "next/image";
 import { createProduct } from "@/actions/product.action";
+import { toast } from "sonner";
+import { Database } from "@/types/database.types";
+
+type Product = Database["public"]["Tables"]["products"]["Row"];
+type ProductLabel = Database["public"]["Enums"]["product_label"];
 
 const OPTIONS = [
-  { label: "Keto",        value: "keto" },
-  { label: "Vegano",      value: "vegan" },
-  { label: "Apto APLV",  value: "aplv" },
-  { label: "Picante",     value: "spicy" },
-  { label: "Sin gluten",  value: "gluten_free" },
+  { label: "Keto", value: "keto" },
+  { label: "Vegano", value: "vegan" },
+  { label: "Apto APLV", value: "aplv" },
+  { label: "Picante", value: "spicy" },
+  { label: "Sin gluten", value: "gluten_free" },
   { label: "Vegetariano", value: "vegetarian" },
 ];
 
-export default function ProductForm({ categoryId }: { categoryId: string }) {
+
+interface Props {
+  categoryId: string;
+  product?: Product | null;
+}
+
+export default function ProductForm({ categoryId, product }: Props) {
   const [state, formAction, isPending] = useActionState(createProduct, null);
-  const [productImageUrl, setProductImageUrl] = useState("");
+  const [productImageUrl, setProductImageUrl] = useState(
+    product?.image_url ?? "",
+  );
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (state?.success) {
+      toast.success(state.message);
+      formRef.current?.reset();
+    } else if (state?.success === false && state?.message) {
+      toast.error(state.message);
+    }
+  }, [state]);
+
+  const isEditMode = !!product;
+  const productImage = productImageUrl || product?.image_url || "";
 
   return (
-    <form className="flex flex-col gap-6 bg-white p-6 border border-[#E4E4E6] rounded-lg" action={formAction}>
+    <form
+      ref={formRef}
+      className="flex flex-col gap-6 bg-white p-6 border border-[#E4E4E6] rounded-lg"
+      action={formAction}
+    >
       <input type="hidden" name="category_id" value={categoryId ?? ""} />
       <input type="hidden" name="image_url" value={productImageUrl} />
 
@@ -41,6 +71,8 @@ export default function ProductForm({ categoryId }: { categoryId: string }) {
             id="product-name"
             name="name"
             placeholder="Nombre del producto"
+            defaultValue={product?.name ?? ""}
+            key={product?.id ?? "new-name"}
           />
         </div>
 
@@ -54,18 +86,25 @@ export default function ProductForm({ categoryId }: { categoryId: string }) {
             type="text"
             inputMode="numeric"
             placeholder="$"
+            defaultValue={product?.price != null ? String(product.price) : ""}
+            key={product?.id ?? "new-price"}
           />
         </div>
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="product-description" className="text-[#58606E] text-sm">
+        <Label
+          htmlFor="product-description"
+          className="text-[#58606E] text-sm"
+        >
           Descripción del producto
         </Label>
         <Textarea
           id="product-description"
           name="description"
           placeholder="Descripción"
+          defaultValue={product?.description ?? ""}
+          key={product?.id ?? "new-desc"}
         />
       </div>
 
@@ -73,7 +112,12 @@ export default function ProductForm({ categoryId }: { categoryId: string }) {
         <Label className="text-[#58606E] text-sm">
           Filtra por preferencias y características
         </Label>
-        <MultiSelectChips options={OPTIONS} name="tags" />
+        <MultiSelectChips
+          key={product?.id ?? "new-tags"}
+          options={OPTIONS}
+          name="tags"
+          value={(product?.labels ?? []) as ProductLabel[]}
+        />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -87,9 +131,9 @@ export default function ProductForm({ categoryId }: { categoryId: string }) {
                 : "border-dashed border-[#E4E4E6] border-2",
             )}
           >
-            {productImageUrl ? (
+            {productImage ? (
               <Image
-                src={productImageUrl}
+                src={productImage}
                 alt="Image placeholder"
                 width={300}
                 height={300}
@@ -121,18 +165,34 @@ export default function ProductForm({ categoryId }: { categoryId: string }) {
           </div>
         </PhotoUpload>
       </div>
+<div>
+  {product?.image_url}
+</div>
+      <div className="flex items-center justify-between">
+        <Button
+          type="submit"
+          disabled={isPending || !categoryId}
+          className="bg-[#CDF545] text-[#114821] text-sm font-bold cursor-pointer w-fit"
+        >
+          {isPending ? (
+            <LoaderIcon className="animate-spin" />
+          ) : isEditMode ? (
+            "Guardar cambios"
+          ) : (
+            "Añadir producto"
+          )}
+        </Button>
 
-      <Button
-        type="submit"
-        disabled={isPending || !categoryId}
-        className="bg-[#CDF545] text-[#114821] text-sm font-bold cursor-pointer w-fit"
-      >
-        {isPending ? (
-          <LoaderIcon className="animate-spin" />
-        ) : (
-          "Añadir producto"
+        {isEditMode && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-red-500 hover:text-red-600 hover:bg-red-50 text-sm gap-2 cursor-pointer"
+          >
+            🗑 Eliminar producto
+          </Button>
         )}
-      </Button>
+      </div>
     </form>
   );
 }

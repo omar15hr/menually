@@ -1,22 +1,26 @@
 "use client";
 
-import { useOptimistic, useTransition, useRef, useMemo } from "react";
+import { useOptimistic, useRef, useMemo, useState } from "react";
 import { Category } from "@/types/categories.types";
+import type { Tables } from "@/types/database.types";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import PlusIcon from "../icons/PlusIcon";
 import LoaderIcon from "../icons/LoaderIcon";
 import XIcon from "../icons/XIcon";
 import CheckIcon from "../icons/CheckIcon";
-import { useState } from "react";
 import { createCategory } from "@/actions/categories.action";
 import { toast } from "sonner";
 import GrapIcon from "../icons/GrapIcon";
 import { cn } from "@/lib/utils";
 
+type CategoryWithProducts = Category & {
+  products: Tables<"products">[];
+};
+
 interface Props {
   menuId: string;
-  categories: Category[];
+  categories: CategoryWithProducts[];
   selectedCategoryId: string | null;
   selectedProductId: string | null;
   onSelectCategory: (id: string) => void;
@@ -32,12 +36,20 @@ export default function CategoryEditTable({
   onSelectProduct,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
+
+  function handleCancel() {
+    setIsEditing(false);
+    if (inputRef.current) inputRef.current.value = "";
+  }
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [optimisticCategories, addOptimisticCategory] = useOptimistic(
     categories,
-    (state, newCategory: Category) => [...state, newCategory],
+    (state, newCategory: CategoryWithProducts): CategoryWithProducts[] => [
+      ...state,
+      newCategory,
+    ],
   );
 
   const effectiveSelectedId = useMemo(() => {
@@ -47,28 +59,26 @@ export default function CategoryEditTable({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
+    setIsPending(true);
     const name = inputRef.current?.value.trim();
     if (!name) return;
 
-    const optimisticEntry: Category = {
+    const optimisticEntry: CategoryWithProducts = {
       id: `optimistic-${Date.now()}`,
       menu_id: menuId,
       name,
       position: optimisticCategories.length,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      products: [],
     };
 
-    startTransition(async () => {
-      addOptimisticCategory(optimisticEntry);
+    addOptimisticCategory(optimisticEntry);
+    const { error } = await createCategory({ menu_id: menuId, name });
 
-      const { error } = await createCategory({ menu_id: menuId, name });
-
-      if (error) return toast.error("Error al crear categoría");
-
-      toast.success("Categoría creada");
-    });
+    if (error) return toast.error("Error al crear categoría");
+    setIsPending(false);
+    toast.success("Categoría creada");
   }
   return (
     <div className="flex flex-col w-full max-w-md bg-white border border-[#E4E4E6] h-screen">
@@ -110,15 +120,14 @@ export default function CategoryEditTable({
               {isSelected && (
                 <div className="ml-4">
                   {category.products?.map((product) => {
-                    const isProductSelected =
-                      selectedProductId === product.id;
+                    const isProductSelected = selectedProductId === product.id;
 
                     return (
                       <button
                         key={product.id}
                         onClick={() => onSelectProduct(product.id)}
                         className={cn(
-                          "block w-full text-left p-2 text-sm",
+                          "block w-full text-left p-2 text-xs text-[#58606E] my-1",
                           isProductSelected && "bg-gray-200",
                         )}
                       >
