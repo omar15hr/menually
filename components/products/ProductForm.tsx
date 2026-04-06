@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import LoaderIcon from "../icons/LoaderIcon";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -12,23 +12,25 @@ import { cn } from "@/lib/utils";
 import CameraIcon from "../icons/CameraIcon";
 import XIcon from "../icons/XIcon";
 import Image from "next/image";
+import { createProduct } from "@/actions/product.action";
 
 const OPTIONS = [
-  { label: "Picante", value: "picante" },
-  { label: "Keto", value: "keto" },
-  { label: "Vegano", value: "vegano" },
-  { label: "Vegetariano", value: "vegetariano" },
-  { label: "Sin gluten", value: "sin_gluten" },
-  { label: "Apto APLV", value: "aplv" },
+  { label: "Keto",        value: "keto" },
+  { label: "Vegano",      value: "vegan" },
+  { label: "Apto APLV",  value: "aplv" },
+  { label: "Picante",     value: "spicy" },
+  { label: "Sin gluten",  value: "gluten_free" },
+  { label: "Vegetariano", value: "vegetarian" },
 ];
 
 export default function ProductForm({ categoryId }: { categoryId: string }) {
-  const [isPending, setIsPending] = useState();
+  const [state, formAction, isPending] = useActionState(createProduct, null);
   const [productImageUrl, setProductImageUrl] = useState("");
 
   return (
-    <form className="flex flex-col gap-6 bg-white p-6 border border-[#E4E4E6] rounded-lg">
+    <form className="flex flex-col gap-6 bg-white p-6 border border-[#E4E4E6] rounded-lg" action={formAction}>
       <input type="hidden" name="category_id" value={categoryId ?? ""} />
+      <input type="hidden" name="image_url" value={productImageUrl} />
 
       <div className="flex gap-2 w-full justify-between">
         <div className="flex flex-col gap-2 w-full">
@@ -99,7 +101,7 @@ export default function ProductForm({ categoryId }: { categoryId: string }) {
               </span>
             )}
             <div className="text-sm w-full">
-              {productImageUrl.length < 0 ? (
+              {!productImageUrl ? (
                 <div className="">
                   <h2 className="text-[#1C1C1C] font-semibold">
                     Sube una imagen
