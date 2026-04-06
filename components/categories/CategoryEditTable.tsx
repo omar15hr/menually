@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useTransition, useRef } from "react";
+import { useOptimistic, useTransition, useRef, useMemo } from "react";
 import { Category } from "@/types/categories.types";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -11,13 +11,26 @@ import CheckIcon from "../icons/CheckIcon";
 import { useState } from "react";
 import { createCategory } from "@/actions/categories.action";
 import { toast } from "sonner";
+import GrapIcon from "../icons/GrapIcon";
+import { cn } from "@/lib/utils";
 
 interface Props {
-  categories: Category[];
   menuId: string;
+  categories: Category[];
+  selectedCategoryId: string | null;
+  selectedProductId: string | null;
+  onSelectCategory: (id: string) => void;
+  onSelectProduct: (id: string) => void;
 }
 
-export default function CategoryEditTable({ categories, menuId }: Props) {
+export default function CategoryEditTable({
+  categories,
+  menuId,
+  selectedCategoryId,
+  selectedProductId,
+  onSelectCategory,
+  onSelectProduct,
+}: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -27,10 +40,10 @@ export default function CategoryEditTable({ categories, menuId }: Props) {
     (state, newCategory: Category) => [...state, newCategory],
   );
 
-  function handleCancel() {
-    setIsEditing(false);
-    if (inputRef.current) inputRef.current.value = "";
-  }
+  const effectiveSelectedId = useMemo(() => {
+    if (optimisticCategories.length === 0) return null;
+    return selectedCategoryId ?? optimisticCategories[0].id;
+  }, [optimisticCategories, selectedCategoryId]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -49,18 +62,14 @@ export default function CategoryEditTable({ categories, menuId }: Props) {
 
     startTransition(async () => {
       addOptimisticCategory(optimisticEntry);
-      handleCancel();
 
       const { error } = await createCategory({ menu_id: menuId, name });
 
-      if (error) {
-        toast("Error al crear categoría");
-      }
+      if (error) return toast.error("Error al crear categoría");
 
-      toast.success("Se creo la categoría correctamente");
+      toast.success("Categoría creada");
     });
   }
-
   return (
     <div className="flex flex-col w-full max-w-md bg-white border border-[#E4E4E6] h-screen">
       <div className="flex flex-col p-4 border-b">
@@ -72,15 +81,56 @@ export default function CategoryEditTable({ categories, menuId }: Props) {
         </p>
       </div>
 
-      <div className="flex flex-col flex-1 overflow-y-auto">
-        {optimisticCategories.map((category) => (
-          <div
-            key={category.id}
-            className="flex items-center px-4 py-3 border-b border-[#E4E4E6] text-sm text-[#0F172A]"
-          >
-            {category.name}
-          </div>
-        ))}
+      <div className="py-6 flex flex-col gap-1 px-4">
+        {optimisticCategories.map((category) => {
+          const isSelected = effectiveSelectedId === category.id;
+
+          return (
+            <div key={category.id}>
+              <Button
+                type="button"
+                variant="ghost"
+                className={cn(
+                  "h-auto w-full p-4 justify-between rounded-none text-[#1C1C1C] bg-white text-sm font-semibold capitalize",
+                  isSelected && "bg-[#CDF5454D] hover:bg-[#CDF5454D]",
+                )}
+                style={{
+                  borderLeft: isSelected
+                    ? "2px solid #114821"
+                    : "2px solid transparent",
+                }}
+                onClick={() => {
+                  onSelectCategory(category.id);
+                }}
+                aria-pressed={isSelected}
+              >
+                {category.name} <GrapIcon />
+              </Button>
+
+              {isSelected && (
+                <div className="ml-4">
+                  {category.products?.map((product) => {
+                    const isProductSelected =
+                      selectedProductId === product.id;
+
+                    return (
+                      <button
+                        key={product.id}
+                        onClick={() => onSelectProduct(product.id)}
+                        className={cn(
+                          "block w-full text-left p-2 text-sm",
+                          isProductSelected && "bg-gray-200",
+                        )}
+                      >
+                        {product.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 p-4">
