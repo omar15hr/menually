@@ -5,11 +5,18 @@ import { useState } from "react";
 import type { Database } from "@/types/database.types";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
+type Category = Database["public"]["Tables"]["categories"]["Row"];
+type Product = Database["public"]["Tables"]["products"]["Row"];
+
+type CategoryWithProducts = Category & {
+  products: Product[];
+};
 
 interface Props {
   menu: Menu;
   logoUrlSelected: string;
   coverUrlSelected: string;
+  categories?: CategoryWithProducts[];
 }
 
 const MOCK_PRODUCTS = [
@@ -51,10 +58,19 @@ const shapeMap: Record<string, string> = {
   circle: "rounded-full",
 };
 
+interface DisplayProduct {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  image: string | null;
+}
+
 export function MenuPreview({
   menu,
   logoUrlSelected,
   coverUrlSelected,
+  categories,
 }: Props) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -65,6 +81,24 @@ export function MenuPreview({
 
   const imageShape =
     shapeMap[menu.image_product_shape ?? "rounded"] ?? "rounded-xl";
+
+  // Use real data if categories are provided
+  const tabs = categories && categories.length > 0
+    ? categories.map((c) => c.name)
+    : MOCK_TABS;
+
+  const products: DisplayProduct[] = categories && categories.length > 0
+    ? (categories[activeTab]?.products ?? []).map((p) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        price: p.price,
+        image: p.image_url,
+      }))
+    : MOCK_PRODUCTS;
+
+  // Business name from menu - use a fallback for now
+  const businessName = "Nombre del local";
 
   return (
     <div
@@ -81,18 +115,26 @@ export function MenuPreview({
         className="relative w-full flex items-center justify-center"
         style={{ height: 160 }}
       >
-        <Image
-          src={coverImage}
-          alt="Portada del menú"
-          fill
-          className="object-cover rounded-2xl"
-        />
+        {coverImage ? (
+          <Image
+            src={coverImage}
+            alt="Portada del menú"
+            fill
+            className="object-cover rounded-2xl"
+          />
+        ) : (
+          <div className="w-full h-full bg-[#F5EEE8] rounded-2xl" />
+        )}
 
         <div
           className="absolute bg-[#D1D5DB] border-2 border-white rounded-full overflow-hidden flex items-center justify-center"
           style={{ width: 52, height: 52, bottom: -26, left: 16 }}
         >
-          <Image src={logoImage} alt="Logo" fill className="object-cover" />
+          {logoImage ? (
+            <Image src={logoImage} alt="Logo" fill className="object-cover" />
+          ) : (
+            <div className="w-full h-full bg-[#E5E7EB]" />
+          )}
         </div>
       </div>
 
@@ -102,14 +144,9 @@ export function MenuPreview({
             className="font-bold text-base leading-tight"
             style={{ color: menu.text_color || "#000000" }}
           >
-            Nombre del local
+            {businessName}
           </p>
-          <p
-            className="text-sm leading-tight mt-0.5"
-            style={{ color: menu.description_color || "#6B7280" }}
-          >
-            Bajada o slogan
-          </p>
+          {/* Menu description not available in current schema */}
         </div>
         {menu.show_filters && (
           <button className="flex items-center gap-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-600 font-medium whitespace-nowrap shrink-0 mt-0.5">
@@ -128,8 +165,8 @@ export function MenuPreview({
         )}
       </div>
 
-      <div className="flex border-b border-gray-100 px-4 gap-5 mt-1">
-        {MOCK_TABS.map((tab, i) => (
+      <div className="flex border-b border-gray-100 px-4 gap-5 mt-1 overflow-x-auto">
+        {tabs.map((tab, i) => (
           <button
             key={i}
             onClick={() => setActiveTab(i)}
@@ -149,7 +186,7 @@ export function MenuPreview({
       </div>
 
       <div className="overflow-y-auto flex-1 px-4 flex flex-col divide-y divide-gray-100">
-        {MOCK_PRODUCTS.map((product) => {
+        {products.map((product) => {
           const isVertical = menu.layout_card === "vertical";
 
           return (
@@ -161,21 +198,30 @@ export function MenuPreview({
                 className={`${imageShape} overflow-hidden bg-[#F5EEE8] shrink-0 flex items-center justify-center ${isVertical ? "w-full" : ""}`}
                 style={isVertical ? { height: 120 } : { width: 56, height: 56 }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width={isVertical ? 36 : 28}
-                  height={isVertical ? 36 : 28}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#C8A882"
-                  strokeWidth="1"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  opacity={0.6}
-                >
-                  <path d="M3 2l1.5 1.5M21 2l-1.5 1.5M12 2v2M4.5 6A7.5 7.5 0 0 0 12 21a7.5 7.5 0 0 0 7.5-7.5c0-3-1.7-5.6-4.2-6.9" />
-                  <path d="M12 6a6 6 0 0 1 6 6" />
-                </svg>
+                {product.image ? (
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={isVertical ? 36 : 28}
+                    height={isVertical ? 36 : 28}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#C8A882"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    opacity={0.6}
+                  >
+                    <path d="M3 2l1.5 1.5M21 2l-1.5 1.5M12 2v2M4.5 6A7.5 7.5 0 0 0 12 21a7.5 7.5 0 0 0 7.5-7.5c0-3-1.7-5.6-4.2-6.9" />
+                    <path d="M12 6a6 6 0 0 1 6 6" />
+                  </svg>
+                )}
               </div>
 
               <div
@@ -188,7 +234,7 @@ export function MenuPreview({
                   >
                     {product.name}
                   </p>
-                  {menu.show_descriptions && (
+                  {menu.show_descriptions && product.description && (
                     <p
                       className="text-sm leading-tight mt-0.5 truncate"
                       style={{ color: menu.description_color || "#6B7280" }}

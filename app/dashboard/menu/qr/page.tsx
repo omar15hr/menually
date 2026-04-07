@@ -1,12 +1,51 @@
-import CopyIcon from "@/components/icons/CopyIcon";
-import DownloadIcon from "@/components/icons/DownloadIcon";
-import InstagramIcon from "@/components/icons/InstagramIcon";
-import PrintIcon from "@/components/icons/PrintIcon";
-import WhatsappIcon from "@/components/icons/WhatsappIcon";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { QrDisplay } from "@/components/menu/QrDisplay";
+import { generateQrCode } from "@/actions/generateQrCode.action";
 
-export default function QrPage() {
+export default async function QrPage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Fetch user's menu
+  const { data: menu } = await supabase
+    .from("menus")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!menu) {
+    return (
+      <div className="flex flex-col w-full max-w-md bg-white border border-[#E4E4E6] h-screen">
+        <div className="flex flex-col p-4 border-b">
+          <h2 className="text-[#0F172A] text-base font-extrabold">QR y enlace</h2>
+          <p className="text-[#58606E] text-sm">
+            No tienes un menú configurado.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Generate or get QR code
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const menuUrl = `${baseUrl}/menu/${menu.slug}`;
+
+  let qrUrl: string | null = null;
+  
+  const result = await generateQrCode(menu.id, menu.slug);
+  if (result.success && result.qrUrl) {
+    qrUrl = result.qrUrl;
+  }
+
+  // If no QR URL, we'll still show the URL but not the QR image
   return (
     <div className="flex flex-col w-full max-w-md bg-white border border-[#E4E4E6] h-screen">
       <div className="flex flex-col p-4 border-b">
@@ -16,44 +55,15 @@ export default function QrPage() {
         </p>
       </div>
 
-      <div className="max-w-sm py-6 flex gap-1 px-4 mx-auto">
-        <Button className="flex gap-2 items-center border border-[#E4E4E6] rounded-lg py-2 px-4 bg-white text-[#0F172A] text-sm cursor-pointer hover:bg-white/70">
-          <DownloadIcon /> <span>Descargar</span>
-        </Button>
-        <Button className="flex gap-2 items-center border border-[#E4E4E6] rounded-lg py-2 px-4 bg-white text-[#0F172A] text-sm cursor-pointer hover:bg-white/70">
-          <PrintIcon /> <span>Imprimir</span>
-        </Button>
-      </div>
-
-      <div className="w-full py-6 flex flex-col gap-4 px-4 mx-auto">
-        <Label className="text-[#1C1C1C] text-sm font-semibold">
-          Enlace del menú
-        </Label>
-        <div className="flex items-center gap-4">
-          <Button className="border border-[#E4E4E6] rounded-lg py-2 px-4 bg-white text-[#0F172A] text-sm cursor-pointer hover:bg-white/70">
-            menually.app/menu/cafecostero
-          </Button>
-
-          <Button className="flex gap-2 items-center border border-[#E4E4E6] rounded-lg py-2 px-4 bg-white text-[#0F172A] text-sm cursor-pointer hover:bg-white/70">
-            <CopyIcon /> <span>Copiar enlace</span>
-          </Button>
+      {qrUrl ? (
+        <QrDisplay qrUrl={qrUrl} menuSlug={menu.slug} />
+      ) : (
+        <div className="flex flex-col gap-4 p-4">
+          <p className="text-[#58606E] text-sm text-center">
+            Generando QR...
+          </p>
         </div>
-      </div>
-
-      <div className="w-full py-6 flex flex-col gap-4 px-4 mx-auto">
-        <Label className="text-[#1C1C1C] text-sm font-semibold">
-          Compartir
-        </Label>
-        <div className="flex items-center gap-4">
-          <Button className="flex gap-2 items-center border border-[#E4E4E6] rounded-lg py-2 px-4 bg-white text-[#0F172A] text-sm cursor-pointer hover:bg-white/70">
-            <WhatsappIcon /> <span>Por Whatsapp</span>
-          </Button>
-
-          <Button className="flex gap-2 items-center border border-[#E4E4E6] rounded-lg py-2 px-4 bg-white text-[#0F172A] text-sm cursor-pointer hover:bg-white/70">
-            <InstagramIcon /> <span>Por Instagram</span>
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
