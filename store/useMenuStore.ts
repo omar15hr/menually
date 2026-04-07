@@ -22,7 +22,8 @@ interface MenuState {
   getSelectedCategory: () => Category | undefined;
   getSelectedProduct: () => Product | null;
 
-  // updates
+  // mutations
+  addProduct: (categoryId: string, product: Product) => void;
   updateProductImage: (productId: string, imageUrl: string) => void;
   updateProduct: (productId: string, data: Partial<Product>) => void;
 }
@@ -74,8 +75,17 @@ export const useMenuStore = create<MenuState>((set, get) => ({
   },
 
   // -------------------------
-  // UPDATES
+  // MUTATIONS
   // -------------------------
+  addProduct: (categoryId, product) =>
+    set((state) => ({
+      categories: state.categories.map((cat) =>
+        cat.id === categoryId
+          ? { ...cat, products: [...cat.products, product] }
+          : cat
+      ),
+    })),
+
   updateProductImage: (productId, imageUrl) =>
     set((state) => ({
       categories: state.categories.map((cat) => ({

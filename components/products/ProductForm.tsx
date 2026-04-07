@@ -14,6 +14,7 @@ import XIcon from "../icons/XIcon";
 import Image from "next/image";
 import { createProduct } from "@/actions/product.action";
 import { toast } from "sonner";
+import { useMenuStore } from "@/store/useMenuStore";
 import { Database } from "@/types/database.types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -39,15 +40,18 @@ export default function ProductForm({ categoryId, product }: Props) {
     product?.image_url ?? "",
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const { addProduct, selectProduct } = useMenuStore();
 
   useEffect(() => {
-    if (state?.success) {
+    if (state?.success && state?.product) {
       toast.success(state.message);
+      addProduct(categoryId, state.product);
+      selectProduct(state.product.id);
       formRef.current?.reset();
     } else if (state?.success === false && state?.message) {
       toast.error(state.message);
     }
-  }, [state]);
+  }, [state, categoryId, addProduct, selectProduct]);
 
   const isEditMode = !!product;
   const productImage = productImageUrl || product?.image_url || "";

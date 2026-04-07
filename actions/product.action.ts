@@ -65,18 +65,23 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
     .maybeSingle();
 
   const nextPosition = (lastProduct?.position ?? -1) + 1;
-  const { error: insertError } = await supabase.from("products").insert({
-    category_id,
-    name,
-    description: description || null,
-    price: parseFloat(price) || 0,
-    image_url: image_url || null,
-    labels: labels.filter((l): l is ProductLabel =>
-      ["vegan", "gluten_free", "vegetarian", "spicy", "keto", "aplv"].includes(l)
-    ),
-    position: nextPosition,
-    is_available: true,
-  });
+  const { data: insertedProduct, error: insertError } = await supabase
+    .from("products")
+    .insert({
+      category_id,
+      name,
+      description: description || null,
+      price: parseFloat(price) || 0,
+      image_url: image_url || null,
+      labels: labels.filter((l): l is ProductLabel =>
+        ["vegan", "gluten_free", "vegetarian", "spicy", "keto", "aplv"].includes(l)
+      ),
+      position: nextPosition,
+      is_available: true,
+    })
+    .select()
+    .single();
+
   if (insertError) {
     return { success: false, message: insertError.message, errors: {} };
   }
@@ -85,5 +90,6 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
     success: true,
     message: "Producto creado correctamente",
     errors: {},
+    product: insertedProduct,
   };
 }
