@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { Input } from "../ui/input";
 import { signIn } from "@/actions/auth.action";
-import { AuthActionState } from "@/types/auth.types";
+import { SignInState } from "@/types/auth.types";
+import { Label } from "../ui/label";
 
-const initialState: AuthActionState = {
-  success: false,
-  message: "",
+const initialState: SignInState = {
+  status: "idle",
   error: null,
+  data: null,
 };
 
 export default function SignInForm() {
@@ -21,19 +23,20 @@ export default function SignInForm() {
 
       <form className="flex flex-col gap-6" action={action}>
         <div className="flex flex-col gap-2">
-          <span>Correo electrónico</span>
-          <input
+          <Label>Correo electrónico</Label>
+          <Input
             required
             type="email"
             name="email"
             autoComplete="email"
             placeholder="tucorreo@gmail.com"
+            defaultValue={state.data?.email ?? ""}
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <span>Contraseña</span>
-          <input
+          <Label>Contraseña</Label>
+          <Input
             required
             type="password"
             name="password"
@@ -44,7 +47,7 @@ export default function SignInForm() {
 
         <div className="flex justify-end">
           <Link
-            href="/reset-password"
+            href="/auth/reset-password"
             className="text-xs text-[#1C1C1C] font-semibold hover:text-foreground transition-colors underline"
           >
             Recuperar contraseña
@@ -65,7 +68,7 @@ export default function SignInForm() {
       <p className="text-center text-sm text-[#585858]">
         ¿No tienes cuenta?{" "}
         <Link
-          href="/signup"
+          href="/auth/signup"
           className="text-[#1C1C1C] font-semibold underline text-sm"
         >
           Crear cuenta

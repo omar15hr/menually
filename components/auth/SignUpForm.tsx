@@ -3,18 +3,20 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import { signUp } from "@/actions/auth.action";
-import { AuthActionState } from "@/types/auth.types";
+import { SignUpState } from "@/types/auth.types";
 
-const initialState: AuthActionState  = {
-  success: false,
-  message: "",
-  error: null
-}
+const initialState: SignUpState = {
+  status: "idle",
+  fieldErrors: {},
+  error: null,
+  data: null,
+};
 
 export default function SignUpForm() {
   const [state, action, isPending] = useActionState(signUp, initialState);
-
 
   return (
     <div className="flex flex-col mt-10 mx-auto gap-6 animate-fade-in w-102.75">
@@ -22,41 +24,44 @@ export default function SignUpForm() {
 
       <form className="flex flex-col gap-6" action={action}>
         <div className="flex flex-col gap-2">
-          <span >Nombre completo</span>
-          <input
+          <Label>Nombre completo</Label>
+          <Input
             required
             type="text"
             name="fullName"
             autoComplete="name"
             placeholder="Juan Pérez"
+            defaultValue={state.data?.email ?? ""}
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <span>Nombre negocio</span>
-          <input
+          <Label>Nombre negocio</Label>
+          <Input
             required
             type="text"
             name="businessName"
             autoComplete="businessName"
             placeholder="Ej: La casa del chef"
+            defaultValue={state.data?.fullName ?? ""}
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <span>Correo electrónico</span>
-          <input
+          <Label>Correo electrónico</Label>
+          <Input
             required
             type="email"
             name="email"
             autoComplete="email"
             placeholder="tucorreo@gmail.com"
+            defaultValue={state.data?.businessName ?? ""}
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <span>Contraseña</span>
-          <input
+          <Label>Contraseña</Label>
+          <Input
             required
             type="password"
             name="password"
@@ -66,14 +71,13 @@ export default function SignUpForm() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span>Confirmar contraseña</span>
-          <input
+          <Label>Confirmar contraseña</Label>
+          <Input
             required
             type="password"
             name="confirmPassword"
             autoComplete="new-password"
             placeholder="Repite tu contraseña"
-            
           />
         </div>
 
@@ -91,7 +95,7 @@ export default function SignUpForm() {
       <p className="text-center text-sm text-[#585858]">
         ¿Ya tienes cuenta?{" "}
         <Link
-          href="/signin"
+          href="/auth/signin"
           className="text-[#1C1C1C] font-semibold underline text-sm"
         >
           Iniciar sesión
