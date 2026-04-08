@@ -12,7 +12,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import QRIcon from "../icons/QRIcon";
@@ -53,7 +52,6 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarTrigger />
       <SidebarContent className="bg-white">
         <SidebarHeader className="text-2xl text-[#114821] font-bold pb-8 bg-white">
           {state === "collapsed" ? (

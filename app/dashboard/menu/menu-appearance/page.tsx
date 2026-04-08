@@ -9,7 +9,7 @@ export default async function MenuAppearancePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) redirect("/auth/signin");
 
   const { data: menu } = await supabase
     .from("menus")

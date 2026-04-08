@@ -1,6 +1,6 @@
-import { MenuSidebar } from "@/components/menu/MenuSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { MenuSidebar } from "@/components/menu/MenuSidebar";
 
 export default async function MenuLayout({
   children,

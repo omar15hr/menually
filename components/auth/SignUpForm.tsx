@@ -7,6 +7,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { signUp } from "@/actions/auth.action";
 import { SignUpState } from "@/types/auth.types";
+import { Spinner } from "../ui/spinner";
 
 const initialState: SignUpState = {
   status: "idle",
@@ -86,7 +87,7 @@ export default function SignUpForm() {
           disabled={isPending}
           className="text-base bg-[#CDF545] hover:bg-[#c0e740] text-[#114821] font-semibold py-2 px-4 rounded-lg h-10 cursor-pointer transition-colors"
         >
-          {isPending ? <span></span> : "Crear cuenta"}
+          {isPending ? <Spinner /> : "Crear cuenta"}
         </button>
       </form>
 

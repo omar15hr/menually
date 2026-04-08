@@ -103,7 +103,7 @@ export async function signUp(
   }
 
   revalidatePath("/", "layout");
-  redirect("/check-email");
+  redirect("/auth/check-email");
 }
 
 export async function resetPassword(

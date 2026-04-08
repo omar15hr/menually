@@ -29,10 +29,10 @@ export default function RootLayout({
       lang="es"
       className={cn(
         "h-full",
-        "antialiased",
-        figtree.className,
         "font-sans",
+        "antialiased",
         geist.variable,
+        figtree.className,
       )}
     >
       <body className="min-h-full flex flex-col">

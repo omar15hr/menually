@@ -1,6 +1,6 @@
-import { AppSidebar } from "@/components/dashboard/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AppSidebar } from "@/components/dashboard/AppSidebar";
 
 export default async function DashboardLayout({
   children,

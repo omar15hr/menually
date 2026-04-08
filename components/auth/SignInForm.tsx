@@ -7,6 +7,7 @@ import { Input } from "../ui/input";
 import { signIn } from "@/actions/auth.action";
 import { SignInState } from "@/types/auth.types";
 import { Label } from "../ui/label";
+import { Spinner } from "../ui/spinner";
 
 const initialState: SignInState = {
   status: "idle",
@@ -59,7 +60,7 @@ export default function SignInForm() {
           disabled={isPending}
           className="text-base bg-[#CDF545] hover:bg-[#c0e740] text-[#114821] font-semibold py-2 px-4 rounded-lg h-10 cursor-pointer transition-colors"
         >
-          {isPending ? <span></span> : "Iniciar sesión"}
+          {isPending ? <Spinner /> : "Iniciar sesión"}
         </button>
       </form>
 
