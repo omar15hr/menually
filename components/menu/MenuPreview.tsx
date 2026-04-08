@@ -83,19 +83,21 @@ export function MenuPreview({
     shapeMap[menu.image_product_shape ?? "rounded"] ?? "rounded-xl";
 
   // Use real data if categories are provided
-  const tabs = categories && categories.length > 0
-    ? categories.map((c) => c.name)
-    : MOCK_TABS;
+  const tabs =
+    categories && categories.length > 0
+      ? categories.map((c) => c.name)
+      : MOCK_TABS;
 
-  const products: DisplayProduct[] = categories && categories.length > 0
-    ? (categories[activeTab]?.products ?? []).map((p) => ({
+  const products: DisplayProduct[] =
+    categories && categories.length > 0
+      ? (categories[activeTab]?.products ?? []).map((p) => ({
         id: p.id,
         name: p.name,
         description: p.description,
         price: p.price,
         image: p.image_url,
       }))
-    : MOCK_PRODUCTS;
+      : MOCK_PRODUCTS;
 
   // Business name from menu - use a fallback for now
   const businessName = "Nombre del local";
@@ -117,9 +119,9 @@ export function MenuPreview({
       >
         {coverImage ? (
           <Image
+            fill
             src={coverImage}
             alt="Portada del menú"
-            fill
             className="object-cover rounded-2xl"
           />
         ) : (

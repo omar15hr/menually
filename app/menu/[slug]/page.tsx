@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { MenuPreview } from "@/components/menu/MenuPreview";
 import type { Database } from "@/types/database.types";
 
-type Menu = Database["public"]["Tables"]["menus"]["Row"];
 type Category = Database["public"]["Tables"]["categories"]["Row"];
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
@@ -35,10 +34,12 @@ export default async function PublicMenuPage({ params }: Props) {
   // Fetch categories with products
   const { data: categories } = await supabase
     .from("categories")
-    .select(`
+    .select(
+      `
       *,
       products (*)
-    `)
+    `,
+    )
     .eq("menu_id", menu.id)
     .order("position", { ascending: true });
 
@@ -46,13 +47,8 @@ export default async function PublicMenuPage({ params }: Props) {
     (categories as CategoryWithProducts[]) ?? [];
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center p-4">
-      <MenuPreview
-        menu={menu}
-        logoUrlSelected={menu.logo_url ?? ""}
-        coverUrlSelected={menu.bg_image_url ?? ""}
-        categories={categoriesWithProducts}
-      />
+    <div className="bg-[#F5F5F5] flex items-center justify-center p-4">
+     {menu.slug}
     </div>
   );
 }
