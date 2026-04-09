@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import type { Database } from "@/types/database.types";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
 type Category = Database["public"]["Tables"]["categories"]["Row"];
@@ -50,7 +51,7 @@ const MOCK_PRODUCTS = [
   },
 ];
 
-const MOCK_TABS = ["Nombre tab", "Nombre tab", "Nombre tab"];
+const MOCK_TABS = ["Bebidas", "Postres", "Platos principales", "Entradas"];
 
 const shapeMap: Record<string, string> = {
   square: "rounded-none",
@@ -82,7 +83,6 @@ export function MenuPreview({
   const imageShape =
     shapeMap[menu.image_product_shape ?? "rounded"] ?? "rounded-xl";
 
-  // Use real data if categories are provided
   const tabs =
     categories && categories.length > 0
       ? categories.map((c) => c.name)
@@ -99,7 +99,6 @@ export function MenuPreview({
       }))
       : MOCK_PRODUCTS;
 
-  // Business name from menu - use a fallback for now
   const businessName = "Nombre del local";
   const coverPlaceholder = "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/background-image-placeholder.png";
   const logoPlaceholder = "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/logo-image-placeholder.png"
@@ -160,7 +159,6 @@ export function MenuPreview({
           >
             {businessName}
           </p>
-          {/* Menu description not available in current schema */}
         </div>
         {menu.show_filters && (
           <button className="flex items-center gap-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-600 font-medium whitespace-nowrap shrink-0 mt-0.5">
@@ -179,25 +177,28 @@ export function MenuPreview({
         )}
       </div>
 
-      <div className="flex border-b border-gray-100 px-4 gap-5 mt-1 overflow-x-auto">
-        {tabs.map((tab, i) => (
-          <button
-            key={i}
-            onClick={() => setActiveTab(i)}
-            className="pb-2 text-base font-bold whitespace-nowrap"
-            style={{
-              color:
-                activeTab === i ? menu.primary_color || "#2563EB" : "#9CA3AF",
-              borderBottom:
-                activeTab === i
-                  ? `2px solid ${menu.primary_color || "#2563EB"}`
-                  : "2px solid transparent",
-            }}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      <ScrollArea className="w-full mt-1">
+        <div className="flex px-4 gap-5 border-b border-gray-100 pb-2">
+          {tabs.map((tab, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveTab(i)}
+              className="pb-2 text-base font-bold whitespace-nowrap"
+              style={{
+                color: activeTab === i ? menu.primary_color || "#2563EB" : "#9CA3AF",
+                borderBottom:
+                  activeTab === i
+                    ? `2px solid ${menu.primary_color || "#2563EB"}`
+                    : "2px solid transparent",
+              }}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+
 
       <div className="overflow-y-auto flex-1 px-4 flex flex-col divide-y divide-gray-100">
         {products.map((product) => {
