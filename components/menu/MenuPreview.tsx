@@ -109,15 +109,15 @@ export function MenuPreview({
       className="relative flex flex-col bg-white rounded-2xl overflow-hidden p-2 border border-[#E4E4E6] my-10 mx-auto"
       style={{
         width: 344,
-        height: 600,
+        height: 800,
         flexShrink: 0,
-        fontFamily: menu.typography || "inherit",
+        fontFamily: `var(--font-${menu.typography}, inherit)`,
         backgroundColor: menu.bg_color,
       }}
     >
       <div
         className="relative w-full flex items-center justify-center"
-        style={{ height: 160 }}
+        style={{ height: 190 }}
       >
         {coverImage ? (
           <Image
