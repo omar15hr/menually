@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useRef, useMemo, useState } from "react";
+import { useOptimistic, useRef, useMemo, useState, startTransition } from "react";
 import { Category } from "@/types/categories.types";
 import type { Tables } from "@/types/database.types";
 import { Button } from "../ui/button";
@@ -56,9 +56,10 @@ export default function CategoryEditTable({ menuId }: Props) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setIsPending(true);
     const name = inputRef.current?.value.trim();
     if (!name) return;
+
+    setIsPending(true);
 
     const optimisticEntry: CategoryWithProducts = {
       id: `optimistic-${Date.now()}`,
@@ -70,7 +71,10 @@ export default function CategoryEditTable({ menuId }: Props) {
       products: [],
     };
 
-    addOptimisticCategory(optimisticEntry);
+    startTransition(() => {
+      addOptimisticCategory(optimisticEntry);
+    });
+
     const { error } = await createCategory({ menu_id: menuId, name });
 
     if (error) return toast.error("Error al crear categoría");

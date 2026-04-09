@@ -9,12 +9,21 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
+type Category = Database["public"]["Tables"]["categories"]["Row"];
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+type Product = Database["public"]["Tables"]["products"]["Row"];
+
+export type CategoryWithProducts = Category & {
+  products: Product[];
+};
 
 interface Props {
   menu: Menu;
+  categories: CategoryWithProducts[];
+  profiles: Profile | null;
 }
 
-export default function MenuWorkflow({ menu: initialMenu }: Props) {
+export default function MenuWorkflow({ menu: initialMenu, categories, profiles }: Props) {
   const [menu, setMenu] = useState<Menu>(initialMenu);
   const [editMenu, setEditMenu] = useState<Menu>(initialMenu);
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +114,8 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
           menu={editMenu}
           logoUrlSelected={logoUrl}
           coverUrlSelected={coverUrl}
+          categories={categories}
+          businessName={profiles?.business_name ?? null}
         />
       </div>
     </div>

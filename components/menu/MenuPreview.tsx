@@ -18,40 +18,10 @@ interface Props {
   logoUrlSelected: string | null;
   coverUrlSelected: string | null;
   categories?: CategoryWithProducts[];
+  businessName?: string | null;
 }
 
-const MOCK_PRODUCTS = [
-  {
-    id: "1",
-    name: "Croissant Mantequilla",
-    description: "Hojaldre artesanal francés.",
-    price: 3490,
-    image: null,
-  },
-  {
-    id: "2",
-    name: "Croissant Mantequilla",
-    description: "Hojaldre artesanal francés, lista de ingredientes ha...",
-    price: 3490,
-    image: null,
-  },
-  {
-    id: "3",
-    name: "Croissant Mantequilla",
-    description: "Hojaldre artesanal francés.",
-    price: 3490,
-    image: null,
-  },
-  {
-    id: "4",
-    name: "Avocado Toast",
-    description: "Hojaldre artesanal francés, lista de ingredientes ha...",
-    price: 3490,
-    image: null,
-  },
-];
 
-const MOCK_TABS = ["Bebidas", "Postres", "Platos principales", "Entradas"];
 
 const shapeMap: Record<string, string> = {
   square: "rounded-none",
@@ -72,6 +42,7 @@ export function MenuPreview({
   logoUrlSelected,
   coverUrlSelected,
   categories,
+  businessName = "Nombre del local",
 }: Props) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -86,7 +57,7 @@ export function MenuPreview({
   const tabs =
     categories && categories.length > 0
       ? categories.map((c) => c.name)
-      : MOCK_TABS;
+      : [];
 
   const products: DisplayProduct[] =
     categories && categories.length > 0
@@ -97,9 +68,7 @@ export function MenuPreview({
         price: p.price,
         image: p.image_url,
       }))
-      : MOCK_PRODUCTS;
-
-  const businessName = "Nombre del local";
+      : [];
   const coverPlaceholder = "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/background-image-placeholder.png";
   const logoPlaceholder = "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/logo-image-placeholder.png"
 
@@ -157,7 +126,7 @@ export function MenuPreview({
             className="font-bold text-base leading-tight"
             style={{ color: menu.text_color || "#000000" }}
           >
-            {businessName}
+            {businessName || "Nombre del local"}
           </p>
         </div>
         {menu.show_filters && (
@@ -209,16 +178,15 @@ export function MenuPreview({
               key={product.id}
               className={`flex gap-3 py-3 ${isVertical ? "flex-col" : "flex-row items-center"}`}
             >
-              <div
-                className={`${imageShape} overflow-hidden bg-[#F5EEE8] shrink-0 flex items-center justify-center ${isVertical ? "w-full" : ""}`}
-                style={isVertical ? { height: 120 } : { width: 56, height: 56 }}
-              >
+              <div>
                 {product.image ? (
                   <Image
                     src={product.image}
                     alt={product.name}
-                    fill
-                    className="object-cover"
+                    width={80}
+                    height={80}
+                    className={`${imageShape} object-cover overflow-hidden bg-[#F5EEE8] shrink-0 flex items-center justify-center ${isVertical ? "w-full" : ""}`}
+                    style={isVertical ? { height: 120 } : { width: 56, height: 56 }}
                   />
                 ) : (
                   <svg
@@ -271,6 +239,12 @@ export function MenuPreview({
             </div>
           );
         })}
+        {products.length === 0 && (
+          <div className="flex flex-col items-center justify-center text-center py-10 h-full text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-2 opacity-50"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
+            <p className="text-sm">Aún no hay productos <br />en esta categoría.</p>
+          </div>
+        )}
       </div>
     </div>
   );
