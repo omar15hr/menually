@@ -16,6 +16,9 @@ export default async function MenuAppearancePage() {
     .select("*")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  if (!menu) redirect("/dashboard");
+
   return (
     <div>
       <MenuWorkflow menu={menu} />

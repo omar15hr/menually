@@ -11,12 +11,12 @@ import { toast } from "sonner";
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
 interface Props {
-  menu: Menu | null;
+  menu: Menu;
 }
 
 export default function MenuWorkflow({ menu: initialMenu }: Props) {
-  const [menu, setMenu] = useState<Menu | null>(initialMenu);
-  const [editMenu, setEditMenu] = useState<Menu | null>(initialMenu);
+  const [menu, setMenu] = useState<Menu>(initialMenu);
+  const [editMenu, setEditMenu] = useState<Menu>(initialMenu);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
