@@ -21,9 +21,7 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [logoUrl, setLogoUrl] = useState<string>(initialMenu?.logo_url ?? "");
-  const [coverUrl, setCoverUrl] = useState<string>(
-    initialMenu?.bg_image_url ?? "",
-  );
+  const [coverUrl, setCoverUrl] = useState<string>(initialMenu?.bg_image_url ?? "");
 
   function handleLogoUrlSelected(url: string) {
     setLogoUrl(url);

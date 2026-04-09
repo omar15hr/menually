@@ -14,8 +14,8 @@ type CategoryWithProducts = Category & {
 
 interface Props {
   menu: Menu;
-  logoUrlSelected: string;
-  coverUrlSelected: string;
+  logoUrlSelected: string | null;
+  coverUrlSelected: string | null;
   categories?: CategoryWithProducts[];
 }
 
@@ -101,6 +101,8 @@ export function MenuPreview({
 
   // Business name from menu - use a fallback for now
   const businessName = "Nombre del local";
+  const coverPlaceholder = "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/background-image-placeholder.png";
+  const logoPlaceholder = "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/logo-image-placeholder.png"
 
   return (
     <div
@@ -125,7 +127,12 @@ export function MenuPreview({
             className="object-cover rounded-2xl"
           />
         ) : (
-          <div className="w-full h-full bg-[#F5EEE8] rounded-2xl" />
+          <Image
+            fill
+            src={coverPlaceholder}
+            alt="Portada del menú"
+            className="object-cover rounded-2xl"
+          />
         )}
 
         <div
@@ -135,7 +142,12 @@ export function MenuPreview({
           {logoImage ? (
             <Image src={logoImage} alt="Logo" fill className="object-cover" />
           ) : (
-            <div className="w-full h-full bg-[#E5E7EB]" />
+            <Image
+              fill
+              src={logoPlaceholder}
+              alt="Logo"
+              className="object-cover rounded-2xl"
+            />
           )}
         </div>
       </div>
