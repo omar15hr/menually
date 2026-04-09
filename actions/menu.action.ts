@@ -7,6 +7,7 @@ import {
   updateMenuSchema,
   type UpdateMenuSchema,
 } from "@/lib/validations/menu.schemas";
+import { redirect } from "next/navigation";
 
 async function resolveUniqueSlug(baseSlug: string) {
   const supabase = await createClient();
@@ -28,16 +29,14 @@ async function resolveUniqueSlug(baseSlug: string) {
   return `${baseSlug}-${counter}`;
 }
 
-export async function createMenu() {
+export async function createMenu(intent: "manual" | "ai") {
   const supabase = await createClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return { success: false, error: "No autenticado", data: null };
-  }
+  if (!user) return redirect("auth/signin");
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -45,13 +44,7 @@ export async function createMenu() {
     .eq("id", user.id)
     .single();
 
-  if (!profile) {
-    return {
-      success: false,
-      error: "Completa tu perfil antes de crear un menú",
-      data: null,
-    };
-  }
+  if (!profile) return redirect("/auth/signin");
 
   const baseSlug = generateSlug(profile.business_name);
   const slug = await resolveUniqueSlug(baseSlug);
@@ -59,32 +52,25 @@ export async function createMenu() {
   const { data: existing } = await supabase
     .from("menus")
     .select("id")
-    .eq("slug", slug)
+    .eq("user_id", user.id)
     .maybeSingle();
 
-  if (existing) {
-    return {
-      success: false,
-      error: null,
-      data: null,
-    };
-  }
+  if (existing) return;
 
-  const { data, error } = await supabase.from("menus").insert({
-    user_id: user.id,
-    slug,
-  });
+  const { data, error } = await supabase
+    .from("menus")
+    .insert({
+      user_id: user.id,
+      slug,
+    })
+    .select("id")
+    .single();
 
-  if (error) {
-    return {
-      success: false,
-      data: null,
-      error: "Error al crear el menú. Intenta de nuevo.",
-    };
-  }
+  if (error) return;
 
   revalidatePath(`/dashboard`);
-  return { success: true, data, error: null };
+  if (intent === "manual") redirect("/dashboard/menu/menu-content");
+  if (intent === "ai") redirect("/dashboard/menu/menu-appearance");
 }
 
 export async function updateMenu(menuId: string, data: UpdateMenuSchema) {

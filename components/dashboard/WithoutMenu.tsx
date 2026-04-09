@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import IAIcon from "@/components/icons/IAIcon";
 import { Button } from "@/components/ui/button";
+import { createMenu } from "@/actions/menu.action";
 
 export default async function WithoutMenu() {
   const supabase = await createClient();
@@ -30,6 +31,9 @@ export default async function WithoutMenu() {
     .select("full_name")
     .eq("id", user.id)
     .maybeSingle();
+
+  const createMenuManual = createMenu.bind(null, "manual");
+  const createMenuImport = createMenu.bind(null, "ai");
 
   return (
     <>
@@ -98,7 +102,7 @@ export default async function WithoutMenu() {
                   </p>
                 </div>
 
-                <form className="w-full">
+                <form className="w-full" action={createMenuImport}>
                   <Button
                     type="submit"
                     name="intent"
@@ -125,7 +129,7 @@ export default async function WithoutMenu() {
                   </p>
                 </div>
 
-                <form className="w-full">
+                <form className="w-full" action={createMenuManual}>
                   <Button
                     type="submit"
                     name="intent"

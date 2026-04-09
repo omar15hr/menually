@@ -2,10 +2,10 @@
 
 import { MenuPreview } from "@/components/menu/MenuPreview";
 import { MenuEditTable } from "@/components/menu/MenuEditTable";
-import { createMenu, updateMenu } from "@/actions/menu.action";
+import { updateMenu } from "@/actions/menu.action";
 import type { Database } from "@/types/database.types";
 import type { UpdateMenuSchema } from "@/lib/validations/menu.schemas";
-import React, { useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
@@ -24,20 +24,6 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
   const [coverUrl, setCoverUrl] = useState<string>(
     initialMenu?.bg_image_url ?? "",
   );
-
-  function handleCreate() {
-    setError(null);
-    startTransition(async () => {
-      const result = await createMenu();
-      if (!result.success) {
-        setError(result.error);
-        return;
-      }
-
-      setMenu(result.data);
-      setEditMenu(result.data);
-    });
-  }
 
   function handleLogoUrlSelected(url: string) {
     setLogoUrl(url);
@@ -92,22 +78,6 @@ export default function MenuWorkflow({ menu: initialMenu }: Props) {
       setCoverUrl(result.data.bg_image_url ?? "");
       toast.success("Menú actualizado correctamente");
     });
-  }
-
-  if (!menu || !editMenu) {
-    return (
-      <div className="flex flex-col max-w-sm border p-4">
-        <span className="font-medium mb-2">Crear tu menú</span>
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-        <button
-          onClick={handleCreate}
-          disabled={isPending}
-          className="px-4 py-2 text-sm bg-black text-white rounded disabled:opacity-50"
-        >
-          {isPending ? "Creando..." : "Confirmar"}
-        </button>
-      </div>
-    );
   }
 
   return (
