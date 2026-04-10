@@ -1,12 +1,14 @@
 "use client";
 
-import { MenuPreview } from "@/components/menu/MenuPreview";
-import { MenuEditTable } from "@/components/menu/MenuEditTable";
+import { toast } from "sonner";
+import { useState, useTransition } from "react";
+
+import { Spinner } from "../ui/spinner";
 import { updateMenu } from "@/actions/menu.action";
 import type { Database } from "@/types/database.types";
+import { MenuPreview } from "@/components/menu/MenuPreview";
+import { MenuEditTable } from "@/components/menu/MenuEditTable";
 import type { UpdateMenuSchema } from "@/lib/validations/menu.schemas";
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
 type Category = Database["public"]["Tables"]["categories"]["Row"];
@@ -59,8 +61,8 @@ export default function MenuWorkflow({ menu: initialMenu, categories, profiles }
       bg_color: editMenu.bg_color,
       price_color: editMenu.price_color,
       description_color: editMenu.description_color,
-      bg_image_url: editMenu.bg_image_url,
-      logo_url: editMenu.logo_url,
+      bg_image_url: editMenu.bg_image_url ?? "",
+      logo_url: editMenu.logo_url ?? "",
       typography: editMenu.typography as UpdateMenuSchema["typography"],
       layout_card: editMenu.layout_card as UpdateMenuSchema["layout_card"],
       image_product_shape:
@@ -75,7 +77,7 @@ export default function MenuWorkflow({ menu: initialMenu, categories, profiles }
 
       if (!result.success || !result.data) {
         setError(result.error ?? "Error desconocido");
-        toast.error("Error desconocido");
+        toast.error(result.error ?? "Error desconocido");
         return;
       }
 
@@ -93,9 +95,9 @@ export default function MenuWorkflow({ menu: initialMenu, categories, profiles }
         <button
           onClick={handleSave}
           disabled={isPending}
-          className="w-fit px-4 py-2 text-xs font-bold bg-[#CDF545] hover:bg-[#CDF545]/80 text-[#114821] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="w-fit text-base bg-[#CDF545] hover:bg-[#c0e740] text-[#114821] font-semibold py-2 px-4 rounded-lg h-10 cursor-pointer transition-colors"
         >
-          {isPending ? "Guardando..." : "Guardar cambios"}
+          {isPending ? <span className="flex gap-2 justify-center items-center"><Spinner /> Guardando...</span> : "Guardar cambios"}
         </button>
       </header>
       <div className="flex gap-6 bg-[#FBFBFA] items-start">

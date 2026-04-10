@@ -6,7 +6,7 @@ const protectedRoutes = [
   "/dashboard",
   "/plan",
   "/business",
-  "/update-password",
+  "/auth/update-password",
 ];
 
 // Rutas de autenticación (usuarios autenticados no pueden acceder)

@@ -100,14 +100,14 @@ export type Database = {
       menus: {
         Row: {
           bg_color: string
-          bg_image_url: string
+          bg_image_url: string | null
           created_at: string
           description_color: string
           id: string
           image_product_shape: string
           is_active: boolean
           layout_card: string
-          logo_url: string
+          logo_url: string | null
           price_color: string
           primary_color: string
           show_descriptions: boolean
@@ -121,14 +121,14 @@ export type Database = {
         }
         Insert: {
           bg_color?: string
-          bg_image_url?: string
+          bg_image_url?: string | null
           created_at?: string
           description_color?: string
           id?: string
           image_product_shape?: string
           is_active?: boolean
           layout_card?: string
-          logo_url?: string
+          logo_url?: string | null
           price_color?: string
           primary_color?: string
           show_descriptions?: boolean
@@ -142,14 +142,14 @@ export type Database = {
         }
         Update: {
           bg_color?: string
-          bg_image_url?: string
+          bg_image_url?: string | null
           created_at?: string
           description_color?: string
           id?: string
           image_product_shape?: string
           is_active?: boolean
           layout_card?: string
-          logo_url?: string
+          logo_url?: string | null
           price_color?: string
           primary_color?: string
           show_descriptions?: boolean
@@ -343,7 +343,13 @@ export type Database = {
         | "exit"
       font_family: "inter" | "roboto" | "montserrat"
       plan_type: "basic" | "pro"
-      product_label: "vegan" | "gluten_free" | "vegetarian" | "spicy"
+      product_label:
+        | "vegan"
+        | "gluten_free"
+        | "vegetarian"
+        | "spicy"
+        | "keto"
+        | "aplv"
       subscription_status: "trial" | "active" | "past_due" | "cancelled"
     }
     CompositeTypes: {
@@ -483,7 +489,14 @@ export const Constants = {
       ],
       font_family: ["inter", "roboto", "montserrat"],
       plan_type: ["basic", "pro"],
-      product_label: ["vegan", "gluten_free", "vegetarian", "spicy"],
+      product_label: [
+        "vegan",
+        "gluten_free",
+        "vegetarian",
+        "spicy",
+        "keto",
+        "aplv",
+      ],
       subscription_status: ["trial", "active", "past_due", "cancelled"],
     },
   },

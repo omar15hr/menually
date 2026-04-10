@@ -29,22 +29,32 @@ async function resolveUniqueSlug(baseSlug: string) {
   return `${baseSlug}-${counter}`;
 }
 
-export async function createMenu(intent: "manual" | "ai") {
+export type CreateMenuState = {
+  success: boolean;
+  message: string;
+} | null | undefined;
+
+export async function createMenu(
+  prevState: CreateMenuState,
+  formData: FormData
+): Promise<CreateMenuState> {
   const supabase = await createClient();
+
+  const intent = formData.get("intent") as "manual" | "import" | "ai";
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return redirect("auth/signin");
+  if (!user) return { success: false, message: "Usuario no autenticado" };
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("business_name")
     .eq("id", user.id)
     .single();
 
-  if (!profile) return redirect("/auth/signin");
+  if (!profile || profileError) return { success: false, message: "No se pudo recuperar el perfil del usuario" };
 
   const baseSlug = generateSlug(profile.business_name);
   const slug = await resolveUniqueSlug(baseSlug);
@@ -55,9 +65,9 @@ export async function createMenu(intent: "manual" | "ai") {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (existing) return;
+  if (existing) return { success: false, message: "Ya tienes un menú creado" };
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("menus")
     .insert({
       user_id: user.id,
@@ -66,11 +76,13 @@ export async function createMenu(intent: "manual" | "ai") {
     .select("id")
     .single();
 
-  if (error) return;
+  if (error) return { success: false, message: "Error al crear el menú en la base de datos" };
 
   revalidatePath(`/dashboard`);
   if (intent === "manual") redirect("/dashboard/menu/menu-content");
-  if (intent === "ai") redirect("/dashboard/menu/menu-appearance");
+  if (intent === "import" || intent === "ai") redirect("/dashboard/menu/menu-appearance");
+
+  return { success: false, message: "Opción inválida" };
 }
 
 export async function updateMenu(menuId: string, data: UpdateMenuSchema) {

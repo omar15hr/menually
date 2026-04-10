@@ -1,21 +1,22 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import LoaderIcon from "../icons/LoaderIcon";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
-import { MultiSelectChips } from "./MultiSelectChips";
-import PhotoUpload from "../shared/PhotoUpload";
-import { cn } from "@/lib/utils";
-import CameraIcon from "../icons/CameraIcon";
-import XIcon from "../icons/XIcon";
 import Image from "next/image";
-import { createProduct } from "@/actions/product.action";
 import { toast } from "sonner";
-import { useMenuStore } from "@/store/useMenuStore";
+import { useActionState, useEffect, useRef, useState } from "react";
+
+import { cn } from "@/lib/utils";
+import XIcon from "../icons/XIcon";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { Spinner } from "../ui/spinner";
+import { Textarea } from "../ui/textarea";
+import CameraIcon from "../icons/CameraIcon";
+import PhotoUpload from "../shared/PhotoUpload";
 import { Database } from "@/types/database.types";
+import { useMenuStore } from "@/store/useMenuStore";
+import { MultiSelectChips } from "./MultiSelectChips";
+import { createProduct } from "@/actions/product.action";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductLabel = Database["public"]["Enums"]["product_label"];
@@ -170,10 +171,10 @@ export default function ProductForm({ categoryId, product }: Props) {
         <Button
           type="submit"
           disabled={isPending || !categoryId}
-          className="bg-[#CDF545] text-[#114821] text-sm font-bold cursor-pointer w-fit"
+          className="w-fit text-base bg-[#CDF545] hover:bg-[#c0e740] text-[#114821] font-semibold py-2 px-4 rounded-lg h-10 cursor-pointer transition-colors"
         >
           {isPending ? (
-            <LoaderIcon className="animate-spin" />
+            <span className="flex gap-2 justify-center items-center"><Spinner /> Guardar cambios</span>
           ) : isEditMode ? (
             "Guardar cambios"
           ) : (

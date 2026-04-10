@@ -58,7 +58,7 @@ export default function SignInForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="text-base bg-[#CDF545] hover:bg-[#c0e740] text-[#114821] font-semibold py-2 px-4 rounded-lg h-10 cursor-pointer transition-colors"
+          className="flex justify-center items-center text-base bg-[#CDF545] hover:bg-[#c0e740] text-[#114821] font-semibold py-2 px-4 rounded-lg h-10 cursor-pointer transition-colors"
         >
           {isPending ? <Spinner /> : "Iniciar sesión"}
         </button>

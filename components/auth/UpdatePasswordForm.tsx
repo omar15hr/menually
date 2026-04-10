@@ -63,7 +63,7 @@ export default function UpdatePasswordForm() {
         <Button
           type="submit"
           disabled={isPending}
-          className="text-base bg-[#CDF545] hover:bg-[#c0e740] text-[#114821] font-semibold py-2 rounded-lg cursor-pointer transition-colors"
+          className="flex justify-center items-center text-base bg-[#CDF545] hover:bg-[#c0e740] text-[#114821] font-semibold py-2 rounded-lg cursor-pointer transition-colors"
         >
           {isPending ? <Spinner /> : "Cambiar contraseña"}
         </Button>
