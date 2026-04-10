@@ -57,9 +57,9 @@ export function AppSidebar() {
           {state === "collapsed" ? (
             <MenuallyIcon />
           ) : (
-            <div className="flex items-center gap-2 p-2">
+            <Link href="/dashboard" className="flex items-center gap-2 p-2">
               <MenuallyIcon /> <MenuallyText />
-            </div>
+            </Link>
           )}
         </SidebarHeader>
         <SidebarMenu>

@@ -29,14 +29,17 @@ async function resolveUniqueSlug(baseSlug: string) {
   return `${baseSlug}-${counter}`;
 }
 
-export type CreateMenuState = {
-  success: boolean;
-  message: string;
-} | null | undefined;
+export type CreateMenuState =
+  | {
+      success: boolean;
+      message: string;
+    }
+  | null
+  | undefined;
 
 export async function createMenu(
   prevState: CreateMenuState,
-  formData: FormData
+  formData: FormData,
 ): Promise<CreateMenuState> {
   const supabase = await createClient();
 
@@ -54,7 +57,11 @@ export async function createMenu(
     .eq("id", user.id)
     .single();
 
-  if (!profile || profileError) return { success: false, message: "No se pudo recuperar el perfil del usuario" };
+  if (!profile || profileError)
+    return {
+      success: false,
+      message: "No se pudo recuperar el perfil del usuario",
+    };
 
   const baseSlug = generateSlug(profile.business_name);
   const slug = await resolveUniqueSlug(baseSlug);
@@ -76,11 +83,16 @@ export async function createMenu(
     .select("id")
     .single();
 
-  if (error) return { success: false, message: "Error al crear el menú en la base de datos" };
+  if (error)
+    return {
+      success: false,
+      message: "Error al crear el menú en la base de datos",
+    };
 
   revalidatePath(`/dashboard`);
   if (intent === "manual") redirect("/dashboard/menu/menu-content");
-  if (intent === "import" || intent === "ai") redirect("/dashboard/menu/menu-appearance");
+  if (intent === "import" || intent === "ai")
+    redirect("/dashboard/menu/menu-appearance");
 
   return { success: false, message: "Opción inválida" };
 }
@@ -120,7 +132,6 @@ export async function updateMenu(menuId: string, data: UpdateMenuSchema) {
     .single();
 
   if (updateError) {
-    console.log("UPDATE ERROR:", updateError);
     return { success: false, error: "Error al actualizar el menú" };
   }
 

@@ -5,54 +5,23 @@ import TrashIcon from "../icons/TrashIcon";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "../ui/button";
 import DownloadIcon from "../icons/DownloadIcon";
-
-const mockProducts = [
-  {
-    id: 1,
-    name: "Croissant de almendras",
-    category: "Postres",
-    description:
-      "Rica pizza margarita de masa madre, con queso mozzarella de buffalla",
-    price: "4.990",
-    available: true,
-  },
-  {
-    id: 2,
-    name: "Espresso mandarina",
-    category: "Cafetería",
-    description:
-      "Rica pizza margarita de masa madre, con queso mozzarella de buffalla",
-    price: "4.990",
-    available: false,
-  },
-  {
-    id: 3,
-    name: "Cheesecake de frambuesa",
-    category: "Postres",
-    description:
-      "Rica pizza margarita de masa madre, con queso mozzarella de buffalla",
-    price: "4.990",
-    available: true,
-  },
-  {
-    id: 4,
-    name: "Tarta vasca",
-    category: "Postres",
-    description:
-      "Rica pizza margarita de masa madre, con queso mozzarella de buffalla",
-    price: "4.990",
-    available: true,
-  },
-  {
-    id: 5,
-    name: "Tarta vasca",
-    category: "Postres",
-    description:
-      "Rica pizza margarita de masa madre, con queso mozzarella de buffalla",
-    price: "4.990",
-    available: true,
-  },
-];
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default async function WithMenu() {
   const supabase = await createClient();
@@ -87,6 +56,13 @@ export default async function WithMenu() {
     ...category,
     productCount: category.products.length,
   }));
+
+  const allProducts = result.flatMap((category) =>
+    category.products.map((product) => ({
+      ...product,
+      categoryName: category.name,
+    })),
+  );
 
   return (
     <>
@@ -134,88 +110,84 @@ export default async function WithMenu() {
           </div>
 
           <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50/50">
-                  <th className="py-4 px-6 text-sm font-semibold text-gray-700">
-                    Producto
-                  </th>
-                  <th className="py-4 px-6 text-sm font-semibold text-gray-700">
-                    Categoría
-                  </th>
-                  <th className="py-4 px-6 text-sm font-semibold text-gray-700">
-                    Descripción
-                  </th>
-                  <th className="py-4 px-6 text-sm font-semibold text-gray-700">
-                    Precio
-                  </th>
-                  <th className="py-4 px-6 text-sm font-semibold text-gray-700 text-center">
-                    Disponibilidad
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {mockProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50/50">
-                    <td className="py-4 px-6 text-sm text-gray-600">
+            <Table>
+              <TableHeader className="bg-gray-50/50">
+                <TableRow>
+                  <TableHead className="py-4 px-6 font-semibold text-gray-700">Producto</TableHead>
+                  <TableHead className="py-4 px-6 font-semibold text-gray-700">Categoría</TableHead>
+                  <TableHead className="py-4 px-6 font-semibold text-gray-700">Descripción</TableHead>
+                  <TableHead className="py-4 px-6 font-semibold text-gray-700">Precio</TableHead>
+                  <TableHead className="py-4 px-6 font-semibold text-gray-700 text-center">Disponibilidad</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-gray-100">
+                {allProducts.map((product) => (
+                  <TableRow key={product.id} className="hover:bg-gray-50/50">
+                    <TableCell className="py-4 px-6 text-sm text-gray-600 font-medium">
                       {product.name}
-                    </td>
-                    <td className="py-4 px-6 text-sm text-gray-600">
-                      {product.category}
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="border border-gray-200 rounded-lg p-3 text-xs text-gray-500 w-48 bg-white">
-                        {product.description}
+                    </TableCell>
+                    <TableCell className="py-4 px-6 text-sm text-gray-600">
+                      {product.categoryName}
+                    </TableCell>
+                    <TableCell className="py-4 px-6">
+                      <div className="border border-gray-200 rounded-lg p-3 text-xs text-gray-500 w-48 bg-white truncate">
+                        {product.description || "Sin descripción"}
                       </div>
-                    </td>
-                    <td className="py-4 px-6">
+                    </TableCell>
+                    <TableCell className="py-4 px-6">
                       <div className="flex items-center border border-gray-200 rounded-lg px-3 py-2 w-28 bg-white">
-                        <span className="text-gray-500 font-medium mr-1">
-                          $
-                        </span>
+                        <span className="text-gray-500 font-medium mr-1">$</span>
                         <input
                           type="text"
                           defaultValue={product.price}
                           className="w-full outline-none text-sm font-medium text-gray-700 bg-transparent"
                         />
                       </div>
-                    </td>
-                    <td className="py-4 px-6">
+                    </TableCell>
+                    <TableCell className="py-4 px-6">
                       <div className="flex items-center justify-center space-x-6">
                         <button
-                          className={`w-11 h-6 rounded-full relative transition-colors ${product.available ? "bg-blue-600" : "bg-gray-200"}`}
+                          className={`w-11 h-6 rounded-full relative transition-colors ${product.is_available ? "bg-blue-600" : "bg-gray-200"}`}
                         >
                           <div
-                            className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${product.available ? "translate-x-6" : "translate-x-1"}`}
+                            className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${product.is_available ? "translate-x-6" : "translate-x-1"}`}
                           />
                         </button>
                         <button className="p-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors">
                           <TrashIcon />
                         </button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
-          <div className="flex justify-center items-center space-x-4 mt-6 text-sm text-gray-600">
-            <button className="hover:text-gray-900">&lt; Anterior</button>
-            <div className="flex space-x-2">
-              <button className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100">
-                1
-              </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-md bg-green-800 text-white font-medium">
-                2
-              </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100">
-                3
-              </button>
-              <span className="flex items-center justify-center">...</span>
-            </div>
-            <button className="hover:text-gray-900">Siguiente &gt;</button>
-          </div>
+          <Pagination className="mt-6">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious href="#" text="Anterior" className="hover:text-gray-900 hover:bg-transparent text-gray-600 px-2" />
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationLink href="#" className="text-gray-600 hover:bg-gray-100">1</PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationLink href="#" isActive className="bg-green-800 text-white hover:bg-green-800/90 hover:text-white border-transparent">
+                  2
+                </PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationLink href="#" className="text-gray-600 hover:bg-gray-100">3</PaginationLink>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationEllipsis className="text-gray-600" />
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext href="#" text="Siguiente" className="hover:text-gray-900 hover:bg-transparent text-gray-600 px-2" />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </div>
       </div>
     </>
