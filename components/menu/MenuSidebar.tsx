@@ -16,12 +16,12 @@ import {
 } from "@/components/ui/sidebar";
 import MenuallyIcon from "../icons/MenuallyIcon";
 import MenuallyText from "../icons/MenuallyText";
-import SettingsIcon from "../icons/SettingsIcon";
 import SquareGroupIcon from "../icons/SquareGroupIcon";
 import UserSidebarInfo from "../dashboard/UserCardInfo";
 import PaintIcon from "../icons/PaintIcon";
 import QR2Icon from "../icons/QR2Icon";
 import ContentIcon from "../icons/ContentIcon";
+import SignOutButton from "../dashboard/SignOutButton";
 
 const menuLinks = [
   {
@@ -96,7 +96,7 @@ export function MenuSidebar() {
             <UserSidebarInfo />
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SettingsIcon />
+            <SignOutButton />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
