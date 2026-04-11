@@ -26,6 +26,7 @@ interface MenuState {
   addProduct: (categoryId: string, product: Product) => void;
   updateProductImage: (productId: string, imageUrl: string) => void;
   updateProduct: (productId: string, data: Partial<Product>) => void;
+  reorderCategories: (fromIndex: number, toIndex: number) => void;
 }
 
 export const useMenuStore = create<MenuState>((set, get) => ({
@@ -105,4 +106,12 @@ export const useMenuStore = create<MenuState>((set, get) => ({
         ),
       })),
     })),
+
+  reorderCategories: (fromIndex, toIndex) =>
+    set((state) => {
+      const newCategories = [...state.categories];
+      const [removed] = newCategories.splice(fromIndex, 1);
+      newCategories.splice(toIndex, 0, removed);
+      return { categories: newCategories };
+    }),
 }));
