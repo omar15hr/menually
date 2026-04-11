@@ -15,10 +15,10 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import QRIcon from "../icons/QRIcon";
+import SignOutButton from "./SignOutButton";
 import UserSidebarInfo from "./UserCardInfo";
 import MenuallyIcon from "../icons/MenuallyIcon";
 import MenuallyText from "../icons/MenuallyText";
-import SettingsIcon from "../icons/SettingsIcon";
 import OpenBookIcon from "../icons/OpenBookIcon";
 import AnalyticsIcon from "../icons/AnalyticsIcon";
 import SquareGroupIcon from "../icons/SquareGroupIcon";
@@ -96,7 +96,7 @@ export function AppSidebar() {
             <UserSidebarInfo />
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SettingsIcon />
+            <SignOutButton />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

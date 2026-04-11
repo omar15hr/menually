@@ -177,9 +177,9 @@ export async function updatePassword(
   redirect("/dashboard");
 }
 
-export async function logOut() {
+export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
-  redirect("/signin");
+  redirect("/auth/signin");
 }
