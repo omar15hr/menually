@@ -22,6 +22,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Switch } from "../ui/switch";
 
 export default async function WithMenu() {
   const supabase = await createClient();
@@ -146,14 +147,9 @@ export default async function WithMenu() {
                     </TableCell>
                     <TableCell className="py-4 px-6">
                       <div className="flex items-center justify-center space-x-6">
-                        <button
-                          className={`w-11 h-6 rounded-full relative transition-colors ${product.is_available ? "bg-blue-600" : "bg-gray-200"}`}
-                        >
-                          <div
-                            className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${product.is_available ? "translate-x-6" : "translate-x-1"}`}
-                          />
-                        </button>
-                        <button className="p-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors">
+
+                        <Switch id="airplane-mode" />
+                        <button className="p-2 bg-[#AB050533] text-[#AB0505] rounded-full hover:bg-red-100 transition-colors cursor-pointer">
                           <TrashIcon />
                         </button>
                       </div>

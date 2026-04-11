@@ -21,8 +21,6 @@ interface Props {
   businessName?: string | null;
 }
 
-
-
 const shapeMap: Record<string, string> = {
   square: "rounded-none",
   rounded: "rounded-xl",
@@ -90,16 +88,20 @@ export function MenuPreview({
         {coverImage ? (
           <Image
             fill
+            loading="eager"
             src={coverImage}
             alt="Portada del menú"
             className="object-cover rounded-2xl"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
           <Image
             fill
+            loading="eager"
             src={coverPlaceholder}
             alt="Portada del menú"
             className="object-cover rounded-2xl"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         )}
 
@@ -108,13 +110,15 @@ export function MenuPreview({
           style={{ width: 52, height: 52, bottom: -26, left: 16 }}
         >
           {logoImage ? (
-            <Image src={logoImage} alt="Logo" fill className="object-cover" />
+            <Image src={logoImage} alt="Logo" fill loading="eager" className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
           ) : (
             <Image
               fill
-              src={logoPlaceholder}
               alt="Logo"
+              loading="eager"
+              src={logoPlaceholder}
               className="object-cover rounded-2xl"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           )}
         </div>
@@ -185,6 +189,7 @@ export function MenuPreview({
                     alt={product.name}
                     width={80}
                     height={80}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className={`${imageShape} object-cover overflow-hidden bg-[#F5EEE8] shrink-0 flex items-center justify-center ${isVertical ? "w-full" : ""}`}
                     style={isVertical ? { height: 120 } : { width: 56, height: 56 }}
                   />
