@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { UploadCloudIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { processMenuAI } from "@/actions/ai-process-menu.action";
 import { useImportStore } from "@/store/useImportStore";
+import DownloadCloudIcon from "../icons/DownloadCloudIcon";
 
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -126,15 +126,14 @@ export function MenuImportDropzone() {
       onDragLeave={handleDragLeave}
     >
       <Empty
-        className={`border-2 bg-[#FBFBFA] transition-colors ${
-          isDragOver ? "border-[#CDF545] bg-[#CDF545]/5" : "border-dashed border-[#E4E4E6]"
-        }`}
+        className={`border-2 bg-[#FBFBFA] transition-colors ${isDragOver ? "border-[#CDF545] bg-[#CDF545]/5" : "border-dashed border-[#E4E4E6]"
+          }`}
       >
         <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <UploadCloudIcon className="size-8 text-[#58606E]" />
-          </EmptyMedia>
-          <EmptyTitle>
+          <div className="bg-[#CDF5454D] p-5 rounded-full my-2">
+            <DownloadCloudIcon />
+          </div>
+          <EmptyTitle className="text-[#114821] font-bold text-xl underline">
             {isDragOver
               ? "Soltá el archivo aquí"
               : "Arrastrá tu archivo aquí o hacé clic para buscarlo"}
@@ -145,8 +144,8 @@ export function MenuImportDropzone() {
         </EmptyHeader>
         <EmptyContent>
           <label htmlFor="file-upload" className="cursor-pointer">
-            <Button variant="outline" size="sm" asChild>
-              <span>Buscar archivo</span>
+            <Button className="bg-[#CDF545] text-[#114821] font-semibold text-base py-2 px-4 rounded-lg h-10" size="lg" asChild>
+              <span>Continuar</span>
             </Button>
             <input
               id="file-upload"

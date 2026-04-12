@@ -12,12 +12,9 @@ import { useImportStore } from "@/store/useImportStore";
 export default function MenuImportPage() {
   const { step, loadingMessage, error, reset } = useImportStore();
 
-  // Reset store on mount
   useEffect(() => {
     reset();
   }, [reset]);
-
-  // Handle step-based rendering
   const renderContent = () => {
     switch (step) {
       case "upload":
@@ -58,8 +55,7 @@ export default function MenuImportPage() {
   };
 
   return (
-    <div className="py-8 max-w-4xl mx-auto flex flex-col gap-6">
-      {/* Header */}
+    <div className="p-12 w-full mx-auto flex flex-col gap-6">
       <div className="text-center">
         <h1 className="text-[#1C1C1C] font-extrabold text-3xl">
           Sube el menú de tu restaurante
@@ -69,11 +65,9 @@ export default function MenuImportPage() {
         </p>
       </div>
 
-      {/* Content based on step */}
       {renderContent()}
 
-      {/* Footer navigation */}
-      <div className="flex justify-between items-center pt-4 border-t border-[#E4E4E6]">
+      <div className="flex justify-between max-w-4xl mx-auto items-center pt-4 border-t border-[#E4E4E6]">
         <Link href="/dashboard/menu">
           <Button variant="outline" size="sm">
             Volver al menú

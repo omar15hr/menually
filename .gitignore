@@ -12,6 +12,7 @@
 
 #AI
 .agents/
+.playwright-mcp/
 
 # testing
 /coverage
