@@ -92,7 +92,7 @@ export async function createMenu(
   revalidatePath(`/dashboard`);
   if (intent === "manual") redirect("/dashboard/menu/menu-content");
   if (intent === "import" || intent === "ai")
-    redirect("/dashboard/menu/menu-appearance");
+    redirect("/dashboard/menu/menu-import");
 
   return { success: false, message: "Opción inválida" };
 }
