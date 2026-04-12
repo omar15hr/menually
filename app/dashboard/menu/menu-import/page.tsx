@@ -1,32 +1,93 @@
+"use client";
+
+import { useEffect } from "react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import DownloadCloudIcon from "@/components/icons/DownloadCloudIcon";
+import { MenuImportDropzone } from "@/components/menu-import";
+import { MenuImportLoading } from "@/components/menu-import";
+import { MenuImportPreview } from "@/components/menu-import";
+import { useImportStore } from "@/store/useImportStore";
 
 export default function MenuImportPage() {
+  const { step, loadingMessage, error, reset } = useImportStore();
+
+  // Reset store on mount
+  useEffect(() => {
+    reset();
+  }, [reset]);
+
+  // Handle step-based rendering
+  const renderContent = () => {
+    switch (step) {
+      case "upload":
+        return <MenuImportDropzone />;
+
+      case "processing":
+        return <MenuImportLoading message={loadingMessage || "Analizando menú con IA..."} />;
+
+      case "preview":
+        return <MenuImportPreview />;
+
+      case "importing":
+        return <MenuImportLoading message="Importando productos..." />;
+
+      case "error":
+        return (
+          <div className="flex flex-col items-center justify-center gap-4 py-8">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+              <p className="text-red-600 font-medium">{error || "Ocurrió un error"}</p>
+            </div>
+            <Button onClick={() => reset()}>Intentar de nuevo</Button>
+          </div>
+        );
+
+      case "success":
+        return (
+          <div className="flex flex-col items-center justify-center gap-4 py-8">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-6 text-center">
+              <p className="text-green-600 font-medium">¡Menú importado correctamente!</p>
+              <p className="text-green-600/70 text-sm mt-1">Redirigiendo al editor...</p>
+            </div>
+          </div>
+        );
+
+      default:
+        return <MenuImportDropzone />;
+    }
+  };
+
   return (
-    <div className="py-8 max-w-7xl mx-auto flex flex-col items-center justify-center gap-4">
-      <h1 className="text-[#1C1C1C] font-extrabold text-3xl">Sube el menú de tu restaurante</h1>
-      <p className="text-[#58606E] font-normal text-lg">Lo analizamos automáticamente y lo convertimos en tu menú digital.</p>
-      <Empty className="border-2 border-dashed border-[#E4E4E6] bg-[#FBFBFA]">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <DownloadCloudIcon />
-          </EmptyMedia>
-          <EmptyTitle>Arrastra tu archivo aquí o haz clic para buscarlo</EmptyTitle>
-          <EmptyDescription>
-            PDF, PNG, JPG o JPEG, como lo tengas está bien.
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent className="flex flex-row gap-2 items-center justify-center">
+    <div className="py-8 max-w-4xl mx-auto flex flex-col gap-6">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-[#1C1C1C] font-extrabold text-3xl">
+          Sube el menú de tu restaurante
+        </h1>
+        <p className="text-[#58606E] font-normal text-lg mt-2">
+          Lo analizamos automáticamente y lo convertimos en tu menú digital.
+        </p>
+      </div>
+
+      {/* Content based on step */}
+      {renderContent()}
+
+      {/* Footer navigation */}
+      <div className="flex justify-between items-center pt-4 border-t border-[#E4E4E6]">
+        <Link href="/dashboard/menu">
           <Button variant="outline" size="sm">
-            Volver
+            Volver al menú
           </Button>
-          <Button variant="outline" size="sm">
-            Continuar
-          </Button>
-        </EmptyContent>
-      </Empty>
+        </Link>
+
+        {step === "preview" && (
+          <Link href="/dashboard/menu/menu-content">
+            <Button variant="ghost" size="sm" className="text-[#58606E]">
+              Ver menú actual
+            </Button>
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
