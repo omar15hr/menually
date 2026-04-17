@@ -67,13 +67,7 @@ export default function MenuImportPage() {
 
       {renderContent()}
 
-      <div className="flex justify-between max-w-4xl mx-auto items-center pt-4 border-t border-[#E4E4E6]">
-        <Link href="/dashboard/menu">
-          <Button variant="outline" size="sm">
-            Volver al menú
-          </Button>
-        </Link>
-
+      <div className="flex justify-between max-w-4xl mx-auto items-center pt-4">
         {step === "preview" && (
           <Link href="/dashboard/menu/menu-content">
             <Button variant="ghost" size="sm" className="text-[#58606E]">
