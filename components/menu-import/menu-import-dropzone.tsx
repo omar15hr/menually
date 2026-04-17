@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { processMenuAI } from "@/actions/ai-process-menu.action";
 import { useImportStore } from "@/store/useImportStore";
@@ -21,7 +22,9 @@ const MAX_SIZE_MB = 10;
 
 export function MenuImportDropzone() {
   const [isDragOver, setIsDragOver] = useState(false);
-  const { setStep, setImportedData, setFile, setLoading, setError, setConfidenceWarning } =
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
+  const { setStep, setImportedData, setFile, setError, setConfidenceWarning } =
     useImportStore();
 
   const validateFile = (file: File): string | null => {
@@ -46,7 +49,8 @@ export function MenuImportDropzone() {
       }
 
       setFile(file);
-      setLoading(true, "Analizando menú con IA...");
+      setIsLoading(true);
+      setLoadingMessage("Analizando menú con IA...");
 
       try {
         const formData = new FormData();
@@ -79,10 +83,11 @@ export function MenuImportDropzone() {
         setStep("error");
         toast.error("Error al procesar el archivo");
       } finally {
-        setLoading(false);
+        setIsLoading(false);
+        setLoadingMessage("");
       }
     },
-    [setFile, setLoading, setImportedData, setConfidenceWarning, setStep, setError]
+    [setFile, setImportedData, setConfidenceWarning, setStep, setError]
   );
 
   const handleDrop = useCallback(
@@ -136,16 +141,32 @@ export function MenuImportDropzone() {
           <EmptyTitle className="text-[#114821] font-bold text-xl underline">
             {isDragOver
               ? "Soltá el archivo aquí"
-              : "Arrastrá tu archivo aquí o hacé clic para buscarlo"}
+              : isLoading
+                ? "Procesando imagen..."
+                : "Arrastrá tu archivo aquí o hacé clic para buscarlo"}
           </EmptyTitle>
           <EmptyDescription>
-            PDF, PNG, JPG o WEBP hasta {MAX_SIZE_MB}MB
+            {isLoading ? loadingMessage : `PDF, PNG, JPG o WEBP hasta ${MAX_SIZE_MB}MB`}
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <label htmlFor="file-upload" className="cursor-pointer">
-            <Button className="bg-[#CDF545] text-[#114821] font-semibold text-base py-2 px-4 rounded-lg h-10" size="lg" asChild>
-              <span>Continuar</span>
+            <Button
+              className="bg-[#CDF545] text-[#114821] font-semibold text-base py-2 px-4 rounded-lg h-10 min-w-32"
+              size="lg"
+              disabled={isLoading}
+              asChild
+            >
+              <span>
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner className="size-4" />
+                    Procesando
+                  </span>
+                ) : (
+                  "Continuar"
+                )}
+              </span>
             </Button>
             <input
               id="file-upload"
@@ -153,6 +174,7 @@ export function MenuImportDropzone() {
               accept={ALLOWED_TYPES.join(",")}
               onChange={handleInputChange}
               className="hidden"
+              disabled={isLoading}
             />
           </label>
         </EmptyContent>

@@ -131,3 +131,22 @@
 .tabs {
   overflow-x: hidden;
 }
+
+/* Progress bar animation */
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+    width: 50%;
+  }
+  50% {
+    width: 40%;
+  }
+  100% {
+    transform: translateX(250%);
+    width: 50%;
+  }
+}
+
+.animate-progress {
+  animation: progress-indeterminate 1.5s ease-in-out infinite;
+}

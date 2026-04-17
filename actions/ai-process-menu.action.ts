@@ -47,7 +47,7 @@ REGLAS IMPORTANTES:
  * Converts file to base64 and sends to OpenAI API
  */
 export async function processMenuAI(
-  formData: FormData
+  formData: FormData,
 ): Promise<{ data: ImportedMenu | null; error: string | null }> {
   const file = formData.get("file") as File | null;
 
@@ -75,7 +75,7 @@ export async function processMenuAI(
     // Convert file to base64
     const base64 = await fileToBase64(file);
 
-    // Create OpenAI client
+    // Create OpenAI client (uses AI Gateway if AI_GATEWAY_URL is set)
     const openai = createOpenAIClient();
 
     // Call GPT-4o-mini Vision
@@ -104,7 +104,6 @@ export async function processMenuAI(
         },
       ],
       max_tokens: 4096,
-      response_format: { type: "json_object" },
     });
 
     const content = response.choices[0]?.message?.content;
@@ -131,7 +130,8 @@ export async function processMenuAI(
     if (!parsed.categories || !Array.isArray(parsed.categories)) {
       return {
         data: null,
-        error: "La IA no pudo identificar categorías en el menú. Intenta con otra imagen.",
+        error:
+          "La IA no pudo identificar categorías en el menú. Intenta con otra imagen.",
       };
     }
 
@@ -157,7 +157,8 @@ export async function processMenuAI(
     if (sanitizedCategories.length === 0) {
       return {
         data: null,
-        error: "No se encontraron productos válidos en el menú. Intenta con otra imagen.",
+        error:
+          "No se encontraron productos válidos en el menú. Intenta con otra imagen.",
       };
     }
 
@@ -175,13 +176,15 @@ export async function processMenuAI(
       if (err.message.includes("timeout")) {
         return {
           data: null,
-          error: "La solicitud tardó demasiado. Intenta con una imagen más pequeña.",
+          error:
+            "La solicitud tardó demasiado. Intenta con una imagen más pequeña.",
         };
       }
       if (err.message.includes("rate_limit")) {
         return {
           data: null,
-          error: "Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
+          error:
+            "Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
         };
       }
       if (err.message.includes("Incorrect API key")) {
