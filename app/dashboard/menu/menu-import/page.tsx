@@ -10,7 +10,7 @@ import { MenuImportPreview } from "@/components/menu-import";
 import { useImportStore } from "@/store/useImportStore";
 
 export default function MenuImportPage() {
-  const { step, loadingMessage, error, reset } = useImportStore();
+  const { step, error, reset } = useImportStore();
 
   useEffect(() => {
     reset();
@@ -21,13 +21,13 @@ export default function MenuImportPage() {
         return <MenuImportDropzone />;
 
       case "processing":
-        return <MenuImportLoading message={loadingMessage || "Analizando menú con IA..."} />;
+        return <MenuImportLoading />;
 
       case "preview":
         return <MenuImportPreview />;
 
       case "importing":
-        return <MenuImportLoading message="Importando productos..." />;
+        return <MenuImportLoading />;
 
       case "error":
         return (
