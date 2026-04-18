@@ -43,11 +43,11 @@ export function MenuImportPreview() {
         categories: prev.categories.map((cat, ci) =>
           ci === catIndex
             ? {
-                ...cat,
-                products: cat.products.map((prod, pi) =>
-                  pi === prodIndex ? { ...prod, ...updates } : prod
-                ),
-              }
+              ...cat,
+              products: cat.products.map((prod, pi) =>
+                pi === prodIndex ? { ...prod, ...updates } : prod
+              ),
+            }
             : cat
         ),
       }));
@@ -120,11 +120,10 @@ export function MenuImportPreview() {
           result.result;
 
         toast.success("Menú importado correctamente", {
-          description: `${categoriesAdded} categorías y ${productsAdded} productos agregados${
-            categoriesSkipped > 0 || productsSkipped > 0
-              ? ` (${categoriesSkipped + productsSkipped} saltados)`
-              : ""
-          }`,
+          description: `${categoriesAdded} categorías y ${productsAdded} productos agregados${categoriesSkipped > 0 || productsSkipped > 0
+            ? ` (${categoriesSkipped + productsSkipped} saltados)`
+            : ""
+            }`,
         });
 
         // Redirect to menu content after a short delay
@@ -150,7 +149,7 @@ export function MenuImportPreview() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 mt-10">
       {/* Confidence Warning */}
       {confidenceWarning && (
         <div className="flex items-center gap-3 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-yellow-800">
@@ -166,24 +165,23 @@ export function MenuImportPreview() {
       )}
 
       {/* Summary */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center justify-between px-6 py-4 bg-[#FBFBFA] rounded-2xl">
+        <div className="flex flex-col gap-1 justify-center items-center">
           <h2 className="text-xl font-bold text-[#1C1C1C]">
-            {data.categories.length} categorías · {totalProducts} productos
+            {data.categories.length}
           </h2>
-          <p className="text-sm text-[#58606E]">
-            Editá los datos antes de importar
-          </p>
+          <span className="text-sm text-[#58606E]">
+            Categorías
+          </span>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={addCategory}
-          className="gap-2"
-        >
-          <PlusIcon className="size-4" />
-          Agregar categoría
-        </Button>
+        <div className="flex flex-col gap-1 justify-center items-center">
+          <h2 className="text-xl font-bold text-[#1C1C1C]">
+            {totalProducts}
+          </h2>
+          <span className="text-sm text-[#58606E]">
+            Productos
+          </span>
+        </div>
       </div>
 
       {/* Categories List */}
