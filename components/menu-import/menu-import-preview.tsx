@@ -2,12 +2,24 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { PlusIcon, Trash2Icon, AlertTriangleIcon } from "lucide-react";
+import { PlusIcon, Trash2Icon, AlertTriangleIcon, ChevronDownIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { importMenu } from "@/actions/ai-import-menu.action";
 import { useImportStore } from "@/store/useImportStore";
 import type { ImportedMenu, ImportedProduct } from "@/lib/types/ai-import.types";
@@ -26,6 +38,24 @@ export function MenuImportPreview() {
 
   const [data, setData] = useState<ImportedMenu>(importedData!);
   const [isImporting, setIsImporting] = useState(false);
+  const [openCategories, setOpenCategories] = useState<Set<number>>(new Set());
+
+  const toggleCategory = useCallback((index: number) => {
+    setOpenCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  }, []);
+
+  const isCategoryOpen = useCallback(
+    (index: number) => openCategories.has(index),
+    [openCategories]
+  );
 
   const updateCategory = useCallback((index: number, name: string) => {
     setData((prev) => ({
@@ -69,17 +99,6 @@ export function MenuImportPreview() {
     setData((prev) => ({
       ...prev,
       categories: prev.categories.filter((_, i) => i !== index),
-    }));
-  }, []);
-
-  const addProduct = useCallback((catIndex: number) => {
-    setData((prev) => ({
-      ...prev,
-      categories: prev.categories.map((cat, i) =>
-        i === catIndex
-          ? { ...cat, products: [...cat.products, { name: "", price: null }] }
-          : cat
-      ),
     }));
   }, []);
 
@@ -166,117 +185,153 @@ export function MenuImportPreview() {
         </div>
       )}
 
-      {/* Summary */}
-      <div className="flex items-center justify-between px-6 py-4 bg-[#FBFBFA] rounded-2xl divide-x divide-[#E4E4E6]">
-        <div className="flex flex-1 flex-col gap-1 justify-center items-center">
-          <h2 className="text-xl font-bold text-[#1C1C1C]">{data.categories.length}</h2>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white rounded-xl border border-[#E4E4E6] p-4 text-center shadow-sm">
+          <h2 className="text-2xl font-bold text-[#1C1C1C]">{data.categories.length}</h2>
           <span className="text-sm text-[#58606E]">Categorías</span>
         </div>
-        <div className="flex flex-1 flex-col gap-1 justify-center items-center">
-          <h2 className="text-xl font-bold text-[#1C1C1C]">{totalProducts}</h2>
+        <div className="bg-white rounded-xl border border-[#E4E4E6] p-4 text-center shadow-sm">
+          <h2 className="text-2xl font-bold text-[#1C1C1C]">{totalProducts}</h2>
           <span className="text-sm text-[#58606E]">Productos</span>
         </div>
-        <div className="flex flex-1 flex-col gap-1 justify-center items-center">
-          <h2 className="text-xl font-bold text-[#1C1C1C]">{totalWithPrice}</h2>
+        <div className="bg-white rounded-xl border border-[#E4E4E6] p-4 text-center shadow-sm">
+          <h2 className="text-2xl font-bold text-[#1C1C1C]">{totalWithPrice}</h2>
           <span className="text-sm text-[#58606E]">Precios</span>
         </div>
-        <div className="flex flex-1 flex-col gap-1 justify-center items-center">
-          <h2 className="text-xl font-bold text-[#1C1C1C]">{totalWithDescription}</h2>
+        <div className="bg-white rounded-xl border border-[#E4E4E6] p-4 text-center shadow-sm">
+          <h2 className="text-2xl font-bold text-[#1C1C1C]">{totalWithDescription}</h2>
           <span className="text-sm text-[#58606E]">Descripciones</span>
         </div>
       </div>
 
-      {/* Categories List */}
-      <div className="flex flex-col gap-4">
+      {/* Categories List with Collapsible */}
+      <div className="flex flex-col gap-3">
         {data.categories.map((category, catIndex) => (
-          <div
+          <Collapsible
             key={catIndex}
-            className="rounded-lg border border-[#E4E4E6] bg-white p-4"
+            open={isCategoryOpen(catIndex)}
+            onOpenChange={() => toggleCategory(catIndex)}
+            className="rounded-lg border border-[#E4E4E6] bg-white overflow-hidden"
           >
-            {/* Category Header */}
-            <div className="mb-4 flex items-center gap-3">
-              <Input
-                value={category.name}
-                onChange={(e) => updateCategory(catIndex, e.target.value)}
-                className="font-semibold"
-                placeholder="Nombre de categoría"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeCategory(catIndex)}
-                className="text-[#58606E] hover:text-red-500"
-              >
-                <Trash2Icon className="size-4" />
-              </Button>
-            </div>
+            <CollapsibleTrigger className="w-full cursor-pointer">
+              <div className="flex items-center gap-3 px-6 py-4 hover:bg-[#FBFBFA] transition-colors w-full">
 
-            {/* Products List */}
-            <div className="flex flex-col gap-2">
-              {category.products.map((product, prodIndex) => (
-                <div
-                  key={prodIndex}
-                  className="flex items-start gap-3 rounded-md bg-[#FBFBFA] p-3"
-                >
-                  <div className="flex flex-1 flex-col gap-2">
-                    <Input
-                      value={product.name}
-                      onChange={(e) =>
-                        updateProduct(catIndex, prodIndex, { name: e.target.value })
-                      }
-                      placeholder="Nombre del producto"
-                      className="font-medium"
+                <Input
+                  value={category.name}
+                  onChange={(e) => updateCategory(catIndex, e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="font-semibold border-0 bg-transparent p-0 h-auto focus-visible:ring-0 w-fit text-lg"
+                  placeholder="Nombre de categoría"
+                />
+                <div className="ml-auto flex items-center gap-2">
+                  <span className="bg-[#F1F5F9] p-1 rounded-full text-[#1C1C1C]">
+                    <ChevronDownIcon
+                      className={`size-5 text-[#58606E] transition-transform duration-200 ${isCategoryOpen(catIndex) ? "rotate-0" : "-rotate-90"
+                        }`}
                     />
-                    <div className="flex gap-2">
-                      <div className="w-24">
-                        <Input
-                          type="number"
-                          value={product.price ?? ""}
-                          onChange={(e) =>
-                            updateProduct(catIndex, prodIndex, {
-                              price: e.target.value ? Number(e.target.value) : null,
-                            })
-                          }
-                          placeholder="Precio"
-                          min={0}
-                          step={1}
-                        />
-                      </div>
-                      <Input
-                        value={product.description ?? ""}
-                        onChange={(e) =>
-                          updateProduct(catIndex, prodIndex, {
-                            description: e.target.value || undefined,
-                          })
-                        }
-                        placeholder="Descripción (opcional)"
-                        className="flex-1"
-                      />
-                    </div>
-                  </div>
+                  </span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeProduct(catIndex, prodIndex)}
-                    className="text-[#58606E] hover:text-red-500"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeCategory(catIndex);
+                    }}
+                    className="text-[#58606E] hover:text-red-500 h-8 w-8 cursor-pointer"
                   >
                     <Trash2Icon className="size-4" />
                   </Button>
                 </div>
-              ))}
-            </div>
+              </div>
+            </CollapsibleTrigger>
 
-            {/* Add Product Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => addProduct(catIndex)}
-              className="mt-3 gap-2 text-[#58606E]"
-            >
-              <PlusIcon className="size-4" />
-              Agregar producto
-            </Button>
-          </div>
+            <CollapsibleContent>
+              <div className="border-t border-[#E4E4E6] p-4">
+                {/* Products Table */}
+                <div className="rounded-2xl overflow-hidden border border-[#E4E4E6]">
+                  {category.products.length > 0 && (
+                    <Table className="border-0">
+                      <TableHeader>
+                        <TableRow className="bg-[#F8FAFC]">
+                          <TableHead className="font-semibold w-[25%] text-center pl-6">Producto</TableHead>
+                          <TableHead className="font-semibold w-[15%] text-center">Estado</TableHead>
+                          <TableHead className="font-semibold w-[35%] text-center">Descripción</TableHead>
+                          <TableHead className="font-semibold w-[15%] text-center">Precio</TableHead>
+                          <TableHead className="font-semibold w-[10%] text-center pr-6">Acciones</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {category.products.map((product, prodIndex) => (
+                          <TableRow key={prodIndex} className="group">
+                            <TableCell className="py-3 text-center pl-6">
+                              <Input
+                                value={product.name}
+                                onChange={(e) =>
+                                  updateProduct(catIndex, prodIndex, { name: e.target.value })
+                                }
+                                placeholder="Nombre del producto"
+                                className="font-medium w-fit mx-auto"
+                              />
+                            </TableCell>
+                            <TableCell className="py-3 text-center">
+                              {(() => {
+                                const isNameMissing = !product.name || product.name.trim() === "";
+                                const isDescMissing = !product.description || product.description.trim() === "";
+                                const isPriceMissing = product.price === null || product.price === undefined;
+
+                                if (isNameMissing) return <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#F5DE454D] text-[#866700] border border-[#F5DE454D]">Falta nombre</span>;
+                                if (isDescMissing) return <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#F5DE454D] text-[#866700] border border-[#F5DE454D]">Falta descripción</span>;
+                                if (isPriceMissing) return <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#F5DE454D] text-[#866700] border border-[#F5DE454D]">Falta precio</span>;
+                                return <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#CDF5454D] text-[#114821] border border-[#CDF5454D]">Completo</span>;
+                              })()}
+                            </TableCell>
+                            <TableCell className="py-3 text-center">
+                              <Input
+                                value={product.description ?? ""}
+                                onChange={(e) =>
+                                  updateProduct(catIndex, prodIndex, {
+                                    description: e.target.value || undefined,
+                                  })
+                                }
+                                placeholder="Descripción (opcional)"
+                                className="w-fit mx-auto"
+                              />
+                            </TableCell>
+                            <TableCell className="py-3 text-center">
+                              <Input
+                                type="number"
+                                value={product.price ?? ""}
+                                onChange={(e) =>
+                                  updateProduct(catIndex, prodIndex, {
+                                    price: e.target.value ? Number(e.target.value) : null,
+                                  })
+                                }
+                                placeholder="0"
+                                min={0}
+                                step={1}
+                                className="text-center w-fit mx-auto"
+                              />
+                            </TableCell>
+                            <TableCell className="py-3 text-center pr-6">
+                              <Button
+                                variant="default"
+                                size="icon"
+                                onClick={() => removeProduct(catIndex, prodIndex)}
+                                className="text-[#58606E] hover:text-red-500 h-8 w-8 bg-transparent cursor-pointer"
+                              >
+                                <Trash2Icon className="size-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         ))}
       </div>
 
@@ -296,10 +351,8 @@ export function MenuImportPreview() {
         </div>
       )}
 
-      <Separator />
-
       {/* Action Buttons */}
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-center gap-3">
         <Button variant="outline" onClick={handleCancel} className="text-[#114821] px-4 py-2 rounded-lg font-semibold text-base h-10 border-none cursor-pointer">
           Cancelar
         </Button>

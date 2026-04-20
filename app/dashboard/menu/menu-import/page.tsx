@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { MenuImportDropzone } from "@/components/menu-import";
@@ -55,7 +54,7 @@ export default function MenuImportPage() {
   };
 
   return (
-    <div className="p-12 w-full mx-auto flex flex-col gap-6 max-w-4xl">
+    <div className="p-12 w-full mx-auto flex flex-col gap-6 max-w-5xl">
       <div className="text-center">
         <h1 className="text-[#1C1C1C] font-extrabold text-3xl">
           {step === "preview" ? "Revisa lo que encontramos en tu carta" : "Sube el menú de tu restaurante"}
@@ -66,16 +65,6 @@ export default function MenuImportPage() {
       </div>
 
       {renderContent()}
-
-      <div className="flex justify-between max-w-4xl mx-auto items-center pt-4">
-        {step === "preview" && (
-          <Link href="/dashboard/menu/menu-content">
-            <Button variant="ghost" size="sm" className="text-[#58606E]">
-              Ver menú actual
-            </Button>
-          </Link>
-        )}
-      </div>
     </div>
   );
 }
