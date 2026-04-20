@@ -33,12 +33,9 @@ export default function CategoriesWorkflow({ menuId, categories }: Props) {
   }, [categories, selectedCategoryId, selectCategory]);
 
   return (
-    <div className="flex flex-col">
-      <div className="flex gap-6 bg-[#FBFBFA] items-start">
-        <CategoryEditTable menuId={menuId} />
-
-        <ProductPanel />
-      </div>
+    <div className="flex gap-6 bg-[#FBFBFA] items-start">
+      <CategoryEditTable menuId={menuId} />
+      <ProductPanel />
     </div>
   );
 }

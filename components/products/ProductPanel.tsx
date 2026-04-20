@@ -16,7 +16,7 @@ export default function ProductPanel() {
   }
 
   return (
-    <div className="flex-1 p-6 flex flex-col gap-6">
+    <div className="flex-1 flex flex-col gap-6 p-6 sticky top-0 h-screen overflow-y-auto">
       <span className="flex gap-2 items-center">
         <h2 className="text-xl font-bold">{category.name}</h2>
         <PencilIcon />
