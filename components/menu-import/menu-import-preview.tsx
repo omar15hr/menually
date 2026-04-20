@@ -186,21 +186,21 @@ export function MenuImportPreview() {
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white rounded-xl border border-[#E4E4E6] p-4 text-center shadow-sm">
-          <h2 className="text-2xl font-bold text-[#1C1C1C]">{data.categories.length}</h2>
+      <div className="flex w-full items-center py-6 bg-[#FBFBFA] rounded-2xl divide-x divide-[#E2E8F0]">
+        <div className="px-4 text-center w-full">
+          <h2 className="text-base font-bold text-[#1C1C1C]">{data.categories.length}</h2>
           <span className="text-sm text-[#58606E]">Categorías</span>
         </div>
-        <div className="bg-white rounded-xl border border-[#E4E4E6] p-4 text-center shadow-sm">
-          <h2 className="text-2xl font-bold text-[#1C1C1C]">{totalProducts}</h2>
+        <div className="px-4 text-center w-full">
+          <h2 className="text-base font-bold text-[#1C1C1C]">{totalProducts}</h2>
           <span className="text-sm text-[#58606E]">Productos</span>
         </div>
-        <div className="bg-white rounded-xl border border-[#E4E4E6] p-4 text-center shadow-sm">
-          <h2 className="text-2xl font-bold text-[#1C1C1C]">{totalWithPrice}</h2>
+        <div className="px-4 text-center w-full">
+          <h2 className="text-base font-bold text-[#1C1C1C]">{totalWithPrice}</h2>
           <span className="text-sm text-[#58606E]">Precios</span>
         </div>
-        <div className="bg-white rounded-xl border border-[#E4E4E6] p-4 text-center shadow-sm">
-          <h2 className="text-2xl font-bold text-[#1C1C1C]">{totalWithDescription}</h2>
+        <div className="px-4 text-center w-full">
+          <h2 className="text-base font-bold text-[#1C1C1C]">{totalWithDescription}</h2>
           <span className="text-sm text-[#58606E]">Descripciones</span>
         </div>
       </div>
@@ -264,14 +264,14 @@ export function MenuImportPreview() {
                       <TableBody>
                         {category.products.map((product, prodIndex) => (
                           <TableRow key={prodIndex} className="group">
-                            <TableCell className="py-3 text-center pl-6">
+                            <TableCell className="py-3 px-2 text-center pl-6">
                               <Input
                                 value={product.name}
                                 onChange={(e) =>
                                   updateProduct(catIndex, prodIndex, { name: e.target.value })
                                 }
                                 placeholder="Nombre del producto"
-                                className="font-medium w-fit mx-auto"
+                                className="font-medium w-full"
                               />
                             </TableCell>
                             <TableCell className="py-3 text-center">
@@ -286,7 +286,7 @@ export function MenuImportPreview() {
                                 return <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#CDF5454D] text-[#114821] border border-[#CDF5454D]">Completo</span>;
                               })()}
                             </TableCell>
-                            <TableCell className="py-3 text-center">
+                            <TableCell className="py-3 px-2 text-center">
                               <Input
                                 value={product.description ?? ""}
                                 onChange={(e) =>
@@ -295,23 +295,28 @@ export function MenuImportPreview() {
                                   })
                                 }
                                 placeholder="Descripción (opcional)"
-                                className="w-fit mx-auto"
+                                className="w-full"
                               />
                             </TableCell>
                             <TableCell className="py-3 text-center">
-                              <Input
-                                type="number"
-                                value={product.price ?? ""}
-                                onChange={(e) =>
-                                  updateProduct(catIndex, prodIndex, {
-                                    price: e.target.value ? Number(e.target.value) : null,
-                                  })
-                                }
-                                placeholder="0"
-                                min={0}
-                                step={1}
-                                className="text-center w-fit mx-auto"
-                              />
+                              <div className="relative w-fit mx-auto">
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#58606E] text-sm select-none">
+                                  $
+                                </span>
+                                <Input
+                                  type="number"
+                                  value={product.price ?? ""}
+                                  onChange={(e) =>
+                                    updateProduct(catIndex, prodIndex, {
+                                      price: e.target.value ? Number(e.target.value) : null,
+                                    })
+                                  }
+                                  placeholder="0"
+                                  min={0}
+                                  step={1}
+                                  className="text-center w-24 pl-7 mx-auto [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                              </div>
                             </TableCell>
                             <TableCell className="py-3 text-center pr-6">
                               <Button
