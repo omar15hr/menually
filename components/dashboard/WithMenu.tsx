@@ -3,7 +3,6 @@ import SearchInput from "./SearchInput";
 import { redirect } from "next/navigation";
 import TrashIcon from "../icons/TrashIcon";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "../ui/button";
 import DownloadIcon from "../icons/DownloadIcon";
 import {
   Table,
@@ -23,6 +22,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Switch } from "../ui/switch";
+import Link from "next/link";
 
 export default async function WithMenu() {
   const supabase = await createClient();
@@ -78,13 +78,13 @@ export default async function WithMenu() {
         </div>
 
         <div className="flex gap-2 mt-5 px-10 max-w-7xl mx-auto p-6">
-          <Button className="bg-white border border-[#E4E4E6] rounded-lg h-10 py-2.5 px-4 text-[#0F172A] text-sm font-semibold cursor-pointer">
+          <Link href="/dashboard/menu/qr" className="bg-white border border-[#E4E4E6] rounded-lg flex w-40 items-center justify-center gap-2 h-10 py-2.5 px-4 text-[#0F172A] text-base font-semibold cursor-pointer">
             <DownloadIcon />
             Descargar QR
-          </Button>
-          <Button className="bg-[#CDF545] rounded-lg h-10 py-2.5 px-4 text-[#114821] text-sm font-semibold cursor-pointer">
+          </Link>
+          <Link href="/dashboard/menu/menu-content" className="bg-[#CDF545] rounded-lg flex items-center gap-2 h-10 py-2.5 px-4 text-[#114821] text-base font-semibold cursor-pointer w-30">
             Editar menú
-          </Button>
+          </Link>
         </div>
       </div>
 

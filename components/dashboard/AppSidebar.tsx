@@ -36,7 +36,7 @@ const menuLinks = [
   },
   {
     name: "Mi menú",
-    url: "/dashboard/menu/menu-content",
+    url: "/dashboard/menu",
     icon: OpenBookIcon,
   },
   {
