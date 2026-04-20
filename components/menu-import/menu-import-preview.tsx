@@ -143,10 +143,12 @@ export function MenuImportPreview() {
 
   if (!data) return null;
 
-  const totalProducts = data.categories.reduce(
-    (acc, cat) => acc + cat.products.length,
-    0
-  );
+  const allProducts = data.categories.flatMap((cat) => cat.products);
+  const totalProducts = allProducts.length;
+  const totalWithPrice = allProducts.filter((p) => p.price !== null && p.price !== undefined).length;
+  const totalWithDescription = allProducts.filter(
+    (p) => p.description !== null && p.description !== undefined && p.description.trim() !== ""
+  ).length;
 
   return (
     <div className="flex flex-col gap-6 mt-10">
@@ -165,22 +167,22 @@ export function MenuImportPreview() {
       )}
 
       {/* Summary */}
-      <div className="flex items-center justify-between px-6 py-4 bg-[#FBFBFA] rounded-2xl">
-        <div className="flex flex-col gap-1 justify-center items-center">
-          <h2 className="text-xl font-bold text-[#1C1C1C]">
-            {data.categories.length}
-          </h2>
-          <span className="text-sm text-[#58606E]">
-            Categorías
-          </span>
+      <div className="flex items-center justify-between px-6 py-4 bg-[#FBFBFA] rounded-2xl divide-x divide-[#E4E4E6]">
+        <div className="flex flex-1 flex-col gap-1 justify-center items-center">
+          <h2 className="text-xl font-bold text-[#1C1C1C]">{data.categories.length}</h2>
+          <span className="text-sm text-[#58606E]">Categorías</span>
         </div>
-        <div className="flex flex-col gap-1 justify-center items-center">
-          <h2 className="text-xl font-bold text-[#1C1C1C]">
-            {totalProducts}
-          </h2>
-          <span className="text-sm text-[#58606E]">
-            Productos
-          </span>
+        <div className="flex flex-1 flex-col gap-1 justify-center items-center">
+          <h2 className="text-xl font-bold text-[#1C1C1C]">{totalProducts}</h2>
+          <span className="text-sm text-[#58606E]">Productos</span>
+        </div>
+        <div className="flex flex-1 flex-col gap-1 justify-center items-center">
+          <h2 className="text-xl font-bold text-[#1C1C1C]">{totalWithPrice}</h2>
+          <span className="text-sm text-[#58606E]">Precios</span>
+        </div>
+        <div className="flex flex-1 flex-col gap-1 justify-center items-center">
+          <h2 className="text-xl font-bold text-[#1C1C1C]">{totalWithDescription}</h2>
+          <span className="text-sm text-[#58606E]">Descripciones</span>
         </div>
       </div>
 
@@ -298,15 +300,15 @@ export function MenuImportPreview() {
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={handleCancel}>
+        <Button variant="outline" onClick={handleCancel} className="text-[#114821] px-4 py-2 rounded-lg font-semibold text-base h-10 border-none cursor-pointer">
           Cancelar
         </Button>
         <Button
           onClick={handleImport}
           disabled={isImporting || data.categories.length === 0}
-          className="bg-[#114821] hover:bg-[#114821]/90"
+          className="bg-[#CDF545] hover:bg-[#CDF545]/90 text-[#114821] px-4 py-2 rounded-lg font-semibold text-base h-10 cursor-pointer"
         >
-          {isImporting ? "Importando..." : "Importar menú"}
+          {isImporting ? "Importando menú..." : "Confirmar"}
         </Button>
       </div>
     </div>

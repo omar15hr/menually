@@ -55,7 +55,7 @@ export default function MenuImportPage() {
   };
 
   return (
-    <div className="p-12 w-full mx-auto flex flex-col gap-6">
+    <div className="p-12 w-full mx-auto flex flex-col gap-6 max-w-4xl">
       <div className="text-center">
         <h1 className="text-[#1C1C1C] font-extrabold text-3xl">
           {step === "preview" ? "Revisa lo que encontramos en tu carta" : "Sube el menú de tu restaurante"}
