@@ -94,15 +94,18 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
   };
 }
 
-export async function updateProductInline(
-  productId: string,
-  data: {
-    name?: string;
-    description?: string;
-    price?: number;
-    is_available?: boolean;
-  }
+export type ProductUpdate = Pick<
+  Database["public"]["Tables"]["products"]["Update"],
+  "name" | "description" | "price" | "is_available"
+>;
+
+export async function batchUpdateProducts(
+  updates: Array<{ id: string; data: Partial<ProductUpdate> }>
 ): Promise<{ success: boolean; message: string }> {
+  if (updates.length === 0) {
+    return { success: true, message: "Sin cambios" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -112,28 +115,55 @@ export async function updateProductInline(
     return { success: false, message: "Usuario no autenticado" };
   }
 
-  // Verify the product belongs to the authenticated user
-  const { data: product } = await supabase
-    .from("products")
-    .select("id, categories!inner(menu_id, menus!inner(user_id))")
-    .eq("id", productId)
-    .maybeSingle();
+  // Verify ownership for all products before updating
+  for (const { id } of updates) {
+    const { data: product } = await supabase
+      .from("products")
+      .select("id, categories!inner(menu_id, menus!inner(user_id))")
+      .eq("id", id)
+      .maybeSingle();
 
-  if (!product) {
-    return { success: false, message: "Producto no encontrado" };
+    if (!product) {
+      return { success: false, message: "Producto no encontrado" };
+    }
   }
 
-  const { error } = await supabase
-    .from("products")
-    .update(data)
-    .eq("id", productId);
+  const results = await Promise.allSettled(
+    updates.map(({ id, data }) =>
+      supabase.from("products").update(data).eq("id", id).select().single()
+    )
+  );
 
-  if (error) {
-    return { success: false, message: error.message };
+  const errorMessages: string[] = [];
+
+  for (const result of results) {
+    if (result.status === "rejected") {
+      errorMessages.push(
+        result.reason instanceof Error ? result.reason.message : "Error desconocido"
+      );
+    } else if (result.value.error) {
+      errorMessages.push(result.value.error.message);
+    } else if (!result.value.data) {
+      errorMessages.push("No se pudo actualizar el producto (sin permisos o no existe)");
+    }
   }
 
-  return { success: true, message: "Producto actualizado" };
+  if (errorMessages.length > 0) {
+    return { success: false, message: errorMessages[0] };
+  }
+
+  // Revalidate to update the UI cache
+  revalidatePath("/dashboard/gestion-productos");
+  revalidatePath("/dashboard/menu/menu-content");
+  revalidatePath("/dashboard/menu");
+
+  return {
+    success: true,
+    message: `${updates.length} producto${updates.length > 1 ? "s" : ""} actualizado${updates.length > 1 ? "s" : ""}`,
+  };
 }
+
+
 
 export async function deleteProduct(
   productId: string

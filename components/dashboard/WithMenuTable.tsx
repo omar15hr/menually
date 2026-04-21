@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import TrashIcon from "@/components/icons/TrashIcon";
-import { updateProductInline, deleteProduct } from "@/actions/product.action";
+import {
+  batchUpdateProducts,
+  deleteProduct,
+  type ProductUpdate,
+} from "@/actions/product.action";
 import type { Database } from "@/types/database.types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -41,60 +45,94 @@ export default function WithMenuTable({ products }: Props) {
   const [localProducts, setLocalProducts] =
     useState<ProductWithCategory[]>(products);
 
-  // ID del producto pendiente de confirmar eliminación (null = dialog cerrado)
+  // Dirty tracking: solo los campos que cambiaron, indexados por product ID
+  const [pendingChanges, setPendingChanges] = useState<
+    Map<string, Partial<ProductUpdate>>
+  >(new Map());
+
+  // Delete dialog state
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Submit state
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Derivado — ¿hay cambios pendientes?
+  const hasChanges = useMemo(() => pendingChanges.size > 0, [pendingChanges]);
 
   // -------------------------
   // HANDLERS — edición inline
   // -------------------------
 
   const handleFieldChange = useCallback(
-    (id: string, field: keyof Product, value: string | number | boolean) => {
+    (
+      id: string,
+      field: keyof ProductUpdate,
+      value: string | number | boolean | null
+    ) => {
+      // 1. Actualizar UI local
       setLocalProducts((prev) =>
         prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))
       );
-    },
-    []
-  );
 
-  const handleFieldBlur = useCallback(
-    async (
-      id: string,
-      field: "name" | "description" | "price",
-      value: string | number | null
-    ) => {
-      const result = await updateProductInline(id, { [field]: value ?? undefined });
+      // 2. Acumular en pendingChanges
+      setPendingChanges((prev) => {
+        const next = new Map(prev);
+        const existing = next.get(id) ?? {};
 
-      if (!result.success) {
-        toast.error("No se pudo guardar el cambio", {
-          description: result.message,
-        });
-        setLocalProducts(products);
-      }
+        // Buscar el valor original del server
+        const original = products.find((p) => p.id === id);
+        const originalValue = original?.[field];
+
+        // Si volvió al valor original, eliminar ese campo del diff
+        if (originalValue === value) {
+          const { [field]: _, ...rest } = existing;
+          if (Object.keys(rest).length === 0) {
+            next.delete(id);
+          } else {
+            next.set(id, rest);
+          }
+        } else {
+          next.set(id, { ...existing, [field]: value });
+        }
+
+        return next;
+      });
     },
     [products]
   );
 
-  const handleAvailabilityChange = useCallback(
-    async (id: string, checked: boolean) => {
-      setLocalProducts((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, is_available: checked } : p))
-      );
+  // -------------------------
+  // HANDLERS — submit + discard
+  // -------------------------
 
-      const result = await updateProductInline(id, { is_available: checked });
+  const handleSubmit = useCallback(async () => {
+    if (pendingChanges.size === 0) return;
 
-      if (!result.success) {
-        toast.error("No se pudo cambiar la disponibilidad", {
-          description: result.message,
-        });
-        setLocalProducts((prev) =>
-          prev.map((p) => (p.id === id ? { ...p, is_available: !checked } : p))
-        );
-      }
-    },
-    []
-  );
+    setIsSaving(true);
+
+    const updates = Array.from(pendingChanges.entries()).map(([id, data]) => ({
+      id,
+      data,
+    }));
+
+    const result = await batchUpdateProducts(updates);
+
+    setIsSaving(false);
+
+    if (result.success) {
+      toast.success(result.message);
+      // Los valores locales ahora SON la nueva fuente de verdad
+      setPendingChanges(new Map());
+    } else {
+      toast.error("Error al guardar", { description: result.message });
+    }
+  }, [pendingChanges]);
+
+  const handleDiscard = useCallback(() => {
+    setLocalProducts(products);
+    setPendingChanges(new Map());
+  }, [products]);
 
   // -------------------------
   // HANDLERS — delete + dialog
@@ -107,6 +145,14 @@ export default function WithMenuTable({ products }: Props) {
 
     // Optimistic: remove from UI
     setLocalProducts((prev) => prev.filter((p) => p.id !== pendingDeleteId));
+
+    // Limpiar cambios pendientes del producto eliminado
+    setPendingChanges((prev) => {
+      const next = new Map(prev);
+      next.delete(pendingDeleteId);
+      return next;
+    });
+
     setPendingDeleteId(null);
 
     const result = await deleteProduct(pendingDeleteId);
@@ -157,9 +203,6 @@ export default function WithMenuTable({ products }: Props) {
                     onChange={(e) =>
                       handleFieldChange(product.id, "name", e.target.value)
                     }
-                    onBlur={(e) =>
-                      handleFieldBlur(product.id, "name", e.target.value)
-                    }
                     className="text-sm font-medium text-gray-600 border-transparent bg-transparent hover:border-gray-200 focus:border-gray-300 transition-colors"
                   />
                 </TableCell>
@@ -174,10 +217,7 @@ export default function WithMenuTable({ products }: Props) {
                   <Input
                     value={product.description ?? ""}
                     onChange={(e) =>
-                      handleFieldChange(product.id, "description", e.target.value)
-                    }
-                    onBlur={(e) =>
-                      handleFieldBlur(
+                      handleFieldChange(
                         product.id,
                         "description",
                         e.target.value || null
@@ -199,13 +239,6 @@ export default function WithMenuTable({ products }: Props) {
                         handleFieldChange(
                           product.id,
                           "price",
-                          e.target.value ? Number(e.target.value) : 0
-                        )
-                      }
-                      onBlur={(e) =>
-                        handleFieldBlur(
-                          product.id,
-                          "price",
                           e.target.value ? Number(e.target.value) : null
                         )
                       }
@@ -222,7 +255,7 @@ export default function WithMenuTable({ products }: Props) {
                     <Switch
                       checked={product.is_available ?? true}
                       onCheckedChange={(checked) =>
-                        handleAvailabilityChange(product.id, checked)
+                        handleFieldChange(product.id, "is_available", checked)
                       }
                     />
                     <button
@@ -248,6 +281,48 @@ export default function WithMenuTable({ products }: Props) {
         </Table>
       </div>
 
+      {/* Barra fixed de cambios pendientes */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-40 transition-all duration-300 ease-in-out ${
+          hasChanges
+            ? "translate-y-0 opacity-100"
+            : "translate-y-full opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="border-t border-gray-200 bg-white/95 backdrop-blur-sm shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+          <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="size-2 rounded-full bg-[#CDF545] animate-pulse" />
+              <p className="text-sm font-medium text-[#1C1C1C]">
+                Tenés{" "}
+                <span className="font-bold">
+                  {pendingChanges.size} producto{pendingChanges.size > 1 ? "s" : ""}
+                </span>{" "}
+                con cambios sin guardar
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                onClick={handleDiscard}
+                disabled={isSaving}
+                className="text-[#475569] font-semibold hover:bg-gray-100 h-10 px-5 cursor-pointer"
+              >
+                Descartar
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={isSaving}
+                className="bg-[#CDF545] hover:bg-[#CDF545]/90 text-[#114821] font-semibold h-10 px-6 rounded-lg cursor-pointer"
+              >
+                {isSaving ? "Guardando..." : "Guardar cambios"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Dialog de confirmación de eliminación */}
       <Dialog
         open={pendingDeleteId !== null}
         onOpenChange={(open) => {
