@@ -1,17 +1,9 @@
 import { timeAgo } from "@/lib/timeAgo";
 import SearchInput from "./SearchInput";
 import { redirect } from "next/navigation";
-import TrashIcon from "../icons/TrashIcon";
 import { createClient } from "@/lib/supabase/server";
 import DownloadIcon from "../icons/DownloadIcon";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import WithMenuTable from "./WithMenuTable";
 import {
   Pagination,
   PaginationContent,
@@ -21,7 +13,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Switch } from "../ui/switch";
 import Link from "next/link";
 
 export default async function WithMenu() {
@@ -110,55 +101,7 @@ export default async function WithMenu() {
             ))}
           </div>
 
-          <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
-            <Table>
-              <TableHeader className="bg-gray-50/50">
-                <TableRow>
-                  <TableHead className="py-4 px-6 font-semibold text-gray-700">Producto</TableHead>
-                  <TableHead className="py-4 px-6 font-semibold text-gray-700">Categoría</TableHead>
-                  <TableHead className="py-4 px-6 font-semibold text-gray-700">Descripción</TableHead>
-                  <TableHead className="py-4 px-6 font-semibold text-gray-700">Precio</TableHead>
-                  <TableHead className="py-4 px-6 font-semibold text-gray-700 text-center">Disponibilidad</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-gray-100">
-                {allProducts.map((product) => (
-                  <TableRow key={product.id} className="hover:bg-gray-50/50">
-                    <TableCell className="py-4 px-6 text-sm text-gray-600 font-medium">
-                      {product.name}
-                    </TableCell>
-                    <TableCell className="py-4 px-6 text-sm text-gray-600">
-                      {product.categoryName}
-                    </TableCell>
-                    <TableCell className="py-4 px-6">
-                      <div className="border border-gray-200 rounded-lg p-3 text-xs text-gray-500 w-48 bg-white truncate">
-                        {product.description || "Sin descripción"}
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-4 px-6">
-                      <div className="flex items-center border border-gray-200 rounded-lg px-3 py-2 w-28 bg-white">
-                        <span className="text-gray-500 font-medium mr-1">$</span>
-                        <input
-                          type="text"
-                          defaultValue={product.price}
-                          className="w-full outline-none text-sm font-medium text-gray-700 bg-transparent"
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-4 px-6">
-                      <div className="flex items-center justify-center space-x-6">
-
-                        <Switch id="airplane-mode" />
-                        <button className="p-2 bg-[#AB050533] text-[#AB0505] rounded-full hover:bg-red-100 transition-colors cursor-pointer">
-                          <TrashIcon />
-                        </button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <WithMenuTable products={allProducts} />
 
           <Pagination className="mt-6">
             <PaginationContent>

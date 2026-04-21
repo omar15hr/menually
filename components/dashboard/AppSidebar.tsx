@@ -35,7 +35,7 @@ const menuLinks = [
     icon: AnalyticsIcon,
   },
   {
-    name: "Mi menú",
+    name: "Gestión de productos",
     url: "/dashboard/menu",
     icon: OpenBookIcon,
   },

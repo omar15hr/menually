@@ -93,3 +93,79 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
     product: insertedProduct,
   };
 }
+
+export async function updateProductInline(
+  productId: string,
+  data: {
+    name?: string;
+    description?: string;
+    price?: number;
+    is_available?: boolean;
+  }
+): Promise<{ success: boolean; message: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Usuario no autenticado" };
+  }
+
+  // Verify the product belongs to the authenticated user
+  const { data: product } = await supabase
+    .from("products")
+    .select("id, categories!inner(menu_id, menus!inner(user_id))")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (!product) {
+    return { success: false, message: "Producto no encontrado" };
+  }
+
+  const { error } = await supabase
+    .from("products")
+    .update(data)
+    .eq("id", productId);
+
+  if (error) {
+    return { success: false, message: error.message };
+  }
+
+  return { success: true, message: "Producto actualizado" };
+}
+
+export async function deleteProduct(
+  productId: string
+): Promise<{ success: boolean; message: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Usuario no autenticado" };
+  }
+
+  // Verify the product belongs to the authenticated user
+  const { data: product } = await supabase
+    .from("products")
+    .select("id, categories!inner(menu_id, menus!inner(user_id))")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (!product) {
+    return { success: false, message: "Producto no encontrado" };
+  }
+
+  const { error } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", productId);
+
+  if (error) {
+    return { success: false, message: error.message };
+  }
+
+  return { success: true, message: "Producto eliminado" };
+}
