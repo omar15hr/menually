@@ -22,6 +22,7 @@ import MenuallyText from "../icons/MenuallyText";
 import OpenBookIcon from "../icons/OpenBookIcon";
 import AnalyticsIcon from "../icons/AnalyticsIcon";
 import SquareGroupIcon from "../icons/SquareGroupIcon";
+import PercentageIcon from "../icons/PercentageIcon";
 
 const menuLinks = [
   {
@@ -36,8 +37,13 @@ const menuLinks = [
   },
   {
     name: "Gestión de productos",
-    url: "/dashboard/gestion-productos",
+    url: "/dashboard/product-management",
     icon: OpenBookIcon,
+  },
+  {
+    name: "Promociones",
+    url: "dashboard/promotions",
+    icon: PercentageIcon,
   },
   {
     name: "QR",

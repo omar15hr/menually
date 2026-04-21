@@ -16,7 +16,7 @@ import SearchInput from "@/components/dashboard/SearchInput";
 import WithMenuTable from "@/components/dashboard/WithMenuTable";
 import Header from "@/components/shared/Header";
 
-export default async function GestionProductosPage() {
+export default async function ProductManagementPage() {
   const supabase = await createClient();
 
   const {
