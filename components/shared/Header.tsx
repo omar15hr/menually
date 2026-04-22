@@ -1,5 +1,6 @@
-import { BellIcon } from "lucide-react";
+
 import SearchInput from "../dashboard/SearchInput";
+import BellIcon from "../icons/BellIcon";
 import QuestionCircleIcon from "../icons/QuestionCircleIcon";
 import { SidebarTrigger } from "../ui/sidebar";
 
@@ -10,7 +11,7 @@ export default function Header() {
         <SidebarTrigger className="cursor-pointer -ml-2 text-[#64748B] hover:text-[#0F172A]" />
         <SearchInput />
       </div>
-      <div className="flex items-center gap-6 pr-2">
+      <div className="flex items-1center gap-6 pr-2">
         <button className="hover:opacity-70 transition-opacity cursor-pointer flex items-center justify-center">
           <BellIcon />
         </button>

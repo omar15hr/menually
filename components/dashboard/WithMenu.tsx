@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Info, TrendingUp, TrendingDown, ArrowRightIcon } from "lucide-react";
 import { TooltipProvider, TooltipTrigger, TooltipContent, Tooltip } from "../ui/tooltip";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import CopyIcon from "../icons/CopyIcon";
 import { Badge } from "../ui/badge";
+import WithMenuTable from "./WithMenuTable";
 
 const metrics = [
   {
@@ -191,6 +191,32 @@ export default async function WithMenu() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div>
+        <div className="p-8 max-w-7xl mx-auto font-sans px-18">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-[#1C1C1C]">
+              Gestión de productos
+            </h1>
+          </div>
+
+          <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
+            {result.map((cat) => (
+              <button
+                key={cat.id}
+                className={`px-4 py-2 rounded-lg text-sm font-bold text-[#114821] whitespace-nowrap bg-[#F5FDDA]`}
+              >
+                {cat.name} ({cat.products.length})
+              </button>
+            ))}
+          </div>
+
+          <div className="max-w-4xl">
+            <WithMenuTable products={allProducts} />
+          </div>
+
+        </div>
       </div>
     </>
   );
