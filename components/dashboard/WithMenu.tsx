@@ -3,12 +3,13 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Info, TrendingUp, TrendingDown, ArrowRightIcon } from "lucide-react";
+import { Info, TrendingUp, TrendingDown, ArrowRightIcon, Sparkles } from "lucide-react";
 import { TooltipProvider, TooltipTrigger, TooltipContent, Tooltip } from "../ui/tooltip";
 import { Button } from "../ui/button";
 import CopyIcon from "../icons/CopyIcon";
 import { Badge } from "../ui/badge";
-import WithMenuTable from "./WithMenuTable";
+import DashboardProductTable from "./DashboardProductTable";
+import IAIcon from "../icons/IAIcon";
 
 const metrics = [
   {
@@ -39,6 +40,12 @@ const metrics = [
     trendUp: true,
     isPositive: true, // Más tiempo es positivo (verde)
   },
+];
+
+const aiInsights = [
+  { title: "Tendencias de usuario", content: "Además, los usuarios tienden a abandonar el menú en la sección de bebidas frías. Recomendamos destacar 1–2 productos clave o simplificar la categoría.", headerColor: "bg-[#FBEBFF] text-[#431148]" },
+  { title: "Problemas con el menú", content: "Además, los usuarios tienden a abandonar el menú en la sección de bebidas frías. Recomendamos destacar 1–2 productos clave o simplificar la categoría.", headerColor: "bg-[#FFF7B8] text-[#534A03]" },
+  { title: "Recomendaciones de productos", content: "Además, los usuarios tienden a abandonar el menú en la sección de bebidas frías. Recomendamos destacar 1–2 productos clave o simplificar la categoría.", headerColor: "bg-[#E4FFB8] text-[#114821]" },
 ];
 
 export default async function WithMenu() {
@@ -86,7 +93,7 @@ export default async function WithMenu() {
       ...product,
       categoryName: category.name,
     })),
-  );
+  ).slice(0, 7);
 
   return (
     <>
@@ -212,10 +219,30 @@ export default async function WithMenu() {
             ))}
           </div>
 
-          <div className="max-w-4xl">
-            <WithMenuTable products={allProducts} />
+          <div className="flex gap-14">
+            <div className="w-full max-w-3xl flex flex-col gap-4">
+              <DashboardProductTable products={allProducts} />
+              <Link href="/dashboard/product-management" className="text-[#114821] text-xs font-normal flex gap-2 self-end">Ver todos <ArrowRightIcon size={16} /></Link>
+            </div>
+            <Card className="rounded-lg border w-75 border-[#E4E4E6] bg-[#FBFBFA] overflow-hidden sticky top-6 h-fit">
+              <div className="px-5 pt-3 flex items-center gap-2">
+                <IAIcon className="h-5 w-5 text-[#29AE50]" />
+                <h3 className="font-bold text-[#29AE50] text-base">AI Insights y recomendaciones</h3>
+              </div>
+              <CardContent className="px-5 pt-2 space-y-4">
+                {aiInsights.map((insight, idx) => (
+                  <div key={idx} className="border border-[#E4E4E6] rounded-lg overflow-hidden">
+                    <div className={`px-4 py-2 text-sm font-bold ${insight.headerColor}`}>
+                      {insight.title}
+                    </div>
+                    <div className="p-4 text-xs text-[#58606E] leading-relaxed bg-white">
+                      <p>{insight.content}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </div>
-
         </div>
       </div>
     </>
