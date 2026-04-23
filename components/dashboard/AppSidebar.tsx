@@ -42,7 +42,7 @@ const menuLinks = [
   },
   {
     name: "Promociones",
-    url: "dashboard/promotions",
+    url: "/dashboard/promotions",
     icon: PercentageIcon,
   },
   {

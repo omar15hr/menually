@@ -2,12 +2,13 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Info, Sparkles, ArrowRight } from "lucide-react";
+import { Info, ArrowRight } from "lucide-react";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import Header from "@/components/shared/Header";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator";
+import IAIcon from "@/components/icons/IAIcon";
 
 // --- MOCK DATA ---
 
@@ -338,18 +339,18 @@ export default function AnalyticsPage() {
 
               {/* Right Column (AI Insights) */}
               <div className="lg:col-span-1">
-                <Card className="rounded-3xl shadow-sm border-2 border-[#b8e07a]/30 overflow-hidden sticky top-6">
-                  <div className="p-5 border-b border-gray-100 bg-white flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-green-600" />
-                    <h3 className="font-bold text-green-600">AI Insights y recomendaciones</h3>
+                <Card className="rounded-lg border w-95 border-[#E4E4E6] bg-[#FBFBFA] overflow-hidden sticky top-6 h-fit">
+                  <div className="px-5 pt-3 flex items-center gap-2">
+                    <IAIcon className="h-5 w-5 text-[#29AE50]" />
+                    <h3 className="font-bold text-[#29AE50] text-base">AI Insights y recomendaciones</h3>
                   </div>
-                  <CardContent className="p-5 bg-white space-y-4">
+                  <CardContent className="px-5 pt-2 space-y-4">
                     {aiInsights.map((insight, idx) => (
-                      <div key={idx} className="border border-gray-100 rounded-xl overflow-hidden shadow-sm">
-                        <div className={`px-4 py-2 text-xs font-bold ${insight.headerColor}`}>
+                      <div key={idx} className="border border-[#E4E4E6] rounded-lg overflow-hidden">
+                        <div className={`px-4 py-2 text-sm font-bold ${insight.headerColor}`}>
                           {insight.title}
                         </div>
-                        <div className="p-4 text-xs text-gray-600 leading-relaxed">
+                        <div className="p-4 text-xs text-[#58606E] leading-relaxed bg-white">
                           <p>{insight.content}</p>
                         </div>
                       </div>
