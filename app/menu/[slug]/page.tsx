@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import { MenuPreview } from "@/components/menu/MenuPreview";
+import { PublicMenu } from "@/components/menu/PublicMenu";
 import type { Database } from "@/types/database.types";
 
 type Category = Database["public"]["Tables"]["categories"]["Row"];
@@ -17,7 +17,7 @@ interface Props {
 export default async function PublicMenuPage({ params }: Props) {
   const { slug } = await params;
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Fetch menu by slug
   const { data: menu, error: menuError } = await supabase
@@ -34,12 +34,10 @@ export default async function PublicMenuPage({ params }: Props) {
   // Fetch categories with products
   const { data: categories } = await supabase
     .from("categories")
-    .select(
-      `
+    .select(`
       *,
       products (*)
-    `,
-    )
+    `)
     .eq("menu_id", menu.id)
     .order("position", { ascending: true });
 
@@ -47,8 +45,8 @@ export default async function PublicMenuPage({ params }: Props) {
     (categories as CategoryWithProducts[]) ?? [];
 
   return (
-    <div className="bg-[#F5F5F5] flex items-center justify-center p-4">
-     {menu.slug}
+    <div className="min-h-screen bg-[#F5F5F5]">
+      <PublicMenu menu={menu} categories={categoriesWithProducts} />
     </div>
   );
 }

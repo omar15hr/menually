@@ -18,10 +18,10 @@ Menually es una plataforma SaaS para que negocios de gastronomía (restaurantes,
 
 ### 1.3 Target Users
 
-| Usuario | Rol | Goal |
-|---------|-----|------|
-| **Owner** | Dueño/manager del restaurante | Crear y mantener su menú digital, ver analíticas, gestionar promociones |
-| **Guest** | Cliente del restaurante | Visualizar el men�� desde su celular, explorar productos, tomar decisiones |
+| Usuario   | Rol                           | Goal                                                                      |
+| --------- | ----------------------------- | ------------------------------------------------------------------------- |
+| **Owner** | Dueño/manager del restaurante | Crear y mantener su menú digital, ver analíticas, gestionar promociones   |
+| **Guest** | Cliente del restaurante       | Visualizar el menu desde su celular, explorar productos, tomar decisiones |
 
 ### 1.4 Success Metrics
 
@@ -37,7 +37,7 @@ Menually es una plataforma SaaS para que negocios de gastronomía (restaurantes,
 ### 2.1 Owner Flow
 
 ```
-Sign Up → Onboarding → Create Menu → [Import AI | Manual | Templates]
+Sign Up → Onboarding (choose a plan) → Create Menu → [Import AI | Manual | Templates]
                                             ↓
                                       Configure Appearance
                                             ↓
@@ -180,27 +180,27 @@ profiles ─────── (1:N) subscriptions
 
 ### 4.2 Tables
 
-| Table | Purpose | Key Fields |
-|-------|---------|-----------|
-| `profiles` | User profiles | business_name, email, full_name |
-| `menus` | Menu configuration + branding | slug, branding colors, typography, layout, is_active |
-| `categories` | Menu sections | name, position, menu_id |
-| `products` | Items in menu | name, description, price, image_url, labels, is_available, position |
-| `menu_events` | Analytics events | event_type, category_id, product_id, session_id |
-| `qr_scans` | QR analytics | device_type, referrer, scanned_at |
-| `subscriptions` | Billing | status, billing_cycle, current_period_*, trial_ends_at |
+| Table           | Purpose                       | Key Fields                                                          |
+| --------------- | ----------------------------- | ------------------------------------------------------------------- |
+| `profiles`      | User profiles                 | business_name, email, full_name                                     |
+| `menus`         | Menu configuration + branding | slug, branding colors, typography, layout, is_active                |
+| `categories`    | Menu sections                 | name, position, menu_id                                             |
+| `products`      | Items in menu                 | name, description, price, image_url, labels, is_available, position |
+| `menu_events`   | Analytics events              | event_type, category_id, product_id, session_id                     |
+| `qr_scans`      | QR analytics                  | device_type, referrer, scanned_at                                   |
+| `subscriptions` | Billing                       | status, billing*cycle, current_period*\*, trial_ends_at             |
 
 ### 4.3 Enums
 
-| Enum | Values |
-|------|--------|
-| `event_type` | page_view, category_view, product_view, share, exit |
-| `device_type` | mobile, desktop, tablet |
-| `product_label` | vegan, gluten_free, vegetarian, spicy, keto, aplv |
-| `subscription_status` | trial, active, past_due, cancelled |
-| `billing_cycle` | monthly, annual |
-| `plan_type` | basic, pro |
-| `font_family` | inter, roboto, montserrat |
+| Enum                  | Values                                              |
+| --------------------- | --------------------------------------------------- |
+| `event_type`          | page_view, category_view, product_view, share, exit |
+| `device_type`         | mobile, desktop, tablet                             |
+| `product_label`       | vegan, gluten_free, vegetarian, spicy, keto, aplv   |
+| `subscription_status` | trial, active, past_due, cancelled                  |
+| `billing_cycle`       | monthly, annual                                     |
+| `plan_type`           | basic, pro                                          |
+| `font_family`         | inter, roboto, montserrat                           |
 
 ---
 
@@ -254,16 +254,16 @@ lib/
 
 ### 5.3 Server Actions
 
-| Action | Purpose |
-|--------|---------|
-| `product.action.ts` | Product CRUD |
-| `categories.action.ts` | Category CRUD |
-| `menu.action.ts` | Menu create + update |
-| `auth.action.ts` | Auth helpers |
-| `generateQrCode.action.ts` | QR generation + storage |
-| `ai-process-menu.action.ts` | GPT-4o-mini Vision OCR |
-| `ai-import-menu.action.ts` | Import extracted data to DB |
-| `uploadImageToStorage.action.ts` | Image uploads |
+| Action                           | Purpose                     |
+| -------------------------------- | --------------------------- |
+| `product.action.ts`              | Product CRUD                |
+| `categories.action.ts`           | Category CRUD               |
+| `menu.action.ts`                 | Menu create + update        |
+| `auth.action.ts`                 | Auth helpers                |
+| `generateQrCode.action.ts`       | QR generation + storage     |
+| `ai-process-menu.action.ts`      | GPT-4o-mini Vision OCR      |
+| `ai-import-menu.action.ts`       | Import extracted data to DB |
+| `uploadImageToStorage.action.ts` | Image uploads               |
 
 ### 5.4 Key Dependencies
 
@@ -304,23 +304,24 @@ OPENAI_API_KEY
 
 ## 7. Missing / Incomplete Features
 
-| Feature | Status | Priority |
-|---------|--------|----------|
-| Public menu view (`MenuPreview` component) | Placeholder — no render | P0 |
-| Analytics data pipeline | 100% mock data | P1 |
-| Promotions CRUD logic | UI + mock data | P1 |
-| Event tracking runtime | Schema only | P1 |
-| Menu customization UI (editor visual) | Partially built (`MenuWorkflow`) | P0 |
-| Subscription/upgrade flow | Schema ready, UI missing | P2 |
-| Multi-menu support | Not in roadmap | P3 |
-| Sharing to social | Button exists, logic missing | P2 |
-| Product availability toggle (guest view) | Field exists, UI missing | P2 |
+| Feature                                    | Status                           | Priority |
+| ------------------------------------------ | -------------------------------- | -------- |
+| Public menu view (`MenuPreview` component) | Placeholder — no render          | P0       |
+| Analytics data pipeline                    | 100% mock data                   | P1       |
+| Promotions CRUD logic                      | UI + mock data                   | P1       |
+| Event tracking runtime                     | Schema only                      | P1       |
+| Menu customization UI (editor visual)      | Partially built (`MenuWorkflow`) | P0       |
+| Subscription/upgrade flow                  | Schema ready, UI missing         | P2       |
+| Multi-menu support                         | Not in roadmap                   | P3       |
+| Sharing to social                          | Button exists, logic missing     | P2       |
+| Product availability toggle (guest view)   | Field exists, UI missing         | P2       |
 
 ---
 
 ## 8. Roadmap Phases
 
 ### Phase 1 — MVP (Current)
+
 - ✅ Menú digital público funcional
 - ✅ Editor de contenido (categorías + productos)
 - ✅ Branding (colores, tipografía)
@@ -329,18 +330,21 @@ OPENAI_API_KEY
 - 🔲 Menu preview (placeholder)
 
 ### Phase 2 — Analytics
+
 - 🔲 Event tracking en runtime
 - 🔲 Real analytics dashboard
 - 🔲 AI insights con data real
 - 🔲 QR scan attribution
 
 ### Phase 3 — Engagement
+
 - 🔲 Promotions system (CRUD completo)
 - 🔲 Guest sharing
 - 🔲 Product availability live toggle
 - 🔲 Push notifications (futuro)
 
 ### Phase 4 — Monetization
+
 - 🔲 Subscription tiers (basic / pro)
 - 🔲 Mercado Pago integration
 - 🔲 Usage limits
@@ -364,12 +368,12 @@ OPENAI_API_KEY
 
 ### Brand Colors
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `brand-green` | `#CDF545` | CTA buttons, highlights |
-| `dark-green` | `#114821` | Primary actions, QR code |
-| `gray-muted` | `#58606E` | Secondary text |
-| `bg-light` | `#FBFBFA` | Card backgrounds |
+| Token         | Hex       | Usage                    |
+| ------------- | --------- | ------------------------ |
+| `brand-green` | `#CDF545` | CTA buttons, highlights  |
+| `dark-green`  | `#114821` | Primary actions, QR code |
+| `gray-muted`  | `#58606E` | Secondary text           |
+| `bg-light`    | `#FBFBFA` | Card backgrounds         |
 
 ### Fonts
 

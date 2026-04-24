@@ -15,10 +15,13 @@ type CategoryWithProducts = Category & {
 
 interface Props {
   menu: Menu;
-  logoUrlSelected: string | null;
-  coverUrlSelected: string | null;
+  logoUrlSelected?: string | null;
+  coverUrlSelected?: string | null;
   categories?: CategoryWithProducts[];
   businessName?: string | null;
+  onShare?: () => void;
+  onProductClick?: (productId: string) => void;
+  onCategoryChange?: (categoryId: string) => void;
 }
 
 const shapeMap: Record<string, string> = {
@@ -37,10 +40,13 @@ interface DisplayProduct {
 
 export function MenuPreview({
   menu,
-  logoUrlSelected,
-  coverUrlSelected,
+  logoUrlSelected = null,
+  coverUrlSelected = null,
   categories,
   businessName = "Nombre del local",
+  onShare,
+  onProductClick,
+  onCategoryChange,
 }: Props) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -56,6 +62,14 @@ export function MenuPreview({
     categories && categories.length > 0
       ? categories.map((c) => c.name)
       : [];
+
+  function handleTabChange(index: number) {
+    setActiveTab(index);
+    const cat = categories?.[index];
+    if (cat && onCategoryChange) {
+      onCategoryChange(cat.id);
+    }
+  }
 
   const products: DisplayProduct[] =
     categories && categories.length > 0
@@ -148,6 +162,29 @@ export function MenuPreview({
             </svg>
           </button>
         )}
+        {onShare && (
+          <button
+            onClick={onShare}
+            className="flex items-center gap-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-600 font-medium whitespace-nowrap shrink-0 mt-0.5 hover:bg-gray-50"
+            title="Share menu"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+            Share
+          </button>
+        )}
       </div>
 
       <ScrollArea className="w-full mt-1">
@@ -155,7 +192,7 @@ export function MenuPreview({
           {tabs.map((tab, i) => (
             <button
               key={i}
-              onClick={() => setActiveTab(i)}
+              onClick={() => handleTabChange(i)}
               className="pb-2 text-base font-bold whitespace-nowrap"
               style={{
                 color: activeTab === i ? menu.primary_color || "#2563EB" : "#9CA3AF",
@@ -180,7 +217,8 @@ export function MenuPreview({
           return (
             <div
               key={product.id}
-              className={`flex gap-3 py-3 ${isVertical ? "flex-col" : "flex-row items-center"}`}
+              onClick={() => onProductClick?.(product.id)}
+              className={`flex gap-3 py-3 ${isVertical ? "flex-col" : "flex-row items-center"} cursor-pointer`}
             >
               <div>
                 {product.image ? (
