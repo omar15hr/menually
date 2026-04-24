@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { Spinner } from "../ui/spinner";
 import { updateMenu } from "@/actions/menu.action";
 import type { Database } from "@/types/database.types";
+import type { Promotion } from "@/types/promotions.types";
 import { MenuPreview } from "@/components/menu/MenuPreview";
 import { MenuEditTable } from "@/components/menu/MenuEditTable";
 import type { UpdateMenuSchema } from "@/lib/validations/menu.schemas";
@@ -23,9 +24,10 @@ interface Props {
   menu: Menu;
   categories: CategoryWithProducts[];
   profiles: Profile | null;
+  promotions?: Promotion[];
 }
 
-export default function MenuWorkflow({ menu: initialMenu, categories, profiles }: Props) {
+export default function MenuWorkflow({ menu: initialMenu, categories, profiles, promotions = [] }: Props) {
   const [menu, setMenu] = useState<Menu>(initialMenu);
   const [editMenu, setEditMenu] = useState<Menu>(initialMenu);
   const [error, setError] = useState<string | null>(null);
@@ -118,6 +120,7 @@ export default function MenuWorkflow({ menu: initialMenu, categories, profiles }
           coverUrlSelected={coverUrl}
           categories={categories}
           businessName={profiles?.business_name ?? null}
+          promotions={promotions}
         />
       </div>
     </div>

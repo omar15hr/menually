@@ -44,9 +44,21 @@ export default async function PublicMenuPage({ params }: Props) {
   const categoriesWithProducts: CategoryWithProducts[] =
     (categories as CategoryWithProducts[]) ?? [];
 
+  // Promociones activas para el carrusel
+  const now = new Date().toISOString();
+  const { data: promotions } = await supabase
+    .from("promotions")
+    .select("*")
+    .eq("menu_id", menu.id)
+    .eq("is_active", true)
+    .or(`start_date.is.null,start_date.lte.${now}`)
+    .or(`end_date.is.null,end_date.gte.${now}`)
+    .order("position", { ascending: true })
+    .limit(10);
+
   return (
     <div className="min-h-screen bg-[#F5F5F5]">
-      <PublicMenu menu={menu} categories={categoriesWithProducts} />
+      <PublicMenu menu={menu} categories={categoriesWithProducts} promotions={promotions ?? []} />
     </div>
   );
 }

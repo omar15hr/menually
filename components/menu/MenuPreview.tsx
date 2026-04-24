@@ -3,7 +3,9 @@
 import Image from "next/image";
 import { useState } from "react";
 import type { Database } from "@/types/database.types";
+import type { Promotion } from "@/types/promotions.types";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
+import { PromotionCarousel } from "../promotions/PromotionCarousel";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
 type Category = Database["public"]["Tables"]["categories"]["Row"];
@@ -22,6 +24,8 @@ interface Props {
   onShare?: () => void;
   onProductClick?: (productId: string) => void;
   onCategoryChange?: (categoryId: string) => void;
+  promotions?: Promotion[];
+  onPromotionClick?: (promotion: Promotion) => void;
 }
 
 const shapeMap: Record<string, string> = {
@@ -47,6 +51,8 @@ export function MenuPreview({
   onShare,
   onProductClick,
   onCategoryChange,
+  promotions = [],
+  onPromotionClick,
 }: Props) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -185,6 +191,14 @@ export function MenuPreview({
             Share
           </button>
         )}
+      </div>
+
+      {/* Promotions Carousel — arriba de los tabs */}
+      <div className="px-4">
+        <PromotionCarousel
+          promotions={promotions}
+          onPromotionClick={onPromotionClick}
+        />
       </div>
 
       <ScrollArea className="w-full mt-1">

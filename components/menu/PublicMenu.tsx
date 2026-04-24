@@ -6,6 +6,7 @@ import { useMenuTracking } from "@/hooks/useMenuTracking";
 import { MenuPreview } from "@/components/menu/MenuPreview";
 import { PrivacyBanner } from "@/components/PrivacyBanner";
 import type { Database } from "@/types/database.types";
+import type { Promotion } from "@/types/promotions.types";
 
 type Category = Database["public"]["Tables"]["categories"]["Row"];
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -18,9 +19,10 @@ type CategoryWithProducts = Category & {
 interface PublicMenuProps {
   menu: Menu;
   categories: CategoryWithProducts[];
+  promotions?: Promotion[];
 }
 
-export function PublicMenu({ menu, categories }: PublicMenuProps) {
+export function PublicMenu({ menu, categories, promotions = [] }: PublicMenuProps) {
   const { setCategories, selectCategory, selectedCategoryId } = useMenuStore();
 
   // Hydrate store with categories
@@ -54,6 +56,7 @@ export function PublicMenu({ menu, categories }: PublicMenuProps) {
         onShare={trackShare}
         onProductClick={trackProductClick}
         onCategoryChange={handleCategoryChange}
+        promotions={promotions}
       />
     </>
   );

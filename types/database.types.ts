@@ -248,6 +248,81 @@ export type Database = {
         }
         Relationships: []
       }
+      promotions: {
+        Row: {
+          business_id: string
+          created_at: string
+          days_of_week: number[] | null
+          description: string | null
+          end_date: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          keyword: string | null
+          menu_id: string
+          position: number
+          product_ids: string[] | null
+          start_date: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          days_of_week?: number[] | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          keyword?: string | null
+          menu_id: string
+          position?: number
+          product_ids?: string[] | null
+          start_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          days_of_week?: number[] | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          keyword?: string | null
+          menu_id?: string
+          position?: number
+          product_ids?: string[] | null
+          start_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotions_menu_id_fkey"
+            columns: ["menu_id"]
+            isOneToOne: false
+            referencedRelation: "menus"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       qr_scans: {
         Row: {
           business_id: string

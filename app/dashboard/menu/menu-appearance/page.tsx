@@ -35,9 +35,21 @@ export default async function MenuAppearancePage() {
 
   if (!profiles) return;
 
+  // Promociones activas para el carrusel
+  const now = new Date().toISOString();
+  const { data: promotions } = await supabase
+    .from("promotions")
+    .select("*")
+    .eq("menu_id", menu.id)
+    .eq("is_active", true)
+    .or(`start_date.is.null,start_date.lte.${now}`)
+    .or(`end_date.is.null,end_date.gte.${now}`)
+    .order("position", { ascending: true })
+    .limit(10);
+
   return (
     <div>
-      <MenuWorkflow menu={menu} categories={categories} profiles={profiles} />
+      <MenuWorkflow menu={menu} categories={categories} profiles={profiles} promotions={promotions ?? []} />
     </div>
   );
 }
