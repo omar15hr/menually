@@ -1,7 +1,10 @@
+'use client';
+import { useState } from 'react';
 import SearchInput from '@/components/dashboard/SearchInput';
 import Header from '@/components/shared/Header';
-import { Plus, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, MoreHorizontal, X, Camera, Info, Check } from 'lucide-react';
 import Image from 'next/image';
+import { Switch } from '@/components/ui/switch';
 
 // --- MOCK DATA ---
 const stats = [
@@ -24,17 +27,28 @@ const history = [
 ];
 
 export default function PromotionsPage() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [step, setStep] = useState(1);
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+    setTimeout(() => setStep(1), 300); // Reset step after closing animation
+  };
+
   return (
     <>
       <Header />
-      <div className="p-8 max-w-6xl mx-auto space-y-8">
+      <div className="p-8 max-w-6xl mx-auto space-y-8 relative">
         {/* HEADER */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-extrabold text-[#0F172A]">Promociones</h1>
             <p className="text-[#64748B] text-base mt-1">Crea y gestiona promociones, y productos que quieras destacar para atraer más clientes.</p>
           </div>
-          <button className="bg-[#CDF545] text-[#114821] h-10 px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors text-sm cursor-pointer">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="bg-[#CDF545] text-[#114821] h-10 px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors text-sm cursor-pointer"
+          >
             <Plus size={18} /> Nueva promoción
           </button>
         </div>
@@ -42,7 +56,7 @@ export default function PromotionsPage() {
         {/* STATS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {stats.map((s) => (
-            <div key={s.id} className="w-50 border border-[#E2E8F0] rounded-2xl p-5 flex justify-between items-center bg-[#FBFBFA]">
+            <div key={s.id} className="w-full border border-[#E2E8F0] rounded-2xl p-5 flex justify-between items-center bg-[#FBFBFA]">
               <div>
                 <p className="text-sm font-semibold text-gray-800">{s.title}</p>
                 <p className="text-xs text-gray-500 mt-1">{s.desc}</p>
@@ -74,8 +88,6 @@ export default function PromotionsPage() {
         {/* HISTORY TABLE */}
         <div>
           <h2 className="text-xl font-bold text-[#1C1C1C] mb-4">Historial de promociones</h2>
-
-          {/* Filters & Search */}
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-2">
               <button className="bg-[#F5FDDA] text-green-800 px-4 py-2 rounded-md text-base font-bold">Todas (32)</button>
@@ -88,7 +100,6 @@ export default function PromotionsPage() {
             </div>
           </div>
 
-          {/* Table */}
           <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
             <table className="w-full text-left text-sm text-gray-600">
               <thead className="bg-white border-b border-gray-200 text-gray-900">
@@ -115,7 +126,6 @@ export default function PromotionsPage() {
                     </td>
                     <td className="p-4 text-gray-500">{row.date}</td>
                     <td className="p-4">
-                      {/* Reemplazar con el componente Switch de shadcn en tu proyecto real */}
                       <div className={`w-10 h-5 rounded-full relative cursor-pointer ${row.active ? 'bg-blue-500' : 'bg-gray-200'}`}>
                         <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${row.active ? 'left-5' : 'left-0.5'}`}></div>
                       </div>
@@ -125,7 +135,6 @@ export default function PromotionsPage() {
               </tbody>
             </table>
 
-            {/* Pagination */}
             <div className="flex items-center justify-center gap-2 p-4 text-sm text-gray-600 border-t border-gray-100">
               <button className="flex items-center gap-1 hover:text-gray-900"><ChevronLeft size={16} /> Anterior</button>
               <button className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100">1</button>
@@ -135,6 +144,172 @@ export default function PromotionsPage() {
               <button className="flex items-center gap-1 hover:text-gray-900">Siguiente <ChevronRight size={16} /></button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* OVERLAY / BACKDROP */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 transition-opacity"
+          onClick={closeSidebar}
+        />
+      )}
+
+      {/* SIDEBAR ONBOARDING */}
+      <div
+        className={`fixed top-0 right-0 h-full w-full sm:w-112.5 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
+      >
+        {/* Header Sidebar */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900">Nueva promoción</h2>
+          <button onClick={closeSidebar} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Stepper */}
+        <div className="flex items-center justify-center gap-4 px-6 py-8">
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="flex items-center">
+              <div className="flex flex-col items-center gap-2">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${step > item ? 'bg-[#CDF545] text-[#114821]' :
+                  step === item ? 'bg-[#114821] text-white' : 'bg-gray-100 text-gray-500'
+                  }`}>
+                  {step > item ? <Check size={16} /> : item}
+                </div>
+                <span className="text-xs font-semibold text-gray-600">
+                  {item === 1 ? 'Contenido' : item === 2 ? 'Imagen' : 'Tiempo'}
+                </span>
+              </div>
+              {item < 3 && (
+                <div className={`w-12 h-0.5 mb-6 mx-2 ${step > item ? 'bg-[#CDF545]' : 'bg-gray-100'}`} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Form Content */}
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
+          {step === 1 && (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Título</label>
+                <input type="text" placeholder="Ej: Dos cafés por $3.990" className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-[#114821]" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción (opcional)</label>
+                <textarea rows={3} placeholder="Ej: Válido todos los días, solo en el local." className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-[#114821] resize-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Palabra clave</label>
+                <input type="text" placeholder="Ej: Promo Verano" className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-[#114821]" />
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-6">
+              <h3 className="font-bold text-sm text-gray-900">Imagen del banner</h3>
+              <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center shrink-0">
+                  <Camera size={24} className="text-gray-500" />
+                </div>
+                <div className="text-center sm:text-left">
+                  <p className="font-bold text-sm text-gray-900">Sube una imagen</p>
+                  <p className="text-xs text-gray-500 mt-1">Recomendado 328 x 200px PNG.</p>
+                  <span className="text-[#34A853] text-xs font-bold mt-2 inline-block">Seleccionar archivo</span>
+                </div>
+              </div>
+              <div className="bg-[#F8F9FA] rounded-xl p-4 flex gap-3 items-start">
+                <Info size={20} className="text-gray-800 shrink-0 mt-0.5" />
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  El 70% del banner es imagen. Una foto con buena luz y colores cálidos puede aumentar el interés y las ventas de tus platos.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-gray-900">Definir periodo de tiempo</h3>
+                  <p className="text-xs text-gray-500">Si no defines fecha, se muestran de forma permanente.</p>
+                </div>
+                <Switch />
+              </div>
+
+              <div className="flex gap-4">
+                <input type="date" className="w-1/2 border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-[#114821]" />
+                <input type="date" className="w-1/2 border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-[#114821]" />
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <div>
+                  <h3 className="font-bold text-sm text-gray-900">Día de la semana</h3>
+                  <p className="text-xs text-gray-500">Elige los días en que estará disponible la promoción.</p>
+                </div>
+                <Switch />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((day, idx) => {
+                  const isActive = idx === 0 || idx === 1 || idx === 4; // Lunes, Martes, Viernes activos
+                  return (
+                    <button key={day} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 border ${isActive ? 'bg-[#114821] text-white border-[#114821]' : 'bg-gray-100 text-gray-600 border-transparent'
+                      }`}>
+                      {day} {isActive && <X size={12} />}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Resumen */}
+              <div className="bg-[#F8F9FA] rounded-xl p-5 space-y-4 border border-gray-100 mt-4">
+                <h4 className="font-bold text-sm text-gray-900">Resumen</h4>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-[10px] text-gray-500 uppercase font-semibold">Título</p>
+                    <p className="text-xs font-medium text-gray-900">Promoción de navidad</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-500 uppercase font-semibold">Descripción</p>
+                    <p className="text-xs font-medium text-gray-900">Solo en consumo en el local</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-500 uppercase font-semibold">Palabra clave</p>
+                    <p className="text-xs font-medium text-gray-900">2X1</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-500 uppercase font-semibold">Imagen</p>
+                    <p className="text-xs font-medium text-gray-900">nombre.JPG</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-500 uppercase font-semibold">Vigencia</p>
+                    <p className="text-xs font-medium text-gray-900">Del 24/04/2026 al 30/04/2026 (Lunes, martes y viernes)</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer actions */}
+        <div className="p-6 border-t border-gray-100 bg-white flex justify-between items-center">
+          <button
+            onClick={() => step > 1 ? setStep(step - 1) : closeSidebar()}
+            className="text-sm font-bold text-[#114821]"
+          >
+            {step === 1 ? 'Cerrar' : 'Volver'}
+          </button>
+
+          <button
+            onClick={() => step < 3 ? setStep(step + 1) : closeSidebar()}
+            className="bg-[#CDF545] text-[#114821] px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-[#bce635] transition-colors"
+          >
+            {step === 3 ? 'Crear promoción' : 'Continuar'}
+          </button>
         </div>
       </div>
     </>
