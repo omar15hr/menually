@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Button } from "../ui/button";
 import { signOut } from "@/actions/auth.action";
 import SettingsIcon from "../icons/SettingsIcon";
@@ -21,7 +23,7 @@ export default function SignOutButton() {
             Suscripción
           </DropdownMenuItem>
           <DropdownMenuItem>
-            Ajustes
+            <Link href="/settings">Ajustes</Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
