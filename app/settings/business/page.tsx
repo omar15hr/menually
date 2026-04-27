@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 import { getOrCreateBusiness } from "@/actions/business.action";
-import { BusinessSettingsForm } from "@/app/settings/_components/BusinessSettingsForm";
+import { BusinessSettingsForm } from "@/components/settings/BusinessSettingsForm";
 
 export default async function BusinessSettingsPage() {
   const supabase = await createClient();
@@ -37,9 +37,9 @@ export default async function BusinessSettingsPage() {
 
   return (
     <BusinessSettingsForm
+      profile={{ id: user.id, business_name: profile.business_name }}
       business={business}
-      profileBusinessName={profile.business_name}
-      logoUrl={menu?.logo_url ?? null}
+      menuLogoUrl={menu?.logo_url ?? null}
     />
   );
 }

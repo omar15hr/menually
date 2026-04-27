@@ -12,10 +12,18 @@ export default async function SettingsLayout({
       <TooltipProvider>
         <main className="min-h-screen bg-neutral-50 text-neutral-900 w-full">
           <header className="border-b bg-white px-6 py-6 flex items-center justify-between">
-            <Image src="/images/menually-logo.png" alt="Menually Logo" width={120} height={40} />
+            <Image
+              src="/images/menually-logo.png"
+              alt="Menually Logo"
+              width={120}
+              height={120}
+              loading="eager"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="h-auto w-auto"
+            />
           </header>
 
-          <div className='flex'>
+          <div className="flex">
             <SettingsSidebar />
             {children}
           </div>

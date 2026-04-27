@@ -138,3 +138,65 @@ export async function updateMenu(menuId: string, data: UpdateMenuSchema) {
   revalidatePath("/dashboard");
   return { success: true, data: updatedMenu, error: null };
 }
+
+export type DeleteMenuState =
+  | {
+      success: boolean;
+      message: string;
+      errors: Record<string, string[]>;
+    }
+  | null
+  | undefined;
+
+export async function deleteMenu(
+  _prevState: DeleteMenuState,
+  _formData: FormData
+): Promise<DeleteMenuState> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      message: "Usuario no autenticado",
+      errors: {},
+    };
+  }
+
+  const { data: menu } = await supabase
+    .from("menus")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!menu) {
+    return {
+      success: false,
+      message: "No hay un menú para eliminar",
+      errors: {},
+    };
+  }
+
+  const { error } = await supabase.from("menus").delete().eq("id", menu.id);
+
+  if (error) {
+    return {
+      success: false,
+      message: "No se pudo eliminar el menú",
+      errors: {},
+    };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/settings");
+  revalidatePath("/settings/preferences");
+
+  return {
+    success: true,
+    message: "Menú eliminado correctamente",
+    errors: {},
+  };
+}
