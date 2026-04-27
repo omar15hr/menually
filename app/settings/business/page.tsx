@@ -1,22 +1,20 @@
+import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
 import { getOrCreateBusiness } from "@/actions/business.action";
-import { BusinessSettingsForm } from "@/components/settings/BusinessSettingsForm";
+import { BusinessSettingsForm } from "@/app/settings/_components/BusinessSettingsForm";
 
-export default async function BusinessConfigurationPage() {
+export default async function BusinessSettingsPage() {
   const supabase = await createClient();
-
   const {
     data: { user },
-    error: authError,
   } = await supabase.auth.getUser();
 
-  if (authError || !user) {
+  if (!user) {
     redirect("/auth/signin");
   }
 
-  // Get profile
+  // Get profile data
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, business_name")
@@ -27,23 +25,21 @@ export default async function BusinessConfigurationPage() {
     redirect("/auth/signin");
   }
 
-  // Get or create business
+  // Get or create business record
   const business = await getOrCreateBusiness(user.id);
 
-  // Get menu for logo
+  // Get logo from menus table
   const { data: menu } = await supabase
     .from("menus")
     .select("logo_url")
     .eq("user_id", user.id)
-    .maybeSingle();
+    .single();
 
   return (
-    <div className="grid md:grid-cols-[240px,1fr] gap-10 py-6 md:py-10 max-w-7xl mx-auto">
-      <BusinessSettingsForm
-        profile={profile}
-        business={business}
-        menuLogoUrl={menu?.logo_url || null}
-      />
-    </div>
+    <BusinessSettingsForm
+      business={business}
+      profileBusinessName={profile.business_name}
+      logoUrl={menu?.logo_url ?? null}
+    />
   );
 }

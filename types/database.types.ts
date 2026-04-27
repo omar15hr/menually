@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      business: {
+        Row: {
+          address: string | null
+          business_type: string | null
+          comuna: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          profile_id: string
+          region: string | null
+          schedule: Json | null
+          show_address: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_type?: string | null
+          comuna?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          profile_id: string
+          region?: string | null
+          schedule?: Json | null
+          show_address?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_type?: string | null
+          comuna?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          profile_id?: string
+          region?: string | null
+          schedule?: Json | null
+          show_address?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string

@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 const menuLinks = [
   {
     name: "Configuración del negocio",
-    url: "/settings",
+    url: "/settings/business",
   },
   {
     name: "Datos de contacto",
