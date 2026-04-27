@@ -17,10 +17,10 @@ export default function SignOutButton() {
         <DropdownMenuGroup>
           <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
           <DropdownMenuItem>
-            Perfil
+            <Link href="/settings/contact-data">Datos de contacto</Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            Suscripción
+            <Link href="/settings/subscription">Suscripción</Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Link href="/settings">Ajustes</Link>
