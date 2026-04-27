@@ -1,6 +1,6 @@
+import Link from "next/link";
+
 import { timeAgo } from "@/lib/timeAgo";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import {
   Pagination,
   PaginationContent,
@@ -10,40 +10,22 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import Link from "next/link";
+import Header from "@/components/shared/Header";
+import { getAuthUser } from "@/lib/queries/auth.queries";
 import DownloadIcon from "@/components/icons/DownloadIcon";
 import SearchInput from "@/components/dashboard/SearchInput";
+import { getMenuByUserId } from "@/lib/queries/menu.queries";
 import WithMenuTable from "@/components/dashboard/WithMenuTable";
-import Header from "@/components/shared/Header";
+import { getCategoriesByMenuId } from "@/lib/queries/categories.queries";
 
 export default async function ProductManagementPage() {
-  const supabase = await createClient();
+  const user = await getAuthUser();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/auth/signin");
-
-  const { data: menu } = await supabase
-    .from("menus")
-    .select("*")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
+  const menu = await getMenuByUserId(user.id);
   if (!menu) return null;
 
-  const { data: categoriesWithProducts, error } = await supabase
-    .from("categories")
-    .select(
-      `
-      *,
-      products (*)
-    `,
-    )
-    .eq("menu_id", menu.id);
-
-  if (error || !categoriesWithProducts) return null;
+  const categoriesWithProducts = await getCategoriesByMenuId(menu.id);
+  if (!categoriesWithProducts.length) return null;
 
   const result = categoriesWithProducts.map((category) => ({
     ...category,
@@ -71,11 +53,17 @@ export default async function ProductManagementPage() {
         </div>
 
         <div className="flex gap-2 mt-5 px-10 max-w-7xl mx-auto p-6">
-          <Link href="/dashboard/menu/qr" className="bg-white border border-[#E4E4E6] rounded-lg flex w-40 items-center justify-center gap-2 h-10 py-2.5 px-4 text-[#0F172A] text-base font-semibold cursor-pointer">
+          <Link
+            href="/dashboard/menu/qr"
+            className="bg-white border border-[#E4E4E6] rounded-lg flex w-40 items-center justify-center gap-2 h-10 py-2.5 px-4 text-[#0F172A] text-base font-semibold cursor-pointer"
+          >
             <DownloadIcon />
             Descargar QR
           </Link>
-          <Link href="/dashboard/menu/menu-content" className="bg-[#CDF545] rounded-lg flex items-center gap-2 h-10 py-2.5 px-4 text-[#114821] text-base font-semibold cursor-pointer w-30">
+          <Link
+            href="/dashboard/menu/menu-content"
+            className="bg-[#CDF545] rounded-lg flex items-center gap-2 h-10 py-2.5 px-4 text-[#114821] text-base font-semibold cursor-pointer w-30"
+          >
             Editar menú
           </Link>
         </div>
@@ -108,24 +96,46 @@ export default async function ProductManagementPage() {
           <Pagination className="mt-6">
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious href="#" text="Anterior" className="hover:text-gray-900 hover:bg-transparent text-gray-600 px-2" />
+                <PaginationPrevious
+                  href="#"
+                  text="Anterior"
+                  className="hover:text-gray-900 hover:bg-transparent text-gray-600 px-2"
+                />
               </PaginationItem>
               <PaginationItem>
-                <PaginationLink href="#" className="text-gray-600 hover:bg-gray-100">1</PaginationLink>
+                <PaginationLink
+                  href="#"
+                  className="text-gray-600 hover:bg-gray-100"
+                >
+                  1
+                </PaginationLink>
               </PaginationItem>
               <PaginationItem>
-                <PaginationLink href="#" isActive className="bg-green-800 text-white hover:bg-green-800/90 hover:text-white border-transparent">
+                <PaginationLink
+                  href="#"
+                  isActive
+                  className="bg-green-800 text-white hover:bg-green-800/90 hover:text-white border-transparent"
+                >
                   2
                 </PaginationLink>
               </PaginationItem>
               <PaginationItem>
-                <PaginationLink href="#" className="text-gray-600 hover:bg-gray-100">3</PaginationLink>
+                <PaginationLink
+                  href="#"
+                  className="text-gray-600 hover:bg-gray-100"
+                >
+                  3
+                </PaginationLink>
               </PaginationItem>
               <PaginationItem>
                 <PaginationEllipsis className="text-gray-600" />
               </PaginationItem>
               <PaginationItem>
-                <PaginationNext href="#" text="Siguiente" className="hover:text-gray-900 hover:bg-transparent text-gray-600 px-2" />
+                <PaginationNext
+                  href="#"
+                  text="Siguiente"
+                  className="hover:text-gray-900 hover:bg-transparent text-gray-600 px-2"
+                />
               </PaginationItem>
             </PaginationContent>
           </Pagination>

@@ -60,6 +60,7 @@ types/                 # TypeScript types (especially database.types.ts)
 ### State Management (Zustand)
 
 Use Zustand (`@/store/`) for client-side state shared across components. Currently in use:
+
 - `useMenuStore` — Categories/products state for the menu editor
 
 ```typescript
@@ -68,14 +69,14 @@ interface MenuState {
   // State
   categories: Category[];
   selectedCategoryId: string | null;
-  
+
   // Setters
   setCategories: (categories: Category[]) => void;
   selectCategory: (id: string) => void;
-  
+
   // Getters (derived state)
   getSelectedCategory: () => Category | undefined;
-  
+
   // Mutations (immutable updates)
   addProduct: (categoryId: string, product: Product) => void;
   updateProduct: (productId: string, data: Partial<Product>) => void;
@@ -99,7 +100,10 @@ type Product = Database["public"]["Tables"]["products"]["Row"];
 import { Category } from "@/types/categories.types";
 
 // ❌ Avoid — don't redefine what Supabase generates
-interface MyProduct { id: string; name: string; }
+interface MyProduct {
+  id: string;
+  name: string;
+}
 ```
 
 ### Database Types
@@ -120,22 +124,67 @@ type UpdateProduct = Database["public"]["Tables"]["products"]["Update"];
 type ProductLabel = Database["public"]["Enums"]["product_label"];
 
 // Custom types with relationships
-type CategoryWithProducts = Database["public"]["Tables"]["categories"]["Row"] & {
-  products: Product[];
-};
+type CategoryWithProducts =
+  Database["public"]["Tables"]["categories"]["Row"] & {
+    products: Product[];
+  };
 ```
 
 ### Naming Conventions
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Files | kebab-case | `category-edit-table.tsx` |
-| Components | PascalCase | `ProductForm` |
-| Hooks | camelCase + use prefix | `useMobile`, `useMenuStore` |
-| Types/Interfaces | PascalCase | `CategoryWithProducts`, `MenuState` |
-| Server Actions | camelCase | `createProduct`, `updateCategory` |
-| Store | camelCase | `useMenuStore` |
-| Database tables | snake_case | `product_labels`, `menu_items` |
+| Element          | Convention             | Example                             |
+| ---------------- | ---------------------- | ----------------------------------- |
+| Files            | PascalCase             | `CategoryEditTable.tsx`             |
+| Components       | PascalCase             | `ProductForm`                       |
+| Hooks            | camelCase + use prefix | `useMobile`, `useMenuStore`         |
+| Types/Interfaces | PascalCase             | `CategoryWithProducts`, `MenuState` |
+| Server Actions   | camelCase              | `createProduct`, `updateCategory`   |
+| Store            | camelCase              | `useMenuStore`                      |
+| Database tables  | snake_case             | `product_labels`, `menu_items`      |
+
+### Component Naming Rules
+
+- **Always use PascalCase** for component file names: `ProductCard.tsx`, `CategoryList.tsx`
+- **File extension matters:**
+  - `.tsx` for components with JSX (React components)
+  - `.ts` for utility types, hooks, or non-UI modules
+
+### Component Structure Rules
+
+- **New components go in the appropriate domain folder** inside `components/`:
+  ```
+  components/
+  ├── ui/               # shadcn/ui base components
+  ├── icons/            # Custom SVG icons
+  ├── categories/      # Category-specific components
+  ├── products/         # Product-specific components
+  ├── settings/        # Settings-related components
+  └── shared/           # Reusable components across domains
+  ```
+- Example: A new product card component → `components/products/ProductCard.tsx`
+- Example: A shared button group → `components/shared/ButtonGroup.tsx`
+
+---
+
+## SDD Workflow Rules
+
+### Before Implementing
+
+1. **Check existing files first** — understand current structure before creating new components
+2. **Always show current state analysis** — what's done, what's pending, affected files
+3. **Confirm before proceeding** — wait for user approval after analysis
+
+### Implementation Rules
+
+- **DO NOT create openspec files or folders** — SDD artifacts stay in memory, never write to disk
+- **DO NOT change styles when implementing functionality changes** — focus only on the requested feature
+- **Use existing design system** — don't add new colors, spacing, or CSS unless explicitly requested
+- **Follow component structure rules** — new components go in appropriate domain folders
+
+### Code Quality
+
+- Always run `tsc --noEmit` after implementing to verify no type errors
+- Ensure TypeScript compiles clean before marking tasks as complete
 
 ### Null Handling
 
@@ -144,7 +193,8 @@ type CategoryWithProducts = Database["public"]["Tables"]["categories"]["Row"] & 
 const name = product?.name ?? "";
 
 // ✅ Explicit null checks when needed
-if (product !== null && product !== undefined) { }
+if (product !== null && product !== undefined) {
+}
 
 // ❌ Avoid non-null assertion unless absolutely certain
 const name = product!.name;
@@ -157,6 +207,7 @@ const name = product!.name;
 ### Client Components
 
 Always add `"use client"` at the top of files that use:
+
 - Hooks (`useState`, `useEffect`, etc.)
 - Event handlers (`onClick`, `onChange`)
 - Browser APIs
@@ -185,7 +236,7 @@ return (
 // ✅ Use interface for props
 interface Props {
   categoryId: string;
-  product?: Product | null;  // Optional props at end
+  product?: Product | null; // Optional props at end
 }
 
 // ✅ Default exports for page components
@@ -222,7 +273,7 @@ When a Server Component passes data to a Client Component that hydrates a store:
 "use client";
 
 useEffect(() => {
-  setCategories(categories);  // Hydrate store from server props
+  setCategories(categories); // Hydrate store from server props
 }, [categories, setCategories]);
 
 // Select first category if none selected
@@ -295,7 +346,7 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
       errors: {},
     };
   }
-  
+
   if (insertError) {
     return {
       success: false,
@@ -303,13 +354,13 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
       errors: {},
     };
   }
-  
+
   // For optimistic updates, return the created record
   return {
     success: true,
     message: "Producto creado correctamente",
     errors: {},
-    product: insertedProduct,  // Include for store updates
+    product: insertedProduct, // Include for store updates
   };
 }
 ```
@@ -347,10 +398,12 @@ export default async function Page() {
 // Select with relationships
 const { data } = await supabase
   .from("categories")
-  .select(`
+  .select(
+    `
     *,
     products (*)
-  `)
+  `,
+  )
   .eq("menu_id", menu.id)
   .order("position", { ascending: true });
 
@@ -393,7 +446,9 @@ Always verify user in Server Components and Server Actions:
 if (!user) redirect("/login");
 
 // Server Action
-const { data: { user } } = await supabase.auth.getUser();
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 if (!user) return { success: false, message: "No autenticado", errors: {} };
 ```
 
@@ -401,11 +456,11 @@ if (!user) return { success: false, message: "No autenticado", errors: {} };
 
 ## Key Files Reference
 
-| File | Purpose |
-|------|---------|
-| `store/useMenuStore.ts` | Zustand store for menu editor state |
-| `types/database.types.ts` | Supabase-generated types |
-| `actions/product.action.ts` | Product CRUD Server Action |
-| `actions/categories.action.ts` | Category CRUD Server Action |
-| `lib/supabase/server.ts` | Supabase server client factory |
-| `app/dashboard/menu/` | Menu management routes |
+| File                           | Purpose                             |
+| ------------------------------ | ----------------------------------- |
+| `store/useMenuStore.ts`        | Zustand store for menu editor state |
+| `types/database.types.ts`      | Supabase-generated types            |
+| `actions/product.action.ts`    | Product CRUD Server Action          |
+| `actions/categories.action.ts` | Category CRUD Server Action         |
+| `lib/supabase/server.ts`       | Supabase server client factory      |
+| `app/dashboard/menu/`          | Menu management routes              |

@@ -1,32 +1,15 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/queries/auth.queries";
+import { getMenuByUserId } from "@/lib/queries/menu.queries";
+import { getCategoriesByMenuId } from "@/lib/queries/categories.queries";
 import CategoriesWorkflow from "@/components/categories/CategoriesWorkflow";
 
 export default async function MenuContentPage() {
-  const supabase = await createClient();
+  const user = await getAuthUser();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  const { data: menu } = await supabase
-    .from("menus")
-    .select("id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
+  const menu = await getMenuByUserId(user.id);
   if (!menu) return null;
 
-  const { data: categories } = await supabase
-  .from("categories")
-  .select(`
-    *,
-    products (*)
-  `)
-  .eq("menu_id", menu.id)
-  .order("position", { ascending: true });
+  const categories = await getCategoriesByMenuId(menu.id);
 
   return (
     <div>
