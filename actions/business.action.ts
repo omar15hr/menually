@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import type { BusinessSettingsState, Schedule } from "@/types/business.types";
 import { createClient } from "@/lib/supabase/server";
-import type { Json } from "@/types/database.types";
+import type { Database, Json } from "@/types/database.types";
 
 // Validation schemas
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -29,8 +29,18 @@ const businessDataSchema = z.object({
   schedule: z.unknown(),
 });
 
-export async function getBusiness(profileId: string) {
+export async function getBusiness(profileId: string): Promise<Database["public"]["Tables"]["business"]["Row"] | null> {
   const supabase = await createClient();
+
+  // Verify user owns this profile
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.id !== profileId) {
+    // Don't expose whether the profile exists to non-owners
+    return null;
+  }
 
   const { data: business } = await supabase
     .from("business")
@@ -41,8 +51,18 @@ export async function getBusiness(profileId: string) {
   return business;
 }
 
-export async function getOrCreateBusiness(profileId: string) {
+export async function getOrCreateBusiness(profileId: string): Promise<Database["public"]["Tables"]["business"]["Row"] | null> {
   const supabase = await createClient();
+
+  // Verify user owns this profile
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.id !== profileId) {
+    // Don't allow creating business for other users
+    return null;
+  }
 
   // Try to get existing
   const { data: existing } = await supabase

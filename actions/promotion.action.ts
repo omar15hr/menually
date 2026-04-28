@@ -5,6 +5,16 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createPromotionSchema, updatePromotionSchema } from "@/lib/validations/promotion.schemas";
 import type { Promotion, PromotionActionResult } from "@/types/promotions.types";
+import {
+  requireAuth,
+  requireMenuOwner,
+  requirePromotionOwner,
+  assertPromotionProductsBelongToMenu,
+  assertValidRevalidatePaths,
+  type ActionError,
+  type ActionSuccess,
+  type ActionSuccessWithData,
+} from "@/lib/security/server-action-guards";
 
 // ─── Create ──────────────────────────────────────────────────────────────────
 
@@ -52,31 +62,40 @@ export async function createPromotion(
     return { success: false, message: "Validación fallida", errors };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, message: "Usuario no autenticado", errors: {} };
+  const authResult = await requireAuth();
+  if (authResult.error) {
+    return authResult.error;
   }
+
+  const supabase = await createClient();
 
   // Get user's menu
   const { data: menu } = await supabase
     .from("menus")
     .select("id, user_id")
-    .eq("user_id", user.id)
+    .eq("user_id", authResult.user!.id)
     .maybeSingle();
 
   if (!menu) {
     return { success: false, message: "Menú no encontrado", errors: {} };
   }
 
+  // Validate that product_ids belong to user's menu (CRITICAL SECURITY CHECK)
+  if (parsed.data.product_ids && parsed.data.product_ids.length > 0) {
+    const productsValidation = await assertPromotionProductsBelongToMenu(
+      menu.id,
+      parsed.data.product_ids
+    );
+    if (!productsValidation.valid) {
+      return productsValidation.error;
+    }
+  }
+
   // Get business_id from profile
   const { data: profile } = await supabase
     .from("profiles")
     .select("id")
-    .eq("id", user.id)
+    .eq("id", authResult.user!.id)
     .maybeSingle();
 
   // Get last position
@@ -94,8 +113,8 @@ export async function createPromotion(
     .from("promotions")
     .insert({
       menu_id: menu.id,
-      user_id: user.id,
-      business_id: profile?.id ?? user.id,
+      user_id: authResult.user!.id,
+      business_id: profile?.id ?? authResult.user!.id,
       title: parsed.data.title,
       description: parsed.data.description,
       keyword: parsed.data.keyword,
@@ -113,6 +132,15 @@ export async function createPromotion(
 
   if (insertError) {
     return { success: false, message: insertError.message, errors: {} };
+  }
+
+  // Validate revalidate paths
+  const pathValidation = await assertValidRevalidatePaths(
+    ["/dashboard/promotions", "/dashboard/menu"],
+    "promotions"
+  );
+  if (!pathValidation.valid) {
+    console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
   revalidatePath("/dashboard/promotions");
@@ -174,36 +202,24 @@ export async function updatePromotion(
     return { success: false, message: "Validación fallida", errors };
   }
 
+  // Verify promotion ownership
+  const ownershipResult = await requirePromotionOwner(id);
+  if (ownershipResult.error) {
+    return ownershipResult.error;
+  }
+
+  // Validate that product_ids belong to user's menu (CRITICAL SECURITY CHECK)
+  if (parsed.data.product_ids && parsed.data.product_ids.length > 0) {
+    const productsValidation = await assertPromotionProductsBelongToMenu(
+      ownershipResult.menuId,
+      parsed.data.product_ids
+    );
+    if (!productsValidation.valid) {
+      return productsValidation.error;
+    }
+  }
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, message: "Usuario no autenticado", errors: {} };
-  }
-
-  // Verify ownership
-  const { data: existing } = await supabase
-    .from("promotions")
-    .select("id, menu_id")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (!existing) {
-    return { success: false, message: "Promoción no encontrada", errors: {} };
-  }
-
-  // Verify user owns the menu
-  const { data: menu } = await supabase
-    .from("menus")
-    .select("id, user_id")
-    .eq("id", existing.menu_id)
-    .maybeSingle();
-
-  if (!menu || menu.user_id !== user.id) {
-    return { success: false, message: "No tienes permisos para editar esta promoción", errors: {} };
-  }
 
   const { data: updated, error: updateError } = await supabase
     .from("promotions")
@@ -227,6 +243,15 @@ export async function updatePromotion(
     return { success: false, message: updateError.message, errors: {} };
   }
 
+  // Validate revalidate paths
+  const pathValidation = await assertValidRevalidatePaths(
+    ["/dashboard/promotions", "/dashboard/menu"],
+    "promotions"
+  );
+  if (!pathValidation.valid) {
+    console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
+  }
+
   revalidatePath("/dashboard/promotions");
   revalidatePath("/dashboard/menu");
 
@@ -242,92 +267,72 @@ export async function updatePromotion(
 
 export async function deletePromotion(
   id: string
-): Promise<{ success: boolean; message: string }> {
+): Promise<ActionError | ActionSuccess> {
   if (!id) {
-    return { success: false, message: "ID de promoción requerido" };
+    return { success: false, message: "ID de promoción requerido", errors: {} };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, message: "Usuario no autenticado" };
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(id)) {
+    return { success: false, message: "ID de promoción inválido", errors: {} };
   }
 
   // Verify ownership
-  const { data: existing } = await supabase
-    .from("promotions")
-    .select("id, menu_id")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (!existing) {
-    return { success: false, message: "Promoción no encontrada" };
+  const ownershipResult = await requirePromotionOwner(id);
+  if (ownershipResult.error) {
+    return ownershipResult.error;
   }
 
-  const { data: menu } = await supabase
-    .from("menus")
-    .select("id, user_id")
-    .eq("id", existing.menu_id)
-    .maybeSingle();
-
-  if (!menu || menu.user_id !== user.id) {
-    return { success: false, message: "No tienes permisos para eliminar esta promoción" };
-  }
-
+  const supabase = await createClient();
   const { error } = await supabase.from("promotions").delete().eq("id", id);
 
   if (error) {
-    return { success: false, message: error.message };
+    return { success: false, message: error.message, errors: {} };
+  }
+
+  // Validate revalidate paths
+  const pathValidation = await assertValidRevalidatePaths(
+    ["/dashboard/promotions", "/dashboard/menu"],
+    "promotions"
+  );
+  if (!pathValidation.valid) {
+    console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
   revalidatePath("/dashboard/promotions");
   revalidatePath("/dashboard/menu");
 
-  return { success: true, message: "Promoción eliminada" };
+  return { success: true, message: "Promoción eliminada", errors: {} };
 }
 
 // ─── Toggle Active ─────────────────────────────────────────────────────────────
 
+/**
+ * Toggle promotion active status.
+ * Backward compatible return type - uses promotion instead of data
+ */
 export async function togglePromotionActive(
   id: string,
   is_active: boolean
-): Promise<{ success: boolean; message: string; promotion?: Promotion }> {
+): Promise<ActionError | (ActionSuccessWithData<Promotion> & { promotion?: Promotion })> {
   if (!id) {
-    return { success: false, message: "ID de promoción requerido" };
+    return { success: false, message: "ID de promoción requerido", errors: {} };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, message: "Usuario no autenticado" };
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(id)) {
+    return { success: false, message: "ID de promoción inválido", errors: {} };
   }
 
   // Verify ownership
-  const { data: existing } = await supabase
-    .from("promotions")
-    .select("id, menu_id")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (!existing) {
-    return { success: false, message: "Promoción no encontrada" };
+  const ownershipResult = await requirePromotionOwner(id);
+  if (ownershipResult.error) {
+    return ownershipResult.error;
   }
 
-  const { data: menu } = await supabase
-    .from("menus")
-    .select("id, user_id")
-    .eq("id", existing.menu_id)
-    .maybeSingle();
-
-  if (!menu || menu.user_id !== user.id) {
-    return { success: false, message: "No tienes permisos para editar esta promoción" };
-  }
+  const supabase = await createClient();
 
   const { data: updated, error } = await supabase
     .from("promotions")
@@ -337,13 +342,28 @@ export async function togglePromotionActive(
     .single();
 
   if (error) {
-    return { success: false, message: error.message };
+    return { success: false, message: error.message, errors: {} };
+  }
+
+  // Validate revalidate paths
+  const pathValidation = await assertValidRevalidatePaths(
+    ["/dashboard/promotions", "/dashboard/menu"],
+    "promotions"
+  );
+  if (!pathValidation.valid) {
+    console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
   revalidatePath("/dashboard/promotions");
   revalidatePath("/dashboard/menu");
 
-  return { success: true, message: is_active ? "Promoción activada" : "Promoción pausada", promotion: updated };
+  return {
+    success: true,
+    message: is_active ? "Promoción activada" : "Promoción pausada",
+    errors: {},
+    data: updated,
+    promotion: updated,
+  };
 }
 
 // ─── Get Promotions By Menu ────────────────────────────────────────────────────
@@ -353,6 +373,12 @@ export async function getPromotionsByMenu(
 ): Promise<{ success: boolean; promotions: Promotion[]; message?: string }> {
   if (!menuId) {
     return { success: false, promotions: [], message: "ID de menú requerido" };
+  }
+
+  // Verify menu ownership
+  const ownershipResult = await requireMenuOwner(menuId);
+  if (ownershipResult.error) {
+    return { success: false, promotions: [], message: ownershipResult.error.message };
   }
 
   const supabase = await createClient();
@@ -382,6 +408,19 @@ export async function getActivePromotions(
   const supabase = await createClient();
   const now = new Date().toISOString();
 
+  // Note: This function is likely called from public pages (menu view)
+  // So we don't require auth here - we just verify the menu exists
+  const { data: menu } = await supabase
+    .from("menus")
+    .select("id, is_active")
+    .eq("id", menuId)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (!menu) {
+    return { success: false, promotions: [], message: "Menú no encontrado o inactivo" };
+  }
+
   const { data: promotions, error } = await supabase
     .from("promotions")
     .select("*")
@@ -406,20 +445,18 @@ export async function getActivePromotions(
 // ─── Get All Promotions for User ───────────────────────────────────────────────
 
 export async function getUserPromotions(): Promise<{ success: boolean; promotions: Promotion[]; message?: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, promotions: [], message: "Usuario no autenticado" };
+  const authResult = await requireAuth();
+  if (authResult.error) {
+    return { success: false, promotions: [], message: authResult.error.message };
   }
+
+  const supabase = await createClient();
 
   // Get user's menu
   const { data: menu } = await supabase
     .from("menus")
     .select("id")
-    .eq("user_id", user.id)
+    .eq("user_id", authResult.user!.id)
     .maybeSingle();
 
   if (!menu) {

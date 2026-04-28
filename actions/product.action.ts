@@ -4,58 +4,116 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database.types";
+import {
+  requireAuth,
+  requireProductOwner,
+  assertValidRevalidatePaths,
+  type ActionError,
+  type ActionSuccess,
+  type ActionSuccessWithData,
+} from "@/lib/security/server-action-guards";
 
 type ProductLabel = Database["public"]["Enums"]["product_label"];
 
-export async function createProduct(_prevState: unknown, formData: FormData) {
+// Valid labels for products
+const VALID_LABELS: ProductLabel[] = [
+  "vegan",
+  "gluten_free",
+  "vegetarian",
+  "spicy",
+  "keto",
+  "aplv",
+];
+
+/**
+ * Crea un nuevo producto.
+ * Requiere autenticación, verificar que la categoría pertenezca al menú del usuario.
+ */
+/**
+ * Return type for createProduct to maintain backward compatibility
+ */
+export type CreateProductResult = ActionError | {
+  success: true;
+  message: string;
+  errors: {};
+  product: Database["public"]["Tables"]["products"]["Row"];
+};
+
+export async function createProduct(
+  _prevState: unknown,
+  formData: FormData
+): Promise<CreateProductResult> {
+  const authResult = await requireAuth();
+  if (authResult.error) {
+    return authResult.error;
+  }
+
   const category_id = formData.get("category_id")?.toString() ?? "";
   const name = formData.get("name")?.toString() ?? "";
   const description = formData.get("description")?.toString();
   const price = formData.get("price")?.toString() ?? "";
   const image_url = formData.get("image_url")?.toString() ?? null;
   const labels = formData.getAll("tags") as string[];
+
+  // Input validation
+  if (!category_id) {
+    return {
+      success: false,
+      message: "Categoría requerida",
+      errors: { category_id: ["Selecciona una categoría"] },
+    };
+  }
+
+  if (!name || name.trim() === "") {
+    return {
+      success: false,
+      message: "Nombre del producto requerido",
+      errors: { name: ["El nombre es requerido"] },
+    };
+  }
+
+  if (!price || isNaN(parseFloat(price)) || parseFloat(price) < 0) {
+    return {
+      success: false,
+      message: "Precio inválido",
+      errors: { price: ["El precio debe ser un número válido"] },
+    };
+  }
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) {
-    return {
-      success: false,
-      message: "Usuario no autenticado",
-      errors: {},
-    };
-  }
-
-  const { data: menu } = await supabase
-    .from("menus")
-    .select("id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!menu) {
-    return {
-      success: false,
-      message: "Menú no encontrado",
-      errors: {},
-    };
-  }
-
+  // Verify category ownership via menu ownership
   const { data: categoryRow } = await supabase
     .from("categories")
-    .select("id")
+    .select("id, menu_id")
     .eq("id", category_id)
-    .eq("menu_id", menu.id)
     .maybeSingle();
 
   if (!categoryRow) {
     return {
       success: false,
-      message: "Categoría no válida para tu menú",
-      errors: { category_id: ["Selecciona una categoría válida"] },
+      message: "Categoría no encontrada",
+      errors: { category_id: ["Categoría inválida"] },
     };
   }
 
+  // Verify the menu belongs to the user
+  const { data: menu } = await supabase
+    .from("menus")
+    .select("id")
+    .eq("id", categoryRow.menu_id)
+    .eq("user_id", authResult.user!.id)
+    .maybeSingle();
+
+  if (!menu) {
+    return {
+      success: false,
+      message: "No tienes permisos sobre esta categoría",
+      errors: { category_id: ["Categoría no válida para tu menú"] },
+    };
+  }
+
+  // Get last position for the category
   const { data: lastProduct } = await supabase
     .from("products")
     .select("position")
@@ -65,17 +123,21 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
     .maybeSingle();
 
   const nextPosition = (lastProduct?.position ?? -1) + 1;
+
+  // Validate and sanitize labels
+  const sanitizedLabels = labels
+    .filter((l): l is ProductLabel => VALID_LABELS.includes(l as ProductLabel))
+    .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
+
   const { data: insertedProduct, error: insertError } = await supabase
     .from("products")
     .insert({
       category_id,
-      name,
-      description: description || null,
-      price: parseFloat(price) || 0,
+      name: name.trim(),
+      description: description?.trim() || null,
+      price: parseFloat(price),
       image_url: image_url || null,
-      labels: labels.filter((l): l is ProductLabel =>
-        ["vegan", "gluten_free", "vegetarian", "spicy", "keto", "aplv"].includes(l)
-      ),
+      labels: sanitizedLabels,
       position: nextPosition,
       is_available: true,
     })
@@ -85,7 +147,17 @@ export async function createProduct(_prevState: unknown, formData: FormData) {
   if (insertError) {
     return { success: false, message: insertError.message, errors: {} };
   }
-  revalidatePath("/dashboard/create-menu");
+
+  // Validate revalidate paths
+  const pathValidation = await assertValidRevalidatePaths(
+    ["/dashboard/menu/menu-content", "/dashboard/create-menu"],
+    "products"
+  );
+  if (!pathValidation.valid) {
+    console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
+  }
+
+revalidatePath("/dashboard/create-menu");
   return {
     success: true,
     message: "Producto creado correctamente",
@@ -99,32 +171,58 @@ export type ProductUpdate = Pick<
   "name" | "description" | "price" | "is_available"
 >;
 
+/**
+ * Actualiza múltiples productos.
+ * Verifica que todos los productos pertenezcan al usuario antes de actualizar.
+ */
 export async function batchUpdateProducts(
   updates: Array<{ id: string; data: Partial<ProductUpdate> }>
-): Promise<{ success: boolean; message: string }> {
+): Promise<ActionError | ActionSuccess> {
   if (updates.length === 0) {
-    return { success: true, message: "Sin cambios" };
+    return { success: true, message: "Sin cambios", errors: {} };
+  }
+
+  const authResult = await requireAuth();
+  if (authResult.error) {
+    return authResult.error;
   }
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, message: "Usuario no autenticado" };
-  }
 
   // Verify ownership for all products before updating
-  for (const { id } of updates) {
-    const { data: product } = await supabase
-      .from("products")
-      .select("id, categories!inner(menu_id, menus!inner(user_id))")
-      .eq("id", id)
-      .maybeSingle();
+  const productIds = updates.map(u => u.id);
+  const { data: products, error: queryError } = await supabase
+    .from("products")
+    .select("id, category_id, categories!inner(menu_id, menus!inner(user_id))")
+    .in("id", productIds);
 
-    if (!product) {
-      return { success: false, message: "Producto no encontrado" };
+  if (queryError || !products || products.length !== productIds.length) {
+    return { success: false, message: "Algunos productos no fueron encontrados", errors: {} };
+  }
+
+  // Verify all products belong to user's menu
+  const { data: userMenu } = await supabase
+    .from("menus")
+    .select("id")
+    .eq("user_id", authResult.user!.id)
+    .maybeSingle();
+
+  if (!userMenu) {
+    return { success: false, message: "No tienes un menú", errors: {} };
+  }
+
+  // The join should already verify ownership, but let's double check
+  for (const product of products) {
+    // Access the nested join data - but this depends on how Supabase returns it
+    // Let's verify via separate query
+    const { data: category } = await supabase
+      .from("categories")
+      .select("menu_id")
+      .eq("id", product.category_id)
+      .single();
+
+    if (!category || category.menu_id !== userMenu.id) {
+      return { success: false, message: "No tienes permisos sobre algunos productos", errors: {} };
     }
   }
 
@@ -149,7 +247,16 @@ export async function batchUpdateProducts(
   }
 
   if (errorMessages.length > 0) {
-    return { success: false, message: errorMessages[0] };
+    return { success: false, message: errorMessages[0], errors: {} };
+  }
+
+  // Validate revalidate paths
+  const pathValidation = await assertValidRevalidatePaths(
+    ["/dashboard/product-management", "/dashboard/gestion-productos", "/dashboard/menu/menu-content", "/dashboard/menu"],
+    "products"
+  );
+  if (!pathValidation.valid) {
+    console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
   // Revalidate to update the UI cache
@@ -160,33 +267,42 @@ export async function batchUpdateProducts(
   return {
     success: true,
     message: `${updates.length} producto${updates.length > 1 ? "s" : ""} actualizado${updates.length > 1 ? "s" : ""}`,
+    errors: {},
   };
 }
 
-
-
+/**
+ * Elimina un producto.
+ * Verifica ownership antes de eliminar.
+ */
 export async function deleteProduct(
   productId: string
-): Promise<{ success: boolean; message: string }> {
+): Promise<ActionError | ActionSuccess> {
+  if (!productId) {
+    return {
+      success: false,
+      message: "ID de producto requerido",
+      errors: {},
+    };
+  }
+
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(productId)) {
+    return {
+      success: false,
+      message: "ID de producto inválido",
+      errors: {},
+    };
+  }
+
+  // Verify ownership using the guard
+  const ownershipResult = await requireProductOwner(productId);
+  if (ownershipResult.error) {
+    return ownershipResult.error;
+  }
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, message: "Usuario no autenticado" };
-  }
-
-  // Verify the product belongs to the authenticated user
-  const { data: product } = await supabase
-    .from("products")
-    .select("id, categories!inner(menu_id, menus!inner(user_id))")
-    .eq("id", productId)
-    .maybeSingle();
-
-  if (!product) {
-    return { success: false, message: "Producto no encontrado" };
-  }
 
   const { error } = await supabase
     .from("products")
@@ -194,8 +310,20 @@ export async function deleteProduct(
     .eq("id", productId);
 
   if (error) {
-    return { success: false, message: error.message };
+    return { success: false, message: error.message, errors: {} };
   }
 
-  return { success: true, message: "Producto eliminado" };
+  // Validate revalidate paths
+  const pathValidation = await assertValidRevalidatePaths(
+    ["/dashboard/menu/menu-content", "/dashboard/product-management"],
+    "products"
+  );
+  if (!pathValidation.valid) {
+    console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
+  }
+
+  revalidatePath("/dashboard/menu/menu-content");
+  revalidatePath("/dashboard/product-management");
+
+  return { success: true, message: "Producto eliminado", errors: {} };
 }
