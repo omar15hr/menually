@@ -52,7 +52,11 @@ const menuLinks = [
   },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  businessName?: string | null;
+}
+
+export function AppSidebar({ businessName }: AppSidebarProps) {
   const { state } = useSidebar();
   const pathname = usePathname();
 
@@ -99,7 +103,7 @@ export function AppSidebar() {
             )}
           >
             <span className="bg-gray-400 size-8 rounded-full"></span>
-            <UserSidebarInfo />
+            <UserSidebarInfo businessName={businessName ?? undefined} />
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SignOutButton />
