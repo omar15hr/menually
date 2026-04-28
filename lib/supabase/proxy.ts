@@ -10,7 +10,7 @@ const protectedRoutes = [
 ];
 
 // Rutas de autenticación (usuarios autenticados no pueden acceder)
-const authRoutes = ["/auth/signin", "/auth/signup", "/auth/recover-password"];
+const authRoutes = ["/auth/signin", "/auth/signup", "/auth/reset-password"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({

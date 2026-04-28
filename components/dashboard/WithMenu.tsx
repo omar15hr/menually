@@ -159,7 +159,7 @@ export default async function WithMenu({ profile, categories }: WithMenuProps) {
 
           <div className="flex justify-end mt-2">
             <Link
-              href="/analytics"
+              href="/dashboard/analytics"
               className="text-sm font-medium flex items-center gap-1 transition-colors text-[#114821]"
             >
               Ver todas las métricas

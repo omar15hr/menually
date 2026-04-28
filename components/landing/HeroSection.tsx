@@ -31,7 +31,7 @@ export function HeroSection() {
               mejores decisiones
             </p>
 
-            <Link href="/dashboard/customize">
+            <Link href="/auth/signin">
               <button className="border border-[#CDF545] bg-[#CDF545] text-[#114821] px-4 py-2 rounded-lg font-bold text-base cursor-pointer">
                 Crear Mi Menú
               </button>

@@ -4,9 +4,8 @@ import { redirect } from "next/navigation";
 
 import { getAuthUser } from "@/lib/queries/auth.queries";
 import { getMenuByUserId } from "@/lib/queries/menu.queries";
-import AnalyticsView from "@/components/analytics/AnalyticsView";
 import type { AnalyticsPeriod } from "@/components/analytics/types";
-import { AnalyticsData } from "@/components/analytics/AnalyticsData";
+import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 
 export default async function AnalyticsPage({
   searchParams,
@@ -18,17 +17,9 @@ export default async function AnalyticsPage({
   const menu = await getMenuByUserId(user.id);
   if (!menu) redirect("/dashboard");
 
-  const menuId = menu?.id ?? "";
-
   const { period: periodParam } = await searchParams;
   const period: AnalyticsPeriod =
     periodParam === "today" || periodParam === "month" ? periodParam : "week";
-
-  const analyticsData = await AnalyticsData({
-    businessId: user.id,
-    period,
-    menuId,
-  });
 
   return (
     <Suspense
@@ -38,7 +29,11 @@ export default async function AnalyticsPage({
         </div>
       }
     >
-      <AnalyticsView initialData={analyticsData} />
+      <AnalyticsDashboard
+        businessId={user.id}
+        menuId={menu.id}
+        period={period}
+      />
     </Suspense>
   );
 }
