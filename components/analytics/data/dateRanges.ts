@@ -25,7 +25,10 @@ function addDays(date: Date, days: number): Date {
   return next;
 }
 
-export function getCurrentDateRange(period: AnalyticsPeriod, now = new Date()): DateRange {
+export function getCurrentDateRange(
+  period: AnalyticsPeriod,
+  now = new Date(),
+): DateRange {
   const end = new Date(now);
 
   if (period === "today") {
@@ -39,7 +42,10 @@ export function getCurrentDateRange(period: AnalyticsPeriod, now = new Date()): 
   return { start: startOfDay(addDays(end, -29)), end };
 }
 
-export function getPreviousDateRange(period: AnalyticsPeriod, current: DateRange): DateRange {
+export function getPreviousDateRange(
+  period: AnalyticsPeriod,
+  current: DateRange,
+): DateRange {
   if (period === "today") {
     const previousDay = addDays(current.start, -1);
     return {
@@ -64,4 +70,3 @@ export function getPreviousDateRange(period: AnalyticsPeriod, current: DateRange
     end,
   };
 }
-

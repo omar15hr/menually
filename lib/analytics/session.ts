@@ -16,17 +16,17 @@ const CONSENT_KEY = "analytics_consent";
  */
 export function getSession(menuSlug: string): MenuSession | null {
   if (typeof window === "undefined") return null;
-  
+
   try {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-    
+
     const session: MenuSession = JSON.parse(raw);
     const isExpired = Date.now() - session.timestamp > SESSION_TTL_MS;
     const isDifferentMenu = session.menuSlug !== menuSlug;
-    
+
     if (isExpired || isDifferentMenu) return null;
-    
+
     return session;
   } catch {
     return null;
@@ -38,13 +38,13 @@ export function getSession(menuSlug: string): MenuSession | null {
  */
 export function setSession(menuSlug: string, sessionId: string): void {
   if (typeof window === "undefined") return;
-  
+
   const session: MenuSession = {
     sessionId,
     timestamp: Date.now(),
     menuSlug,
   };
-  
+
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 }
 
@@ -53,7 +53,7 @@ export function setSession(menuSlug: string, sessionId: string): void {
  */
 export function getAnalyticsConsent(): boolean {
   if (typeof window === "undefined") return true;
-  
+
   return localStorage.getItem(CONSENT_KEY) === "accepted";
 }
 

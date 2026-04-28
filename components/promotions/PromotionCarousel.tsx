@@ -1,33 +1,35 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import { PromotionCardCover } from "./PromotionCardCover";
 import type { Promotion } from "@/types/promotions.types";
-import { useEffect, useState } from "react";
 
 interface Props {
   promotions: Promotion[];
   onPromotionClick?: (promotion: Promotion) => void;
 }
 
-export function PromotionCarousel({ promotions, onPromotionClick }: Props) {
-  const [api, setApi] = useState<any>(null);
+function PromotionCarouselWithData({ promotions, onPromotionClick }: Props) {
+  const [api, setApi] = useState<CarouselApi | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
-
-  if (!promotions || promotions.length === 0) {
-    return null;
-  }
 
   useEffect(() => {
     if (!api) return;
 
-    api.on("select", () => {
+    const handleSelect = () => {
       setSelectedIndex(api.selectedScrollSnap());
-    });
+    };
+
+    api.on("select", handleSelect);
+    return () => {
+      api.off("select", handleSelect);
+    };
   }, [api]);
 
   return (
@@ -57,14 +59,28 @@ export function PromotionCarousel({ promotions, onPromotionClick }: Props) {
           <button
             key={index}
             onClick={() => api?.scrollTo(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-200 ${index === selectedIndex
-              ? "bg-[#22C55E] w-6"
-              : "bg-gray-300 hover:bg-gray-400"
-              }`}
+            className={`w-2 h-2 rounded-full transition-all duration-200 ${
+              index === selectedIndex
+                ? "bg-[#22C55E] w-6"
+                : "bg-gray-300 hover:bg-gray-400"
+            }`}
             aria-label={`Ir a promoción ${index + 1}`}
           />
         ))}
       </div>
     </div>
+  );
+}
+
+export function PromotionCarousel({ promotions, onPromotionClick }: Props) {
+  if (!promotions || promotions.length === 0) {
+    return null;
+  }
+
+  return (
+    <PromotionCarouselWithData
+      promotions={promotions}
+      onPromotionClick={onPromotionClick}
+    />
   );
 }

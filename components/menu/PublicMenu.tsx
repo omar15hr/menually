@@ -22,7 +22,11 @@ interface PublicMenuProps {
   promotions?: Promotion[];
 }
 
-export function PublicMenu({ menu, categories, promotions = [] }: PublicMenuProps) {
+export function PublicMenu({
+  menu,
+  categories,
+  promotions = [],
+}: PublicMenuProps) {
   const { setCategories, selectCategory, selectedCategoryId } = useMenuStore();
 
   // Hydrate store with categories

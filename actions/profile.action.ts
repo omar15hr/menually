@@ -3,10 +3,7 @@
 import z from "zod";
 import { revalidatePath } from "next/cache";
 
-import {
-  ContactDataState,
-  PasswordChangeState,
-} from "@/types/profile.types";
+import { ContactDataState, PasswordChangeState } from "@/types/profile.types";
 import { createClient } from "@/lib/supabase/server";
 
 const emailSchema = z
@@ -56,7 +53,8 @@ export async function updateContactData(
   if (!validated.success) {
     return {
       status: "error",
-      message: z.flattenError(validated.error).fieldErrors.email?.[0] ??
+      message:
+        z.flattenError(validated.error).fieldErrors.email?.[0] ??
         z.flattenError(validated.error).fieldErrors.phone_number?.[0] ??
         "Datos inválidos",
       errors: z.flattenError(validated.error).fieldErrors,

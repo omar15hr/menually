@@ -2,15 +2,11 @@ import { redirect } from "next/navigation";
 
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/queries/auth.queries";
 import { DeleteMenuForm } from "@/components/settings/DeleteMenuForm";
 
 export default async function PreferencesPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getAuthUser();
   if (!user) {
     redirect("/auth/signin");
   }

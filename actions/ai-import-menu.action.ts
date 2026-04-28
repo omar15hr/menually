@@ -10,7 +10,7 @@ import type { ImportedMenu, ImportResult } from "@/lib/types/ai-import.types";
  * Skips categories and products that already exist (exact name match)
  */
 export async function importMenu(
-  data: ImportedMenu
+  data: ImportedMenu,
 ): Promise<{ result: ImportResult | null; error: string | null }> {
   const supabase = await createClient();
 
@@ -96,7 +96,7 @@ export async function importMenu(
 
       if (catError || !createdCategory) {
         result.errors.push(
-          `Error al crear categoría "${importedCategory.name}": ${catError?.message ?? "Unknown error"}`
+          `Error al crear categoría "${importedCategory.name}": ${catError?.message ?? "Unknown error"}`,
         );
         continue;
       }
@@ -141,12 +141,13 @@ export async function importMenu(
         image_url: null,
         labels: null,
         is_available: true,
-        position: existingProdsInCategory.size + newlyCreatedProdsInCategory.size,
+        position:
+          existingProdsInCategory.size + newlyCreatedProdsInCategory.size,
       });
 
       if (prodError) {
         result.errors.push(
-          `Error al crear producto "${importedProduct.name}": ${prodError.message}`
+          `Error al crear producto "${importedProduct.name}": ${prodError.message}`,
         );
         continue;
       }

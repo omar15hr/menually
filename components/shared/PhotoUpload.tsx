@@ -10,7 +10,11 @@ interface Props {
   children: React.ReactNode;
 }
 
-export default function PhotoUpload({ onPhotoUploaded, imagePath, children }: Props) {
+export default function PhotoUpload({
+  onPhotoUploaded,
+  imagePath,
+  children,
+}: Props) {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
 

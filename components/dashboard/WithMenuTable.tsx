@@ -68,11 +68,11 @@ export default function WithMenuTable({ products }: Props) {
     (
       id: string,
       field: keyof ProductUpdate,
-      value: string | number | boolean | null
+      value: string | number | boolean | null,
     ) => {
       // 1. Actualizar UI local
       setLocalProducts((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))
+        prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)),
       );
 
       // 2. Acumular en pendingChanges
@@ -99,7 +99,7 @@ export default function WithMenuTable({ products }: Props) {
         return next;
       });
     },
-    [products]
+    [products],
   );
 
   // -------------------------
@@ -185,17 +185,26 @@ export default function WithMenuTable({ products }: Props) {
         <Table>
           <TableHeader className="bg-gray-50/50">
             <TableRow>
-              <TableHead className="py-4 px-6 font-semibold text-gray-700">Producto</TableHead>
-              <TableHead className="py-4 px-6 font-semibold text-gray-700">Categoría</TableHead>
-              <TableHead className="py-4 px-6 font-semibold text-gray-700">Descripción</TableHead>
-              <TableHead className="py-4 px-6 font-semibold text-gray-700">Precio</TableHead>
-              <TableHead className="py-4 px-6 font-semibold text-gray-700 text-center">Disponibilidad</TableHead>
+              <TableHead className="py-4 px-6 font-semibold text-gray-700">
+                Producto
+              </TableHead>
+              <TableHead className="py-4 px-6 font-semibold text-gray-700">
+                Categoría
+              </TableHead>
+              <TableHead className="py-4 px-6 font-semibold text-gray-700">
+                Descripción
+              </TableHead>
+              <TableHead className="py-4 px-6 font-semibold text-gray-700">
+                Precio
+              </TableHead>
+              <TableHead className="py-4 px-6 font-semibold text-gray-700 text-center">
+                Disponibilidad
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-gray-100">
             {localProducts.map((product) => (
               <TableRow key={product.id} className="hover:bg-gray-50/50">
-
                 {/* Nombre */}
                 <TableCell className="py-4 px-6">
                   <Input
@@ -220,7 +229,7 @@ export default function WithMenuTable({ products }: Props) {
                       handleFieldChange(
                         product.id,
                         "description",
-                        e.target.value || null
+                        e.target.value || null,
                       )
                     }
                     placeholder="Sin descripción"
@@ -231,7 +240,9 @@ export default function WithMenuTable({ products }: Props) {
                 {/* Precio */}
                 <TableCell className="py-4 px-6">
                   <div className="flex items-center border border-gray-200 rounded-lg px-3 py-2 w-28 bg-white focus-within:border-gray-300 transition-colors">
-                    <span className="text-gray-500 font-medium mr-1 select-none">$</span>
+                    <span className="text-gray-500 font-medium mr-1 select-none">
+                      $
+                    </span>
                     <input
                       type="number"
                       value={product.price ?? ""}
@@ -239,7 +250,7 @@ export default function WithMenuTable({ products }: Props) {
                         handleFieldChange(
                           product.id,
                           "price",
-                          e.target.value ? Number(e.target.value) : null
+                          e.target.value ? Number(e.target.value) : null,
                         )
                       }
                       min={0}
@@ -266,13 +277,15 @@ export default function WithMenuTable({ products }: Props) {
                     </button>
                   </div>
                 </TableCell>
-
               </TableRow>
             ))}
 
             {localProducts.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="py-12 text-center text-sm text-gray-400">
+                <TableCell
+                  colSpan={5}
+                  className="py-12 text-center text-sm text-gray-400"
+                >
                   No hay productos en este menú.
                 </TableCell>
               </TableRow>
@@ -296,7 +309,8 @@ export default function WithMenuTable({ products }: Props) {
               <p className="text-sm font-medium text-[#1C1C1C]">
                 Tenés{" "}
                 <span className="font-bold">
-                  {pendingChanges.size} producto{pendingChanges.size > 1 ? "s" : ""}
+                  {pendingChanges.size} producto
+                  {pendingChanges.size > 1 ? "s" : ""}
                 </span>{" "}
                 con cambios sin guardar
               </p>
@@ -335,7 +349,8 @@ export default function WithMenuTable({ products }: Props) {
               ¿Estás seguro que querés eliminar este producto?
             </DialogTitle>
             <DialogDescription className="text-[#64748B] text-base">
-              Se eliminará permanentemente. Si lo necesitás después, tendrás que crearlo nuevamente.
+              Se eliminará permanentemente. Si lo necesitás después, tendrás que
+              crearlo nuevamente.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="bg-transparent border-none p-0 mt-6 sm:justify-end gap-3">

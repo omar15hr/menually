@@ -65,9 +65,7 @@ export function MenuPreview({
     shapeMap[menu.image_product_shape ?? "rounded"] ?? "rounded-xl";
 
   const tabs =
-    categories && categories.length > 0
-      ? categories.map((c) => c.name)
-      : [];
+    categories && categories.length > 0 ? categories.map((c) => c.name) : [];
 
   function handleTabChange(index: number) {
     setActiveTab(index);
@@ -80,15 +78,17 @@ export function MenuPreview({
   const products: DisplayProduct[] =
     categories && categories.length > 0
       ? (categories[activeTab]?.products ?? []).map((p) => ({
-        id: p.id,
-        name: p.name,
-        description: p.description,
-        price: p.price,
-        image: p.image_url,
-      }))
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          image: p.image_url,
+        }))
       : [];
-  const coverPlaceholder = "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/background-image-placeholder.png";
-  const logoPlaceholder = "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/logo-image-placeholder.png"
+  const coverPlaceholder =
+    "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/background-image-placeholder.png";
+  const logoPlaceholder =
+    "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/logo-image-placeholder.png";
 
   return (
     <div
@@ -130,7 +130,14 @@ export function MenuPreview({
           style={{ width: 52, height: 52, bottom: -26, left: 16 }}
         >
           {logoImage ? (
-            <Image src={logoImage} alt="Logo" fill loading="eager" className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+            <Image
+              src={logoImage}
+              alt="Logo"
+              fill
+              loading="eager"
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
           ) : (
             <Image
               fill
@@ -209,7 +216,8 @@ export function MenuPreview({
               onClick={() => handleTabChange(i)}
               className="pb-2 text-base font-bold whitespace-nowrap"
               style={{
-                color: activeTab === i ? menu.primary_color || "#2563EB" : "#9CA3AF",
+                color:
+                  activeTab === i ? menu.primary_color || "#2563EB" : "#9CA3AF",
                 borderBottom:
                   activeTab === i
                     ? `2px solid ${menu.primary_color || "#2563EB"}`
@@ -222,7 +230,6 @@ export function MenuPreview({
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
-
 
       <div className="overflow-y-auto flex-1 px-4 flex flex-col divide-y divide-gray-100">
         {products.map((product) => {
@@ -243,7 +250,9 @@ export function MenuPreview({
                     height={80}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className={`${imageShape} object-cover overflow-hidden bg-[#F5EEE8] shrink-0 flex items-center justify-center ${isVertical ? "w-full" : ""}`}
-                    style={isVertical ? { height: 120 } : { width: 56, height: 56 }}
+                    style={
+                      isVertical ? { height: 120 } : { width: 56, height: 56 }
+                    }
                   />
                 ) : (
                   <svg
@@ -298,8 +307,26 @@ export function MenuPreview({
         })}
         {products.length === 0 && (
           <div className="flex flex-col items-center justify-center text-center py-10 h-full text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-2 opacity-50"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
-            <p className="text-sm">Aún no hay productos <br />en esta categoría.</p>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mb-2 opacity-50"
+            >
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+              <path d="M3 6h18" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+            <p className="text-sm">
+              Aún no hay productos <br />
+              en esta categoría.
+            </p>
           </div>
         )}
       </div>

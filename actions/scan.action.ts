@@ -16,13 +16,14 @@ function detectDeviceType(userAgent: string | null): DeviceType {
   if (!userAgent) return "desktop";
   const ua = userAgent.toLowerCase();
   if (/tablet|ipad|playbook|silk/i.test(ua)) return "tablet";
-  if (/mobile|iphone|android|240|320|480|533|568|667|736/i.test(ua)) return "mobile";
+  if (/mobile|iphone|android|240|320|480|533|568|667|736/i.test(ua))
+    return "mobile";
   return "desktop";
 }
 
 export async function registerScan(
   _prevState: unknown,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   const supabase = await createClient();
 

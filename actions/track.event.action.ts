@@ -18,7 +18,7 @@ type ActionResult = {
  */
 export async function trackEvent(
   _prevState: unknown,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   const supabase = await createClient();
 
@@ -59,7 +59,8 @@ export async function trackEvent(
   }
 
   // Validate UUID format for business_id
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(businessId)) {
     return {
       success: false,
@@ -108,7 +109,9 @@ export async function trackEvent(
       return {
         success: false,
         message: "Business ID no válido",
-        errors: { business_id: ["El business ID no corresponde a un negocio válido"] },
+        errors: {
+          business_id: ["El business ID no corresponde a un negocio válido"],
+        },
       };
     }
   }
@@ -187,7 +190,10 @@ export async function trackEvent(
   }
 
   // Validate duration_seconds if provided (must be positive number)
-  if (durationSeconds !== null && (isNaN(durationSeconds) || durationSeconds < 0)) {
+  if (
+    durationSeconds !== null &&
+    (isNaN(durationSeconds) || durationSeconds < 0)
+  ) {
     return {
       success: false,
       message: "Duración inválida",

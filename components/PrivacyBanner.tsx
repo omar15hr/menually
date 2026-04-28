@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { getAnalyticsConsent, setAnalyticsConsent } from "@/lib/analytics/session";
+import {
+  getAnalyticsConsent,
+  setAnalyticsConsent,
+} from "@/lib/analytics/session";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,14 +39,14 @@ export function PrivacyBanner() {
         className={cn(
           "flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-full",
           "bg-[#CDF545] text-[#114821] hover:bg-[#b8e07a] transition-colors",
-          "flex-shrink-0"
+          "shrink-0",
         )}
       >
         Accept
       </button>
       <button
         onClick={dismiss}
-        className="p-1 hover:bg-white/10 rounded transition-colors flex-shrink-0"
+        className="p-1 hover:bg-white/10 rounded transition-colors shrink-0"
         aria-label="Dismiss"
       >
         <X className="h-4 w-4" />

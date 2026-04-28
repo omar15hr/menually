@@ -93,7 +93,6 @@ export function MenuEditTable({
   onLogoUrlSelected,
   onCoverUrlSelected,
 }: Props) {
-
   return (
     <div className="flex flex-col w-full max-w-sm bg-white border border-[#E4E4E6]">
       <div className="flex flex-col p-4 border-b">
@@ -283,10 +282,11 @@ function Row({
 }) {
   return (
     <div
-      className={`flex px-4 py-3 min-h-12 ${layout === "row"
-        ? "flex-row items-center justify-between"
-        : "flex-col items-start gap-2"
-        }`}
+      className={`flex px-4 py-3 min-h-12 ${
+        layout === "row"
+          ? "flex-row items-center justify-between"
+          : "flex-col items-start gap-2"
+      }`}
     >
       <span className="text-sm text-[#1C1C1C] font-semibold shrink-0">
         {label}
@@ -322,16 +322,18 @@ function FieldInput({
             className={`
               flex flex-col items-center gap-2 flex-1 p-3 justify-center
               rounded-xl border-2 transition-all duration-150 cursor-pointer
-              ${value === opt.value
-                ? "border-[#114821] bg-[#CDF54533]"
-                : "border-[#E4E4E6] bg-white hover:border-[#114821]"
+              ${
+                value === opt.value
+                  ? "border-[#114821] bg-[#CDF54533]"
+                  : "border-[#E4E4E6] bg-white hover:border-[#114821]"
               }
             `}
           >
             <LayoutPreview layout={opt.value} active={value === opt.value} />
             <span
-              className={`text-xs font-semibold ${value === opt.value ? "text-[#114821]" : "text-[#58606E]"
-                }`}
+              className={`text-xs font-semibold ${
+                value === opt.value ? "text-[#114821]" : "text-[#58606E]"
+              }`}
             >
               {opt.label}
             </span>
@@ -352,16 +354,18 @@ function FieldInput({
             className={`
             flex flex-col items-center gap-2 flex-1 p-3
             rounded-xl border-2 transition-all duration-150 cursor-pointer
-            ${value === opt.value
+            ${
+              value === opt.value
                 ? "border-[#114821] bg-[#CDF54533]"
                 : "border-[#E4E4E6] bg-white hover:border-[#114821]"
-              }
+            }
           `}
           >
             <ShapePreview shape={opt.value} active={value === opt.value} />
             <span
-              className={`text-xs font-semibold ${value === opt.value ? "text-[#114821]" : "text-[#58606E]"
-                }`}
+              className={`text-xs font-semibold ${
+                value === opt.value ? "text-[#114821]" : "text-[#58606E]"
+              }`}
             >
               {opt.label}
             </span>
@@ -398,12 +402,14 @@ function FieldInput({
         role="switch"
         aria-checked={value as boolean}
         onClick={() => onChange(field, !(value as boolean))}
-        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:ring-offset-2 ${value ? "bg-[#114821]" : "bg-gray-200"
-          }`}
+        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:ring-offset-2 ${
+          value ? "bg-[#114821]" : "bg-gray-200"
+        }`}
       >
         <span
-          className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transform ring-0 transition duration-200 ease-in-out ${value ? "translate-x-4" : "translate-x-0"
-            }`}
+          className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transform ring-0 transition duration-200 ease-in-out ${
+            value ? "translate-x-4" : "translate-x-0"
+          }`}
         />
       </button>
     );

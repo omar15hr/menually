@@ -40,18 +40,16 @@ async function resolveUniqueSlug(baseSlug: string) {
   return `${baseSlug}-${counter}`;
 }
 
-export type CreateMenuState =
-  | ActionError
-  | ActionSuccess
-  | null
-  | undefined;
+export type CreateMenuState = ActionError | ActionSuccess | null | undefined;
 
 export async function createMenu(
   prevState: CreateMenuState,
   formData: FormData,
 ): Promise<CreateMenuState> {
   const intentRaw = formData.get("intent") as string;
-  const intent = VALID_INTENTS.includes(intentRaw as Intent) ? intentRaw as Intent : null;
+  const intent = VALID_INTENTS.includes(intentRaw as Intent)
+    ? (intentRaw as Intent)
+    : null;
 
   const authResult = await requireAuth();
   if (authResult.error) {
@@ -83,7 +81,8 @@ export async function createMenu(
     .eq("user_id", authResult.user!.id)
     .maybeSingle();
 
-  if (existing) return { success: false, message: "Ya tienes un menú creado", errors: {} };
+  if (existing)
+    return { success: false, message: "Ya tienes un menú creado", errors: {} };
 
   const { error } = await supabase
     .from("menus")
@@ -105,7 +104,7 @@ export async function createMenu(
   // Validate revalidate paths
   const pathValidation = await assertValidRevalidatePaths(
     ["/dashboard"],
-    "menu"
+    "menu",
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
@@ -127,17 +126,28 @@ export async function createMenu(
 /**
  * Actualiza un menú existente.
  * Requiere autenticación y propiedad del menú.
- * 
+ *
  * Backward compatible return type that also has error property for legacy code
  */
 export async function updateMenu(
   menuId: string,
-  data: UpdateMenuSchema
-): Promise<(ActionError | ActionSuccessWithData<Database["public"]["Tables"]["menus"]["Row"]>) & { error?: string }> {
+  data: UpdateMenuSchema,
+): Promise<
+  (
+    | ActionError
+    | ActionSuccessWithData<Database["public"]["Tables"]["menus"]["Row"]>
+  ) & { error?: string }
+> {
   // Validate UUID format
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(menuId)) {
-    return { success: false, message: "ID de menú inválido", errors: {}, error: "ID de menú inválido" };
+    return {
+      success: false,
+      message: "ID de menú inválido",
+      errors: {},
+      error: "ID de menú inválido",
+    };
   }
 
   // Verify ownership
@@ -175,7 +185,7 @@ export async function updateMenu(
   // Validate revalidate paths
   const pathValidation = await assertValidRevalidatePaths(
     ["/dashboard"],
-    "menu"
+    "menu",
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
@@ -199,7 +209,7 @@ export type DeleteMenuState = ActionError | ActionSuccess | null | undefined;
  */
 export async function deleteMenu(
   _prevState: DeleteMenuState,
-  _formData: FormData
+  _formData: FormData,
 ): Promise<DeleteMenuState> {
   const authResult = await requireAuth();
   if (authResult.error) {
@@ -235,7 +245,7 @@ export async function deleteMenu(
   // Validate revalidate paths
   const pathValidation = await assertValidRevalidatePaths(
     ["/dashboard", "/settings", "/settings/preferences"],
-    "all"
+    "all",
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);

@@ -27,14 +27,21 @@ interface Props {
   promotions?: Promotion[];
 }
 
-export default function MenuWorkflow({ menu: initialMenu, categories, profiles, promotions = [] }: Props) {
+export default function MenuWorkflow({
+  menu: initialMenu,
+  categories,
+  profiles,
+  promotions = [],
+}: Props) {
   const [menu, setMenu] = useState<Menu>(initialMenu);
   const [editMenu, setEditMenu] = useState<Menu>(initialMenu);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [logoUrl, setLogoUrl] = useState<string>(initialMenu?.logo_url ?? "");
-  const [coverUrl, setCoverUrl] = useState<string>(initialMenu?.bg_image_url ?? "");
+  const [coverUrl, setCoverUrl] = useState<string>(
+    initialMenu?.bg_image_url ?? "",
+  );
 
   function handleLogoUrlSelected(url: string) {
     setLogoUrl(url);
@@ -99,7 +106,13 @@ export default function MenuWorkflow({ menu: initialMenu, categories, profiles, 
           disabled={isPending}
           className="w-fit text-base bg-[#CDF545] hover:bg-[#c0e740] text-[#114821] font-semibold py-2 px-4 rounded-lg h-10 cursor-pointer transition-colors"
         >
-          {isPending ? <span className="flex gap-2 justify-center items-center"><Spinner /> Guardando...</span> : "Guardar cambios"}
+          {isPending ? (
+            <span className="flex gap-2 justify-center items-center">
+              <Spinner /> Guardando...
+            </span>
+          ) : (
+            "Guardar cambios"
+          )}
         </button>
       </header>
       <div className="flex gap-6 bg-[#FBFBFA] items-start">

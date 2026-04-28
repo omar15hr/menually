@@ -2,9 +2,11 @@ import type { Database } from "@/types/database.types";
 
 export type Promotion = Database["public"]["Tables"]["promotions"]["Row"];
 
-export type CreatePromotion = Database["public"]["Tables"]["promotions"]["Insert"];
+export type CreatePromotion =
+  Database["public"]["Tables"]["promotions"]["Insert"];
 
-export type UpdatePromotion = Database["public"]["Tables"]["promotions"]["Update"];
+export type UpdatePromotion =
+  Database["public"]["Tables"]["promotions"]["Update"];
 
 export type PromotionStatus = "active" | "scheduled" | "paused" | "expired";
 

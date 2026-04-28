@@ -11,7 +11,7 @@ interface GenerateQrCodeResult {
 
 export async function generateQrCode(
   menuId: string,
-  menuSlug: string
+  menuSlug: string,
 ): Promise<GenerateQrCodeResult> {
   const supabase = await createClient();
 
@@ -47,8 +47,7 @@ export async function generateQrCode(
   }
 
   // Generate QR code as PNG buffer
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const menuUrl = `${baseUrl}/menu/${menuSlug}`;
 
   const buffer = await QRCode.toBuffer(menuUrl, {

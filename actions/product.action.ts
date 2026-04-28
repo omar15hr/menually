@@ -10,7 +10,6 @@ import {
   assertValidRevalidatePaths,
   type ActionError,
   type ActionSuccess,
-  type ActionSuccessWithData,
 } from "@/lib/security/server-action-guards";
 
 type ProductLabel = Database["public"]["Enums"]["product_label"];
@@ -32,16 +31,18 @@ const VALID_LABELS: ProductLabel[] = [
 /**
  * Return type for createProduct to maintain backward compatibility
  */
-export type CreateProductResult = ActionError | {
-  success: true;
-  message: string;
-  errors: {};
-  product: Database["public"]["Tables"]["products"]["Row"];
-};
+export type CreateProductResult =
+  | ActionError
+  | {
+      success: true;
+      message: string;
+      errors: Record<string, never>;
+      product: Database["public"]["Tables"]["products"]["Row"];
+    };
 
 export async function createProduct(
   _prevState: unknown,
-  formData: FormData
+  formData: FormData,
 ): Promise<CreateProductResult> {
   const authResult = await requireAuth();
   if (authResult.error) {
@@ -151,13 +152,13 @@ export async function createProduct(
   // Validate revalidate paths
   const pathValidation = await assertValidRevalidatePaths(
     ["/dashboard/menu/menu-content", "/dashboard/create-menu"],
-    "products"
+    "products",
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
-revalidatePath("/dashboard/create-menu");
+  revalidatePath("/dashboard/create-menu");
   return {
     success: true,
     message: "Producto creado correctamente",
@@ -176,7 +177,7 @@ export type ProductUpdate = Pick<
  * Verifica que todos los productos pertenezcan al usuario antes de actualizar.
  */
 export async function batchUpdateProducts(
-  updates: Array<{ id: string; data: Partial<ProductUpdate> }>
+  updates: Array<{ id: string; data: Partial<ProductUpdate> }>,
 ): Promise<ActionError | ActionSuccess> {
   if (updates.length === 0) {
     return { success: true, message: "Sin cambios", errors: {} };
@@ -190,14 +191,18 @@ export async function batchUpdateProducts(
   const supabase = await createClient();
 
   // Verify ownership for all products before updating
-  const productIds = updates.map(u => u.id);
+  const productIds = updates.map((u) => u.id);
   const { data: products, error: queryError } = await supabase
     .from("products")
     .select("id, category_id, categories!inner(menu_id, menus!inner(user_id))")
     .in("id", productIds);
 
   if (queryError || !products || products.length !== productIds.length) {
-    return { success: false, message: "Algunos productos no fueron encontrados", errors: {} };
+    return {
+      success: false,
+      message: "Algunos productos no fueron encontrados",
+      errors: {},
+    };
   }
 
   // Verify all products belong to user's menu
@@ -222,14 +227,18 @@ export async function batchUpdateProducts(
       .single();
 
     if (!category || category.menu_id !== userMenu.id) {
-      return { success: false, message: "No tienes permisos sobre algunos productos", errors: {} };
+      return {
+        success: false,
+        message: "No tienes permisos sobre algunos productos",
+        errors: {},
+      };
     }
   }
 
   const results = await Promise.allSettled(
     updates.map(({ id, data }) =>
-      supabase.from("products").update(data).eq("id", id).select().single()
-    )
+      supabase.from("products").update(data).eq("id", id).select().single(),
+    ),
   );
 
   const errorMessages: string[] = [];
@@ -237,12 +246,16 @@ export async function batchUpdateProducts(
   for (const result of results) {
     if (result.status === "rejected") {
       errorMessages.push(
-        result.reason instanceof Error ? result.reason.message : "Error desconocido"
+        result.reason instanceof Error
+          ? result.reason.message
+          : "Error desconocido",
       );
     } else if (result.value.error) {
       errorMessages.push(result.value.error.message);
     } else if (!result.value.data) {
-      errorMessages.push("No se pudo actualizar el producto (sin permisos o no existe)");
+      errorMessages.push(
+        "No se pudo actualizar el producto (sin permisos o no existe)",
+      );
     }
   }
 
@@ -252,8 +265,13 @@ export async function batchUpdateProducts(
 
   // Validate revalidate paths
   const pathValidation = await assertValidRevalidatePaths(
-    ["/dashboard/product-management", "/dashboard/gestion-productos", "/dashboard/menu/menu-content", "/dashboard/menu"],
-    "products"
+    [
+      "/dashboard/product-management",
+      "/dashboard/gestion-productos",
+      "/dashboard/menu/menu-content",
+      "/dashboard/menu",
+    ],
+    "products",
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
@@ -276,7 +294,7 @@ export async function batchUpdateProducts(
  * Verifica ownership antes de eliminar.
  */
 export async function deleteProduct(
-  productId: string
+  productId: string,
 ): Promise<ActionError | ActionSuccess> {
   if (!productId) {
     return {
@@ -287,7 +305,8 @@ export async function deleteProduct(
   }
 
   // Validate UUID format
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(productId)) {
     return {
       success: false,
@@ -316,7 +335,7 @@ export async function deleteProduct(
   // Validate revalidate paths
   const pathValidation = await assertValidRevalidatePaths(
     ["/dashboard/menu/menu-content", "/dashboard/product-management"],
-    "products"
+    "products",
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);

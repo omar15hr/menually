@@ -44,8 +44,7 @@ export type ActionResult<T = unknown> =
  * Retorna el usuario o un error estándar.
  */
 export async function requireAuth(): Promise<
-  { user: User; error: null }
-  | { user: null; error: ActionError }
+  { user: User; error: null } | { user: null; error: ActionError }
 > {
   const supabase = await createClient();
   const {
@@ -71,8 +70,10 @@ export async function requireAuth(): Promise<
  * Valida que el menú pertenezca al usuario autenticado.
  */
 export async function requireMenuOwner(
-  menuId: string
-): Promise<{ menuId: string; error: null } | { menuId: null; error: ActionError }> {
+  menuId: string,
+): Promise<
+  { menuId: string; error: null } | { menuId: null; error: ActionError }
+> {
   const authResult = await requireAuth();
   if (authResult.error) {
     return { menuId: null, error: authResult.error };
@@ -105,8 +106,11 @@ export async function requireMenuOwner(
  * Valida que la categoría pertenezca a un menú del usuario.
  */
 export async function requireCategoryOwner(
-  categoryId: string
-): Promise<{ categoryId: string; menuId: string; error: null } | { categoryId: null; menuId: null; error: ActionError }> {
+  categoryId: string,
+): Promise<
+  | { categoryId: string; menuId: string; error: null }
+  | { categoryId: null; menuId: null; error: ActionError }
+> {
   const authResult = await requireAuth();
   if (authResult.error) {
     return { categoryId: null, menuId: null, error: authResult.error };
@@ -159,11 +163,19 @@ export async function requireCategoryOwner(
  * Valida que el producto pertenezca a una categoría de un menú del usuario.
  */
 export async function requireProductOwner(
-  productId: string
-): Promise<{ productId: string; categoryId: string; menuId: string; error: null } | { productId: null; categoryId: null; menuId: null; error: ActionError }> {
+  productId: string,
+): Promise<
+  | { productId: string; categoryId: string; menuId: string; error: null }
+  | { productId: null; categoryId: null; menuId: null; error: ActionError }
+> {
   const authResult = await requireAuth();
   if (authResult.error) {
-    return { productId: null, categoryId: null, menuId: null, error: authResult.error };
+    return {
+      productId: null,
+      categoryId: null,
+      menuId: null,
+      error: authResult.error,
+    };
   }
 
   const supabase = await createClient();
@@ -209,11 +221,11 @@ export async function requireProductOwner(
     };
   }
 
-  return { 
-    productId: product.id, 
-    categoryId: result.id, 
-    menuId: result.menu_id, 
-    error: null 
+  return {
+    productId: product.id,
+    categoryId: result.id,
+    menuId: result.menu_id,
+    error: null,
   };
 }
 
@@ -221,8 +233,11 @@ export async function requireProductOwner(
  * Valida que la promoción pertenezca al usuario.
  */
 export async function requirePromotionOwner(
-  promotionId: string
-): Promise<{ promotionId: string; menuId: string; error: null } | { promotionId: null; menuId: null; error: ActionError }> {
+  promotionId: string,
+): Promise<
+  | { promotionId: string; menuId: string; error: null }
+  | { promotionId: null; menuId: null; error: ActionError }
+> {
   const authResult = await requireAuth();
   if (authResult.error) {
     return { promotionId: null, menuId: null, error: authResult.error };
@@ -278,8 +293,10 @@ export async function requirePromotionOwner(
  */
 export async function assertPromotionProductsBelongToMenu(
   menuId: string,
-  productIds: string[]
-): Promise<{ valid: true; error: null } | { valid: false; error: ActionError }> {
+  productIds: string[],
+): Promise<
+  { valid: true; error: null } | { valid: false; error: ActionError }
+> {
   if (!productIds || productIds.length === 0) {
     return { valid: true, error: null };
   }
@@ -328,7 +345,7 @@ export async function assertPromotionProductsBelongToMenu(
     };
   }
 
-  const categoryIds = menuCategories?.map(c => c.id) ?? [];
+  const categoryIds = menuCategories?.map((c) => c.id) ?? [];
 
   if (categoryIds.length === 0) {
     // No categories, so no products can belong to this menu
@@ -359,8 +376,8 @@ export async function assertPromotionProductsBelongToMenu(
     };
   }
 
-  const validProductIds = new Set(menuProducts?.map(p => p.id) ?? []);
-  const invalidProducts = productIds.filter(id => !validProductIds.has(id));
+  const validProductIds = new Set(menuProducts?.map((p) => p.id) ?? []);
+  const invalidProducts = productIds.filter((id) => !validProductIds.has(id));
 
   if (invalidProducts.length > 0) {
     return {
@@ -390,12 +407,8 @@ const VALID_REVALIDATE_PATHS: Record<string, string[]> = {
     "/dashboard/menu/menu-appearance",
     "/dashboard/menu/qr",
   ],
-  products: [
-    "/dashboard/product-management",
-  ],
-  promotions: [
-    "/dashboard/promotions",
-  ],
+  products: ["/dashboard/product-management"],
+  promotions: ["/dashboard/promotions"],
   settings: [
     "/settings",
     "/settings/business",
@@ -403,9 +416,7 @@ const VALID_REVALIDATE_PATHS: Record<string, string[]> = {
     "/settings/preferences",
     "/settings/subscription",
   ],
-  public: [
-    "/menu/[slug]",
-  ],
+  public: ["/menu/[slug]"],
 };
 
 /**
@@ -413,18 +424,19 @@ const VALID_REVALIDATE_PATHS: Record<string, string[]> = {
  */
 export async function assertValidRevalidatePaths(
   paths: string[],
-  domain: "menu" | "products" | "promotions" | "settings" | "all" = "all"
+  domain: "menu" | "products" | "promotions" | "settings" | "all" = "all",
 ): Promise<{ valid: boolean; invalidPaths: string[] }> {
-  const validPaths = domain === "all"
-    ? Object.values(VALID_REVALIDATE_PATHS).flat()
-    : VALID_REVALIDATE_PATHS[domain] ?? [];
+  const validPaths =
+    domain === "all"
+      ? Object.values(VALID_REVALIDATE_PATHS).flat()
+      : (VALID_REVALIDATE_PATHS[domain] ?? []);
 
   const invalidPaths: string[] = [];
 
   for (const path of paths) {
     // Also allow paths that start with valid prefixes (e.g., /dashboard/menu/anything)
-    const isValid = validPaths.some(validPath =>
-      path === validPath || path.startsWith(validPath + "/")
+    const isValid = validPaths.some(
+      (validPath) => path === validPath || path.startsWith(validPath + "/"),
     );
 
     if (!isValid) {
@@ -441,6 +453,8 @@ export async function assertValidRevalidatePaths(
 /**
  * Obtiene los paths de revalidación válidos para un dominio.
  */
-export async function getValidRevalidatePaths(domain: "menu" | "products" | "promotions" | "settings"): Promise<string[]> {
+export async function getValidRevalidatePaths(
+  domain: "menu" | "products" | "promotions" | "settings",
+): Promise<string[]> {
   return VALID_REVALIDATE_PATHS[domain] ?? [];
 }

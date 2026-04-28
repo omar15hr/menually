@@ -70,9 +70,7 @@ export const useMenuStore = create<MenuState>((set, get) => ({
 
     if (!category) return null;
 
-    return (
-      category.products.find((p) => p.id === selectedProductId) ?? null
-    );
+    return category.products.find((p) => p.id === selectedProductId) ?? null;
   },
 
   // -------------------------
@@ -83,7 +81,7 @@ export const useMenuStore = create<MenuState>((set, get) => ({
       categories: state.categories.map((cat) =>
         cat.id === categoryId
           ? { ...cat, products: [...cat.products, product] }
-          : cat
+          : cat,
       ),
     })),
 
@@ -92,7 +90,7 @@ export const useMenuStore = create<MenuState>((set, get) => ({
       categories: state.categories.map((cat) => ({
         ...cat,
         products: cat.products.map((p) =>
-          p.id === productId ? { ...p, image_url: imageUrl } : p
+          p.id === productId ? { ...p, image_url: imageUrl } : p,
         ),
       })),
     })),
@@ -102,7 +100,7 @@ export const useMenuStore = create<MenuState>((set, get) => ({
       categories: state.categories.map((cat) => ({
         ...cat,
         products: cat.products.map((p) =>
-          p.id === productId ? { ...p, ...data } : p
+          p.id === productId ? { ...p, ...data } : p,
         ),
       })),
     })),

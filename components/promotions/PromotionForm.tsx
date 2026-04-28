@@ -1,13 +1,21 @@
 "use client";
 
-import React, { useActionState, useState, useTransition, useEffect } from "react";
+import React, {
+  useActionState,
+  useState,
+  useTransition,
+  useEffect,
+} from "react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { Camera, Info, Check, X, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { createPromotion, updatePromotion } from "@/actions/promotion.action";
 import { uploadImageToStorage } from "@/actions/uploadImageToStorage.action";
-import type { Promotion, PromotionActionResult } from "@/types/promotions.types";
+import type {
+  Promotion,
+  PromotionActionResult,
+} from "@/types/promotions.types";
 import type { Database } from "@/types/database.types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -19,7 +27,15 @@ interface Props {
   onSuccess?: (promotion: Promotion) => void;
 }
 
-const DAYS_ES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const DAYS_ES = [
+  "Domingo",
+  "Lunes",
+  "Martes",
+  "Miércoles",
+  "Jueves",
+  "Viernes",
+  "Sábado",
+];
 
 const initialState: PromotionActionResult = {
   success: false,
@@ -27,7 +43,12 @@ const initialState: PromotionActionResult = {
   errors: {},
 };
 
-export function PromotionForm({ promotion, products, onClose, onSuccess }: Props) {
+export function PromotionForm({
+  promotion,
+  products,
+  onClose,
+  onSuccess,
+}: Props) {
   const [_isPending, startTransition] = useTransition();
   const [step, setStep] = useState(promotion ? 3 : 1);
 
@@ -42,22 +63,27 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
     days_of_week: promotion?.days_of_week ?? [],
     is_active: promotion?.is_active ?? true,
     has_date_range: !!(promotion?.start_date || promotion?.end_date),
-    has_day_filter: !!(promotion?.days_of_week && promotion.days_of_week.length > 0),
+    has_day_filter: !!(
+      promotion?.days_of_week && promotion.days_of_week.length > 0
+    ),
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(
-    new Set(promotion?.product_ids ?? [])
+    new Set(promotion?.product_ids ?? []),
   );
 
   const [state, formAction, isPending] = useActionState(
     promotion ? updatePromotion : createPromotion,
-    initialState
+    initialState,
   );
 
   // Handle state updates
-  const updateField = <K extends keyof typeof formData>(key: K, value: typeof formData[K]) => {
+  const updateField = <K extends keyof typeof formData>(
+    key: K,
+    value: (typeof formData)[K],
+  ) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -100,7 +126,10 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
     fd.append("keyword", formData.keyword);
     fd.append("start_date", formData.has_date_range ? formData.start_date : "");
     fd.append("end_date", formData.has_date_range ? formData.end_date : "");
-    fd.append("days_of_week", JSON.stringify(formData.has_day_filter ? formData.days_of_week : []));
+    fd.append(
+      "days_of_week",
+      JSON.stringify(formData.has_day_filter ? formData.days_of_week : []),
+    );
     fd.append("is_active", String(formData.is_active));
 
     if (promotion) {
@@ -109,7 +138,10 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
 
     // Upload image if selected
     if (imageFile) {
-      const uploadResult = await uploadImageToStorage(imageFile, "images/promotions");
+      const uploadResult = await uploadImageToStorage(
+        imageFile,
+        "images/promotions",
+      );
       if (uploadResult.success && uploadResult.url) {
         fd.append("image_url", uploadResult.url);
       }
@@ -141,7 +173,11 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
   // Solo se dispara cuando state.promotion cambia (no cada render)
   const prevPromotionRef = React.useRef(state?.promotion);
   useEffect(() => {
-    if (state?.success && state.promotion && state.promotion !== prevPromotionRef.current) {
+    if (
+      state?.success &&
+      state.promotion &&
+      state.promotion !== prevPromotionRef.current
+    ) {
       prevPromotionRef.current = state.promotion;
       onSuccess?.(state.promotion);
       onClose();
@@ -154,7 +190,9 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
         return (
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Título *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Título *
+              </label>
               <input
                 type="text"
                 value={formData.title}
@@ -165,7 +203,9 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción (opcional)</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Descripción (opcional)
+              </label>
               <textarea
                 rows={3}
                 value={formData.description}
@@ -176,7 +216,9 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Palabra clave *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Palabra clave *
+              </label>
               <input
                 type="text"
                 value={formData.keyword}
@@ -187,13 +229,20 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Productos vinculados *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Productos vinculados *
+              </label>
               <div className="space-y-2 border border-gray-100 rounded-lg p-3">
                 {products.length === 0 ? (
-                  <p className="text-sm text-gray-400">No hay productos disponibles</p>
+                  <p className="text-sm text-gray-400">
+                    No hay productos disponibles
+                  </p>
                 ) : (
                   products.map((product) => (
-                    <label key={product.id} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
+                    <label
+                      key={product.id}
+                      className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg"
+                    >
                       <input
                         type="checkbox"
                         checked={selectedProducts.has(product.id)}
@@ -201,9 +250,13 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
                         className="w-4 h-4 rounded border-gray-300 text-[#114821] focus:ring-[#114821]"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {product.name}
+                        </p>
                         {product.price > 0 && (
-                          <p className="text-xs text-gray-500">${product.price.toLocaleString("es-CL")}</p>
+                          <p className="text-xs text-gray-500">
+                            ${product.price.toLocaleString("es-CL")}
+                          </p>
                         )}
                       </div>
                     </label>
@@ -211,7 +264,9 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
                 )}
               </div>
               {selectedProducts.size === 0 && (
-                <p className="text-xs text-red-500 mt-1">Selecciona al menos un producto</p>
+                <p className="text-xs text-red-500 mt-1">
+                  Selecciona al menos un producto
+                </p>
               )}
             </div>
           </div>
@@ -220,7 +275,9 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
       case 2:
         return (
           <div className="space-y-6">
-            <h3 className="font-bold text-sm text-gray-900">Imagen del banner</h3>
+            <h3 className="font-bold text-sm text-gray-900">
+              Imagen del banner
+            </h3>
             <label className="border-2 border-dashed border-gray-200 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4 hover:bg-gray-50 cursor-pointer transition-colors">
               <input
                 type="file"
@@ -228,7 +285,7 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
                 onChange={handleImageChange}
                 className="hidden"
               />
-              {(imagePreview || formData.image_url) ? (
+              {imagePreview || formData.image_url ? (
                 <div className="relative w-full aspect-video rounded-lg overflow-hidden">
                   <Image
                     src={imagePreview || formData.image_url || ""}
@@ -238,7 +295,11 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
                   />
                   <button
                     type="button"
-                    onClick={(e) => { e.preventDefault(); setImagePreview(null); setImageFile(null); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setImagePreview(null);
+                      setImageFile(null);
+                    }}
                     className="absolute top-2 right-2 bg-white rounded-full p-1 shadow"
                   >
                     <X size={16} />
@@ -250,9 +311,15 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
                     <Camera size={24} className="text-gray-500" />
                   </div>
                   <div className="text-center sm:text-left">
-                    <p className="font-bold text-sm text-gray-900">Sube una imagen</p>
-                    <p className="text-xs text-gray-500 mt-1">Recomendado 328 x 200px PNG.</p>
-                    <span className="text-[#34A853] text-xs font-bold mt-2 inline-block">Seleccionar archivo</span>
+                    <p className="font-bold text-sm text-gray-900">
+                      Sube una imagen
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Recomendado 328 x 200px PNG.
+                    </p>
+                    <span className="text-[#34A853] text-xs font-bold mt-2 inline-block">
+                      Seleccionar archivo
+                    </span>
                   </div>
                 </>
               )}
@@ -260,7 +327,8 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
             <div className="bg-[#F8F9FA] rounded-xl p-4 flex gap-3 items-start">
               <Info size={20} className="text-gray-800 shrink-0 mt-0.5" />
               <p className="text-xs text-gray-600 leading-relaxed">
-                El 70% del banner es imagen. Una foto con buena luz y colores cálidos puede aumentar el interés y las ventas de tus platos.
+                El 70% del banner es imagen. Una foto con buena luz y colores
+                cálidos puede aumentar el interés y las ventas de tus platos.
               </p>
             </div>
           </div>
@@ -271,19 +339,27 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-sm text-gray-900">Definir periodo de tiempo</h3>
-                <p className="text-xs text-gray-500">Si no defines fecha, se muestran de forma permanente.</p>
+                <h3 className="font-bold text-sm text-gray-900">
+                  Definir periodo de tiempo
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Si no defines fecha, se muestran de forma permanente.
+                </p>
               </div>
               <Switch
                 checked={formData.has_date_range}
-                onCheckedChange={(checked) => updateField("has_date_range", checked)}
+                onCheckedChange={(checked) =>
+                  updateField("has_date_range", checked)
+                }
               />
             </div>
 
             {formData.has_date_range && (
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Fecha inicio</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Fecha inicio
+                  </label>
                   <input
                     type="date"
                     value={formData.start_date}
@@ -292,7 +368,9 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Fecha fin</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Fecha fin
+                  </label>
                   <input
                     type="date"
                     value={formData.end_date}
@@ -305,12 +383,18 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
 
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-sm text-gray-900">Día de la semana</h3>
-                <p className="text-xs text-gray-500">Elige los días en que estará disponible la promoción.</p>
+                <h3 className="font-bold text-sm text-gray-900">
+                  Día de la semana
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Elige los días en que estará disponible la promoción.
+                </p>
               </div>
               <Switch
                 checked={formData.has_day_filter}
-                onCheckedChange={(checked) => updateField("has_day_filter", checked)}
+                onCheckedChange={(checked) =>
+                  updateField("has_day_filter", checked)
+                }
               />
             </div>
 
@@ -323,10 +407,11 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
                       key={day}
                       type="button"
                       onClick={() => toggleDay(idx)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 border ${isActive
-                        ? "bg-[#114821] text-white border-[#114821]"
-                        : "bg-gray-100 text-gray-600 border-transparent"
-                        }`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 border ${
+                        isActive
+                          ? "bg-[#114821] text-white border-[#114821]"
+                          : "bg-gray-100 text-gray-600 border-transparent"
+                      }`}
                     >
                       {day}
                       {isActive && <X size={12} />}
@@ -338,8 +423,12 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
 
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-sm text-gray-900">Activar promoción</h3>
-                <p className="text-xs text-gray-500">Mostrar en el menú público inmediatamente.</p>
+                <h3 className="font-bold text-sm text-gray-900">
+                  Activar promoción
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Mostrar en el menú público inmediatamente.
+                </p>
               </div>
               <Switch
                 checked={formData.is_active}
@@ -352,25 +441,45 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
               <h4 className="font-bold text-sm text-gray-900">Resumen</h4>
               <div className="space-y-3">
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-semibold">Título</p>
-                  <p className="text-xs font-medium text-gray-900">{formData.title || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-semibold">Descripción</p>
-                  <p className="text-xs font-medium text-gray-900">{formData.description || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-semibold">Palabra clave</p>
-                  <p className="text-xs font-medium text-gray-900">{formData.keyword || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-semibold">Productos</p>
-                  <p className="text-xs font-medium text-gray-900">{selectedProducts.size} producto(s)</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-semibold">Vigencia</p>
+                  <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                    Título
+                  </p>
                   <p className="text-xs font-medium text-gray-900">
-                    {formData.has_date_range && formData.start_date && formData.end_date
+                    {formData.title || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                    Descripción
+                  </p>
+                  <p className="text-xs font-medium text-gray-900">
+                    {formData.description || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                    Palabra clave
+                  </p>
+                  <p className="text-xs font-medium text-gray-900">
+                    {formData.keyword || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                    Productos
+                  </p>
+                  <p className="text-xs font-medium text-gray-900">
+                    {selectedProducts.size} producto(s)
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                    Vigencia
+                  </p>
+                  <p className="text-xs font-medium text-gray-900">
+                    {formData.has_date_range &&
+                    formData.start_date &&
+                    formData.end_date
                       ? `Del ${formData.start_date} al ${formData.end_date}`
                       : "Sin fecha de término"}
                   </p>
@@ -393,12 +502,13 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
           <div key={item} className="flex items-center">
             <div className="flex flex-col items-center gap-2">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${step > item
-                  ? "bg-[#CDF545] text-[#114821]"
-                  : step === item
-                    ? "bg-[#114821] text-white"
-                    : "bg-gray-100 text-gray-500"
-                  }`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                  step > item
+                    ? "bg-[#CDF545] text-[#114821]"
+                    : step === item
+                      ? "bg-[#114821] text-white"
+                      : "bg-gray-100 text-gray-500"
+                }`}
               >
                 {step > item ? <Check size={16} /> : item}
               </div>
@@ -407,26 +517,31 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
               </span>
             </div>
             {item < 3 && (
-              <div className={`w-12 h-0.5 mb-6 mx-2 ${step > item ? "bg-[#CDF545]" : "bg-gray-100"}`} />
+              <div
+                className={`w-12 h-0.5 mb-6 mx-2 ${step > item ? "bg-[#CDF545]" : "bg-gray-100"}`}
+              />
             )}
           </div>
         ))}
       </div>
 
       {/* Error banner */}
-      {state?.success === false && Object.keys(state.errors ?? {}).length > 0 && (
-        <div className="mx-6 mb-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-xs font-semibold text-red-700 mb-1">Corrige los siguientes errores:</p>
-          <ul className="space-y-0.5">
-            {Object.entries(state.errors).map(([field, messages]) => (
-              <li key={field} className="text-xs text-red-600">
-                <span className="font-medium capitalize">{field}: </span>
-                {Array.isArray(messages) ? messages.join(", ") : messages}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {state?.success === false &&
+        Object.keys(state.errors ?? {}).length > 0 && (
+          <div className="mx-6 mb-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-xs font-semibold text-red-700 mb-1">
+              Corrige los siguientes errores:
+            </p>
+            <ul className="space-y-0.5">
+              {Object.entries(state.errors).map(([field, messages]) => (
+                <li key={field} className="text-xs text-red-600">
+                  <span className="font-medium capitalize">{field}: </span>
+                  {Array.isArray(messages) ? messages.join(", ") : messages}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
       {/* Form Content */}
       <div className="flex-1 overflow-y-auto px-6 pb-6">
@@ -455,7 +570,11 @@ export function PromotionForm({ promotion, products, onClose, onSuccess }: Props
               {promotion ? "Guardando..." : "Creando..."}
             </span>
           ) : step === 3 ? (
-            promotion ? "Guardar cambios" : "Crear promoción"
+            promotion ? (
+              "Guardar cambios"
+            ) : (
+              "Crear promoción"
+            )
           ) : (
             "Continuar"
           )}

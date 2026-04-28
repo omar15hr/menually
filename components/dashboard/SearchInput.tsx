@@ -5,7 +5,9 @@ interface Props {
   placeholder?: string;
 }
 
-export default function SearchInput({ placeholder = "Buscar platos, analíticas..." }: Props) {
+export default function SearchInput({
+  placeholder = "Buscar platos, analíticas...",
+}: Props) {
   return (
     <div className="relative w-full">
       <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#64748B]" />

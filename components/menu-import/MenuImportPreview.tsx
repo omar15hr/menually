@@ -2,7 +2,12 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { PlusIcon, Trash2Icon, AlertTriangleIcon, ChevronDownIcon } from "lucide-react";
+import {
+  PlusIcon,
+  Trash2Icon,
+  AlertTriangleIcon,
+  ChevronDownIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -22,7 +27,10 @@ import {
 } from "@/components/ui/collapsible";
 import { importMenu } from "@/actions/ai-import-menu.action";
 import { useImportStore } from "@/store/useImportStore";
-import type { ImportedMenu, ImportedProduct } from "@/lib/types/ai-import.types";
+import type {
+  ImportedMenu,
+  ImportedProduct,
+} from "@/lib/types/ai-import.types";
 
 export function MenuImportPreview() {
   const router = useRouter();
@@ -54,35 +62,39 @@ export function MenuImportPreview() {
 
   const isCategoryOpen = useCallback(
     (index: number) => openCategories.has(index),
-    [openCategories]
+    [openCategories],
   );
 
   const updateCategory = useCallback((index: number, name: string) => {
     setData((prev) => ({
       ...prev,
       categories: prev.categories.map((cat, i) =>
-        i === index ? { ...cat, name } : cat
+        i === index ? { ...cat, name } : cat,
       ),
     }));
   }, []);
 
   const updateProduct = useCallback(
-    (catIndex: number, prodIndex: number, updates: Partial<ImportedProduct>) => {
+    (
+      catIndex: number,
+      prodIndex: number,
+      updates: Partial<ImportedProduct>,
+    ) => {
       setData((prev) => ({
         ...prev,
         categories: prev.categories.map((cat, ci) =>
           ci === catIndex
             ? {
-              ...cat,
-              products: cat.products.map((prod, pi) =>
-                pi === prodIndex ? { ...prod, ...updates } : prod
-              ),
-            }
-            : cat
+                ...cat,
+                products: cat.products.map((prod, pi) =>
+                  pi === prodIndex ? { ...prod, ...updates } : prod,
+                ),
+              }
+            : cat,
         ),
       }));
     },
-    []
+    [],
   );
 
   const addCategory = useCallback(() => {
@@ -107,8 +119,11 @@ export function MenuImportPreview() {
       ...prev,
       categories: prev.categories.map((cat, ci) =>
         ci === catIndex
-          ? { ...cat, products: cat.products.filter((_, pi) => pi !== prodIndex) }
-          : cat
+          ? {
+              ...cat,
+              products: cat.products.filter((_, pi) => pi !== prodIndex),
+            }
+          : cat,
       ),
     }));
   }, []);
@@ -135,14 +150,19 @@ export function MenuImportPreview() {
         setImportResult(result.result);
         setStep("success");
 
-        const { categoriesAdded, categoriesSkipped, productsAdded, productsSkipped } =
-          result.result;
+        const {
+          categoriesAdded,
+          categoriesSkipped,
+          productsAdded,
+          productsSkipped,
+        } = result.result;
 
         toast.success("Menú importado correctamente", {
-          description: `${categoriesAdded} categorías y ${productsAdded} productos agregados${categoriesSkipped > 0 || productsSkipped > 0
-            ? ` (${categoriesSkipped + productsSkipped} saltados)`
-            : ""
-            }`,
+          description: `${categoriesAdded} categorías y ${productsAdded} productos agregados${
+            categoriesSkipped > 0 || productsSkipped > 0
+              ? ` (${categoriesSkipped + productsSkipped} saltados)`
+              : ""
+          }`,
         });
 
         // Redirect to menu content after a short delay
@@ -164,9 +184,14 @@ export function MenuImportPreview() {
 
   const allProducts = data.categories.flatMap((cat) => cat.products);
   const totalProducts = allProducts.length;
-  const totalWithPrice = allProducts.filter((p) => p.price !== null && p.price !== undefined).length;
+  const totalWithPrice = allProducts.filter(
+    (p) => p.price !== null && p.price !== undefined,
+  ).length;
   const totalWithDescription = allProducts.filter(
-    (p) => p.description !== null && p.description !== undefined && p.description.trim() !== ""
+    (p) =>
+      p.description !== null &&
+      p.description !== undefined &&
+      p.description.trim() !== "",
   ).length;
 
   return (
@@ -188,19 +213,27 @@ export function MenuImportPreview() {
       {/* Summary Cards */}
       <div className="flex w-full items-center py-6 bg-[#FBFBFA] rounded-2xl divide-x divide-[#E2E8F0]">
         <div className="px-4 text-center w-full">
-          <h2 className="text-base font-bold text-[#1C1C1C]">{data.categories.length}</h2>
+          <h2 className="text-base font-bold text-[#1C1C1C]">
+            {data.categories.length}
+          </h2>
           <span className="text-sm text-[#58606E]">Categorías</span>
         </div>
         <div className="px-4 text-center w-full">
-          <h2 className="text-base font-bold text-[#1C1C1C]">{totalProducts}</h2>
+          <h2 className="text-base font-bold text-[#1C1C1C]">
+            {totalProducts}
+          </h2>
           <span className="text-sm text-[#58606E]">Productos</span>
         </div>
         <div className="px-4 text-center w-full">
-          <h2 className="text-base font-bold text-[#1C1C1C]">{totalWithPrice}</h2>
+          <h2 className="text-base font-bold text-[#1C1C1C]">
+            {totalWithPrice}
+          </h2>
           <span className="text-sm text-[#58606E]">Precios</span>
         </div>
         <div className="px-4 text-center w-full">
-          <h2 className="text-base font-bold text-[#1C1C1C]">{totalWithDescription}</h2>
+          <h2 className="text-base font-bold text-[#1C1C1C]">
+            {totalWithDescription}
+          </h2>
           <span className="text-sm text-[#58606E]">Descripciones</span>
         </div>
       </div>
@@ -216,7 +249,6 @@ export function MenuImportPreview() {
           >
             <CollapsibleTrigger className="w-full cursor-pointer">
               <div className="flex items-center gap-3 px-6 py-4 hover:bg-[#FBFBFA] transition-colors w-full">
-
                 <Input
                   value={category.name}
                   onChange={(e) => updateCategory(catIndex, e.target.value)}
@@ -227,8 +259,9 @@ export function MenuImportPreview() {
                 <div className="ml-auto flex items-center gap-2">
                   <span className="bg-[#F1F5F9] p-1 rounded-full text-[#1C1C1C]">
                     <ChevronDownIcon
-                      className={`size-5 text-[#58606E] transition-transform duration-200 ${isCategoryOpen(catIndex) ? "rotate-0" : "-rotate-90"
-                        }`}
+                      className={`size-5 text-[#58606E] transition-transform duration-200 ${
+                        isCategoryOpen(catIndex) ? "rotate-0" : "-rotate-90"
+                      }`}
                     />
                   </span>
                   <Button
@@ -254,11 +287,21 @@ export function MenuImportPreview() {
                     <Table className="border-0">
                       <TableHeader>
                         <TableRow className="bg-[#F8FAFC]">
-                          <TableHead className="font-semibold w-[25%] text-center pl-6">Producto</TableHead>
-                          <TableHead className="font-semibold w-[15%] text-center">Estado</TableHead>
-                          <TableHead className="font-semibold w-[35%] text-center">Descripción</TableHead>
-                          <TableHead className="font-semibold w-[15%] text-center">Precio</TableHead>
-                          <TableHead className="font-semibold w-[10%] text-center pr-6">Acciones</TableHead>
+                          <TableHead className="font-semibold w-[25%] text-center pl-6">
+                            Producto
+                          </TableHead>
+                          <TableHead className="font-semibold w-[15%] text-center">
+                            Estado
+                          </TableHead>
+                          <TableHead className="font-semibold w-[35%] text-center">
+                            Descripción
+                          </TableHead>
+                          <TableHead className="font-semibold w-[15%] text-center">
+                            Precio
+                          </TableHead>
+                          <TableHead className="font-semibold w-[10%] text-center pr-6">
+                            Acciones
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -268,7 +311,9 @@ export function MenuImportPreview() {
                               <Input
                                 value={product.name}
                                 onChange={(e) =>
-                                  updateProduct(catIndex, prodIndex, { name: e.target.value })
+                                  updateProduct(catIndex, prodIndex, {
+                                    name: e.target.value,
+                                  })
                                 }
                                 placeholder="Nombre del producto"
                                 className="font-medium w-full"
@@ -276,14 +321,38 @@ export function MenuImportPreview() {
                             </TableCell>
                             <TableCell className="py-3 text-center">
                               {(() => {
-                                const isNameMissing = !product.name || product.name.trim() === "";
-                                const isDescMissing = !product.description || product.description.trim() === "";
-                                const isPriceMissing = product.price === null || product.price === undefined;
+                                const isNameMissing =
+                                  !product.name || product.name.trim() === "";
+                                const isDescMissing =
+                                  !product.description ||
+                                  product.description.trim() === "";
+                                const isPriceMissing =
+                                  product.price === null ||
+                                  product.price === undefined;
 
-                                if (isNameMissing) return <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#F5DE454D] text-[#866700] border border-[#F5DE454D]">Falta nombre</span>;
-                                if (isDescMissing) return <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#F5DE454D] text-[#866700] border border-[#F5DE454D]">Falta descripción</span>;
-                                if (isPriceMissing) return <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#F5DE454D] text-[#866700] border border-[#F5DE454D]">Falta precio</span>;
-                                return <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#CDF5454D] text-[#114821] border border-[#CDF5454D]">Completo</span>;
+                                if (isNameMissing)
+                                  return (
+                                    <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#F5DE454D] text-[#866700] border border-[#F5DE454D]">
+                                      Falta nombre
+                                    </span>
+                                  );
+                                if (isDescMissing)
+                                  return (
+                                    <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#F5DE454D] text-[#866700] border border-[#F5DE454D]">
+                                      Falta descripción
+                                    </span>
+                                  );
+                                if (isPriceMissing)
+                                  return (
+                                    <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#F5DE454D] text-[#866700] border border-[#F5DE454D]">
+                                      Falta precio
+                                    </span>
+                                  );
+                                return (
+                                  <span className="inline-flex items-center justify-center px-2.5 py-0.5 whitespace-nowrap rounded-full text-xs font-medium bg-[#CDF5454D] text-[#114821] border border-[#CDF5454D]">
+                                    Completo
+                                  </span>
+                                );
                               })()}
                             </TableCell>
                             <TableCell className="py-3 px-2 text-center">
@@ -308,7 +377,9 @@ export function MenuImportPreview() {
                                   value={product.price ?? ""}
                                   onChange={(e) =>
                                     updateProduct(catIndex, prodIndex, {
-                                      price: e.target.value ? Number(e.target.value) : null,
+                                      price: e.target.value
+                                        ? Number(e.target.value)
+                                        : null,
                                     })
                                   }
                                   placeholder="0"
@@ -322,7 +393,9 @@ export function MenuImportPreview() {
                               <Button
                                 variant="default"
                                 size="icon"
-                                onClick={() => removeProduct(catIndex, prodIndex)}
+                                onClick={() =>
+                                  removeProduct(catIndex, prodIndex)
+                                }
                                 className="text-[#58606E] hover:text-red-500 h-8 w-8 bg-transparent cursor-pointer"
                               >
                                 <Trash2Icon className="size-4" />
@@ -358,7 +431,11 @@ export function MenuImportPreview() {
 
       {/* Action Buttons */}
       <div className="flex justify-center gap-3">
-        <Button variant="outline" onClick={handleCancel} className="text-[#114821] px-4 py-2 rounded-lg font-semibold text-base h-10 border-none cursor-pointer">
+        <Button
+          variant="outline"
+          onClick={handleCancel}
+          className="text-[#114821] px-4 py-2 rounded-lg font-semibold text-base h-10 border-none cursor-pointer"
+        >
           Cancelar
         </Button>
         <Button

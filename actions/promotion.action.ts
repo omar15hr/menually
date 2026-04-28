@@ -3,8 +3,14 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
-import { createPromotionSchema, updatePromotionSchema } from "@/lib/validations/promotion.schemas";
-import type { Promotion, PromotionActionResult } from "@/types/promotions.types";
+import {
+  createPromotionSchema,
+  updatePromotionSchema,
+} from "@/lib/validations/promotion.schemas";
+import type {
+  Promotion,
+  PromotionActionResult,
+} from "@/types/promotions.types";
 import {
   requireAuth,
   requireMenuOwner,
@@ -20,7 +26,7 @@ import {
 
 export async function createPromotion(
   _prevState: unknown,
-  formData: FormData
+  formData: FormData,
 ): Promise<PromotionActionResult> {
   const title = formData.get("title")?.toString() ?? "";
   const description = formData.get("description")?.toString() || null;
@@ -84,7 +90,7 @@ export async function createPromotion(
   if (parsed.data.product_ids && parsed.data.product_ids.length > 0) {
     const productsValidation = await assertPromotionProductsBelongToMenu(
       menu.id,
-      parsed.data.product_ids
+      parsed.data.product_ids,
     );
     if (!productsValidation.valid) {
       return productsValidation.error;
@@ -137,7 +143,7 @@ export async function createPromotion(
   // Validate revalidate paths
   const pathValidation = await assertValidRevalidatePaths(
     ["/dashboard/promotions", "/dashboard/menu"],
-    "promotions"
+    "promotions",
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
@@ -158,7 +164,7 @@ export async function createPromotion(
 
 export async function updatePromotion(
   _prevState: unknown,
-  formData: FormData
+  formData: FormData,
 ): Promise<PromotionActionResult> {
   const id = formData.get("id")?.toString() ?? "";
   const title = formData.get("title")?.toString() ?? "";
@@ -212,7 +218,7 @@ export async function updatePromotion(
   if (parsed.data.product_ids && parsed.data.product_ids.length > 0) {
     const productsValidation = await assertPromotionProductsBelongToMenu(
       ownershipResult.menuId,
-      parsed.data.product_ids
+      parsed.data.product_ids,
     );
     if (!productsValidation.valid) {
       return productsValidation.error;
@@ -246,7 +252,7 @@ export async function updatePromotion(
   // Validate revalidate paths
   const pathValidation = await assertValidRevalidatePaths(
     ["/dashboard/promotions", "/dashboard/menu"],
-    "promotions"
+    "promotions",
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
@@ -266,14 +272,15 @@ export async function updatePromotion(
 // ─── Delete ──────────────────────────────────────────────────────────────────
 
 export async function deletePromotion(
-  id: string
+  id: string,
 ): Promise<ActionError | ActionSuccess> {
   if (!id) {
     return { success: false, message: "ID de promoción requerido", errors: {} };
   }
 
   // Validate UUID format
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(id)) {
     return { success: false, message: "ID de promoción inválido", errors: {} };
   }
@@ -294,7 +301,7 @@ export async function deletePromotion(
   // Validate revalidate paths
   const pathValidation = await assertValidRevalidatePaths(
     ["/dashboard/promotions", "/dashboard/menu"],
-    "promotions"
+    "promotions",
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
@@ -314,14 +321,17 @@ export async function deletePromotion(
  */
 export async function togglePromotionActive(
   id: string,
-  is_active: boolean
-): Promise<ActionError | (ActionSuccessWithData<Promotion> & { promotion?: Promotion })> {
+  is_active: boolean,
+): Promise<
+  ActionError | (ActionSuccessWithData<Promotion> & { promotion?: Promotion })
+> {
   if (!id) {
     return { success: false, message: "ID de promoción requerido", errors: {} };
   }
 
   // Validate UUID format
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(id)) {
     return { success: false, message: "ID de promoción inválido", errors: {} };
   }
@@ -348,7 +358,7 @@ export async function togglePromotionActive(
   // Validate revalidate paths
   const pathValidation = await assertValidRevalidatePaths(
     ["/dashboard/promotions", "/dashboard/menu"],
-    "promotions"
+    "promotions",
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
@@ -369,7 +379,7 @@ export async function togglePromotionActive(
 // ─── Get Promotions By Menu ────────────────────────────────────────────────────
 
 export async function getPromotionsByMenu(
-  menuId: string
+  menuId: string,
 ): Promise<{ success: boolean; promotions: Promotion[]; message?: string }> {
   if (!menuId) {
     return { success: false, promotions: [], message: "ID de menú requerido" };
@@ -378,7 +388,11 @@ export async function getPromotionsByMenu(
   // Verify menu ownership
   const ownershipResult = await requireMenuOwner(menuId);
   if (ownershipResult.error) {
-    return { success: false, promotions: [], message: ownershipResult.error.message };
+    return {
+      success: false,
+      promotions: [],
+      message: ownershipResult.error.message,
+    };
   }
 
   const supabase = await createClient();
@@ -399,7 +413,7 @@ export async function getPromotionsByMenu(
 // ─── Get Active Promotions ─────────────────────────────────────────────────────
 
 export async function getActivePromotions(
-  menuId: string
+  menuId: string,
 ): Promise<{ success: boolean; promotions: Promotion[]; message?: string }> {
   if (!menuId) {
     return { success: false, promotions: [], message: "ID de menú requerido" };
@@ -418,7 +432,11 @@ export async function getActivePromotions(
     .maybeSingle();
 
   if (!menu) {
-    return { success: false, promotions: [], message: "Menú no encontrado o inactivo" };
+    return {
+      success: false,
+      promotions: [],
+      message: "Menú no encontrado o inactivo",
+    };
   }
 
   const { data: promotions, error } = await supabase
@@ -426,12 +444,8 @@ export async function getActivePromotions(
     .select("*")
     .eq("menu_id", menuId)
     .eq("is_active", true)
-    .or(
-      `start_date.is.null,start_date.lte.${now}`
-    )
-    .or(
-      `end_date.is.null,end_date.gte.${now}`
-    )
+    .or(`start_date.is.null,start_date.lte.${now}`)
+    .or(`end_date.is.null,end_date.gte.${now}`)
     .order("position", { ascending: true })
     .limit(10);
 
@@ -444,10 +458,18 @@ export async function getActivePromotions(
 
 // ─── Get All Promotions for User ───────────────────────────────────────────────
 
-export async function getUserPromotions(): Promise<{ success: boolean; promotions: Promotion[]; message?: string }> {
+export async function getUserPromotions(): Promise<{
+  success: boolean;
+  promotions: Promotion[];
+  message?: string;
+}> {
   const authResult = await requireAuth();
   if (authResult.error) {
-    return { success: false, promotions: [], message: authResult.error.message };
+    return {
+      success: false,
+      promotions: [],
+      message: authResult.error.message,
+    };
   }
 
   const supabase = await createClient();

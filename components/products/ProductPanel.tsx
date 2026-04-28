@@ -5,8 +5,12 @@ import ProductForm from "./ProductForm";
 import { useMenuStore } from "@/store/useMenuStore";
 
 export default function ProductPanel() {
-  const { getSelectedCategory, getSelectedProduct, selectedProductId, selectProduct } =
-    useMenuStore();
+  const {
+    getSelectedCategory,
+    getSelectedProduct,
+    selectedProductId,
+    selectProduct,
+  } = useMenuStore();
 
   const category = getSelectedCategory();
   const selectedProduct = getSelectedProduct();
@@ -39,13 +43,12 @@ export default function ProductPanel() {
               <button
                 key={product.id}
                 type="button"
-                onClick={() =>
-                  selectProduct(isSelected ? null : product.id)
-                }
-                className={`w-full text-left p-4 rounded-lg border transition-all ${isSelected
-                  ? "border-[#114821] bg-[#CDF5454D]"
-                  : "border-[#E4E4E6] bg-white hover:border-[#114821]/40 hover:bg-[#FBFBFA]"
-                  }`}
+                onClick={() => selectProduct(isSelected ? null : product.id)}
+                className={`w-full text-left p-4 rounded-lg border transition-all ${
+                  isSelected
+                    ? "border-[#114821] bg-[#CDF5454D]"
+                    : "border-[#E4E4E6] bg-white hover:border-[#114821]/40 hover:bg-[#FBFBFA]"
+                }`}
               >
                 <p className="text-sm font-semibold text-[#1C1C1C]">
                   {product.name}

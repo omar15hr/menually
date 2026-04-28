@@ -32,4 +32,10 @@ export interface ImportResult {
 /**
  * Step flow for the import wizard
  */
-export type ImportStep = "upload" | "processing" | "preview" | "importing" | "success" | "error";
+export type ImportStep =
+  | "upload"
+  | "processing"
+  | "preview"
+  | "importing"
+  | "success"
+  | "error";

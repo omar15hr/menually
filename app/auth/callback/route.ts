@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const cookieStore = await cookies();
-    
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -23,11 +23,13 @@ export async function GET(request: NextRequest) {
           getAll() {
             return cookieStore.getAll();
           },
-          setAll(cookiesToSet: Array<{
-            name: string;
-            value: string;
-            options?: CookieOptions;
-          }>) {
+          setAll(
+            cookiesToSet: Array<{
+              name: string;
+              value: string;
+              options?: CookieOptions;
+            }>,
+          ) {
             try {
               cookiesToSet.forEach(({ name, value, options }) => {
                 cookieStore.set(name, value, options);
@@ -47,7 +49,7 @@ export async function GET(request: NextRequest) {
       console.error("Supabase exchange error:", error.message);
       return NextResponse.redirect(`${origin}/signin?error=exchange_failed`);
     }
-    
+
     // Redirigir al dashboard - usuario queda logueado automáticamente
     return NextResponse.redirect(`${origin}${next}`);
   } catch (error) {

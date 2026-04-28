@@ -1,41 +1,21 @@
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/queries/auth.queries";
+import { getMenuByUserId } from "@/lib/queries/menu.queries";
 import { getOrCreateBusiness } from "@/actions/business.action";
+import { getProfileByUserId } from "@/lib/queries/profile.queries";
 import { BusinessSettingsForm } from "@/components/settings/BusinessSettingsForm";
 
 export default async function BusinessConfigurationPage() {
-  const supabase = await createClient();
+  const user = await getAuthUser();
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const [profile, menu, business] = await Promise.all([
+    getProfileByUserId(user.id),
+    getMenuByUserId(user.id),
+    getOrCreateBusiness(user.id),
+  ]);
 
-  if (authError || !user) {
-    redirect("/auth/signin");
-  }
-
-  // Get profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, business_name")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) {
-    redirect("/auth/signin");
-  }
-
-  // Get or create business
-  const business = await getOrCreateBusiness(user.id);
-
-  // Get menu for logo
-  const { data: menu } = await supabase
-    .from("menus")
-    .select("logo_url")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  if (!profile) redirect("/auth/signin");
 
   return (
     <div className="grid md:grid-cols-[240px,1fr] gap-10 py-6 md:py-10 max-w-7xl mx-auto">

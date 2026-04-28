@@ -5,13 +5,18 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { Empty, EmptyContent, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { processMenuAI } from "@/actions/ai-process-menu.action";
 import { useImportStore } from "@/store/useImportStore";
 import DownloadCloudIcon from "../icons/DownloadCloudIcon";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { MenuImportLoading } from "./menu-import-loading";
+import { MenuImportLoading } from "./MenuImportLoading";
 
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -72,7 +77,10 @@ export function MenuImportDropzone() {
           setImportedData(result.data);
 
           // Set confidence warning if low
-          if (result.data.confidence !== undefined && result.data.confidence < 0.5) {
+          if (
+            result.data.confidence !== undefined &&
+            result.data.confidence < 0.5
+          ) {
             setConfidenceWarning(true);
           } else {
             setConfidenceWarning(false);
@@ -81,7 +89,8 @@ export function MenuImportDropzone() {
           setStep("preview");
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Error desconocido";
+        const message =
+          err instanceof Error ? err.message : "Error desconocido";
         setError(message);
         setStep("error");
         toast.error("Error al procesar el archivo");
@@ -90,7 +99,7 @@ export function MenuImportDropzone() {
         setLoadingMessage("");
       }
     },
-    [setFile, setImportedData, setConfidenceWarning, setStep, setError]
+    [setFile, setImportedData, setConfidenceWarning, setStep, setError],
   );
 
   const handleDrop = useCallback(
@@ -103,7 +112,7 @@ export function MenuImportDropzone() {
         handleFile(file);
       }
     },
-    [handleFile]
+    [handleFile],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -123,7 +132,7 @@ export function MenuImportDropzone() {
         handleFile(file);
       }
     },
-    [handleFile]
+    [handleFile],
   );
 
   return (
@@ -134,8 +143,13 @@ export function MenuImportDropzone() {
       onDragLeave={handleDragLeave}
     >
       <Empty>
-        <div className={`border-2 bg-[#FBFBFA] w-full flex flex-col justify-center items-center h-53 rounded-xl gap-6 transition-colors ${isDragOver ? "border-[#CDF545] bg-[#CDF545]/5" : "border-dashed border-[#E4E4E6] p-8"
-          }`}>
+        <div
+          className={`border-2 bg-[#FBFBFA] w-full flex flex-col justify-center items-center h-53 rounded-xl gap-6 transition-colors ${
+            isDragOver
+              ? "border-[#CDF545] bg-[#CDF545]/5"
+              : "border-dashed border-[#E4E4E6] p-8"
+          }`}
+        >
           <div className="bg-[#CDF5454D] p-5 rounded-full my-2">
             <DownloadCloudIcon />
           </div>
@@ -148,13 +162,18 @@ export function MenuImportDropzone() {
                   : "Arrastra tu archivo aquí o haz clic en continuar para subirlo"}
             </EmptyTitle>
             <EmptyDescription>
-              {isLoading ? loadingMessage : `PDF, PNG, JPG o WEBP hasta ${MAX_SIZE_MB}MB`}
+              {isLoading
+                ? loadingMessage
+                : `PDF, PNG, JPG o WEBP hasta ${MAX_SIZE_MB}MB`}
             </EmptyDescription>
           </div>
         </div>
         <EmptyContent className="flex flex-row gap-4 justify-center items-center">
           <Link href="/dashboard/menu">
-            <Button size="lg" className="bg-transparent text-secondary font-bold cursor-pointer text-base">
+            <Button
+              size="lg"
+              className="bg-transparent text-secondary font-bold cursor-pointer text-base"
+            >
               Volver
             </Button>
           </Link>
@@ -162,7 +181,7 @@ export function MenuImportDropzone() {
             <Button
               className={cn(
                 "bg-[#CDF545] text-[#114821] font-semibold text-base py-2 px-4 rounded-lg h-10 min-w-32",
-                isLoading && "bg-gray-400 cursor-not-allowed"
+                isLoading && "bg-gray-400 cursor-not-allowed",
               )}
               size="lg"
               disabled={isLoading}

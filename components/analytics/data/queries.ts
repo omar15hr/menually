@@ -2,10 +2,19 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.types";
 import type { DateRange } from "./dateRanges";
 
-type QrScanRow = Pick<Database["public"]["Tables"]["qr_scans"]["Row"], "scanned_at">;
+type QrScanRow = Pick<
+  Database["public"]["Tables"]["qr_scans"]["Row"],
+  "scanned_at"
+>;
 type MenuEventRow = Database["public"]["Tables"]["menu_events"]["Row"];
-type CategoryRow = Pick<Database["public"]["Tables"]["categories"]["Row"], "id" | "name">;
-type ProductRow = Pick<Database["public"]["Tables"]["products"]["Row"], "id" | "name">;
+type CategoryRow = Pick<
+  Database["public"]["Tables"]["categories"]["Row"],
+  "id" | "name"
+>;
+type ProductRow = Pick<
+  Database["public"]["Tables"]["products"]["Row"],
+  "id" | "name"
+>;
 
 function toIsoRange(range: DateRange): { from: string; to: string } {
   return {
@@ -51,7 +60,9 @@ export async function fetchCategoryViews(
   supabase: SupabaseClient<Database>,
   businessId: string,
   range: DateRange,
-): Promise<Array<Pick<MenuEventRow, "category_id" | "created_at" | "session_id">>> {
+): Promise<
+  Array<Pick<MenuEventRow, "category_id" | "created_at" | "session_id">>
+> {
   const { from, to } = toIsoRange(range);
   const { data } = await supabase
     .from("menu_events")

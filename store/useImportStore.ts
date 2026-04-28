@@ -1,5 +1,9 @@
 import { create } from "zustand";
-import type { ImportedMenu, ImportStep, ImportResult } from "@/lib/types/ai-import.types";
+import type {
+  ImportedMenu,
+  ImportStep,
+  ImportResult,
+} from "@/lib/types/ai-import.types";
 
 interface ImportState {
   // Current step in the wizard

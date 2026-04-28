@@ -80,9 +80,16 @@ export function buildQrSummary(
   categories: CategoryRef[],
   exitEvents: ExitEvent[],
 ): QRScanSummary {
-  const avgTimeOnPage = safeAverage(exitEvents.map((event) => event.duration_seconds));
-  const categoryCounts = countByNullableId(categoryViews, (event) => event.category_id);
-  const categoryNameById = Object.fromEntries(categories.map((category) => [category.id, category.name]));
+  const avgTimeOnPage = safeAverage(
+    exitEvents.map((event) => event.duration_seconds),
+  );
+  const categoryCounts = countByNullableId(
+    categoryViews,
+    (event) => event.category_id,
+  );
+  const categoryNameById = Object.fromEntries(
+    categories.map((category) => [category.id, category.name]),
+  );
 
   let leastViewedCategory: QRScanSummary["leastViewedCategory"] = null;
   const categoryEntries = Object.entries(categoryCounts);
@@ -108,17 +115,23 @@ export function buildTrafficData(
   previousScans: ScanEvent[],
 ): TrafficDataPoint[] {
   if (period === "today") {
-    const currentByHour = currentScans.reduce<Record<number, number>>((acc, scan) => {
-      const hour = new Date(scan.scanned_at).getHours();
-      acc[hour] = (acc[hour] ?? 0) + 1;
-      return acc;
-    }, {});
+    const currentByHour = currentScans.reduce<Record<number, number>>(
+      (acc, scan) => {
+        const hour = new Date(scan.scanned_at).getHours();
+        acc[hour] = (acc[hour] ?? 0) + 1;
+        return acc;
+      },
+      {},
+    );
 
-    const previousByHour = previousScans.reduce<Record<number, number>>((acc, scan) => {
-      const hour = new Date(scan.scanned_at).getHours();
-      acc[hour] = (acc[hour] ?? 0) + 1;
-      return acc;
-    }, {});
+    const previousByHour = previousScans.reduce<Record<number, number>>(
+      (acc, scan) => {
+        const hour = new Date(scan.scanned_at).getHours();
+        acc[hour] = (acc[hour] ?? 0) + 1;
+        return acc;
+      },
+      {},
+    );
 
     return Array.from({ length: 24 }, (_, hour) => ({
       day: `${hour}h`,
@@ -129,17 +142,23 @@ export function buildTrafficData(
 
   if (period === "week") {
     const labels = ["LUN", "MAR", "MIE", "JUE", "VIE", "SAB", "DOM"];
-    const currentByDow = currentScans.reduce<Record<number, number>>((acc, scan) => {
-      const index = mondayFirstDayIndex(new Date(scan.scanned_at));
-      acc[index] = (acc[index] ?? 0) + 1;
-      return acc;
-    }, {});
+    const currentByDow = currentScans.reduce<Record<number, number>>(
+      (acc, scan) => {
+        const index = mondayFirstDayIndex(new Date(scan.scanned_at));
+        acc[index] = (acc[index] ?? 0) + 1;
+        return acc;
+      },
+      {},
+    );
 
-    const previousByDow = previousScans.reduce<Record<number, number>>((acc, scan) => {
-      const index = mondayFirstDayIndex(new Date(scan.scanned_at));
-      acc[index] = (acc[index] ?? 0) + 1;
-      return acc;
-    }, {});
+    const previousByDow = previousScans.reduce<Record<number, number>>(
+      (acc, scan) => {
+        const index = mondayFirstDayIndex(new Date(scan.scanned_at));
+        acc[index] = (acc[index] ?? 0) + 1;
+        return acc;
+      },
+      {},
+    );
 
     return labels.map((label, index) => ({
       day: label,
@@ -148,17 +167,23 @@ export function buildTrafficData(
     }));
   }
 
-  const currentByDate = currentScans.reduce<Record<string, number>>((acc, scan) => {
-    const key = normalizeDateKey(scan.scanned_at);
-    acc[key] = (acc[key] ?? 0) + 1;
-    return acc;
-  }, {});
+  const currentByDate = currentScans.reduce<Record<string, number>>(
+    (acc, scan) => {
+      const key = normalizeDateKey(scan.scanned_at);
+      acc[key] = (acc[key] ?? 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
-  const previousByDate = previousScans.reduce<Record<string, number>>((acc, scan) => {
-    const key = normalizeDateKey(scan.scanned_at);
-    acc[key] = (acc[key] ?? 0) + 1;
-    return acc;
-  }, {});
+  const previousByDate = previousScans.reduce<Record<string, number>>(
+    (acc, scan) => {
+      const key = normalizeDateKey(scan.scanned_at);
+      acc[key] = (acc[key] ?? 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
   const currentStart = new Date(currentRange.start);
   return Array.from({ length: 30 }, (_, index) => {
@@ -219,7 +244,10 @@ export function buildProductPerformance(
   productViews: ProductViewEvent[],
 ): ProductPerformance[] {
   const counts = countByNullableId(productViews, (event) => event.product_id);
-  const totalViews = Object.values(counts).reduce((acc, value) => acc + value, 0);
+  const totalViews = Object.values(counts).reduce(
+    (acc, value) => acc + value,
+    0,
+  );
 
   return products
     .filter((product) => (counts[product.id] ?? 0) > 0)
@@ -251,7 +279,8 @@ export function buildShareMetrics(shares: ShareEvent[]): ShareMetrics {
     return acc;
   }, {});
 
-  const mostSharedDay = Object.entries(sharesByDay).sort(([, a], [, b]) => b - a)[0]?.[0] ?? null;
+  const mostSharedDay =
+    Object.entries(sharesByDay).sort(([, a], [, b]) => b - a)[0]?.[0] ?? null;
 
   return {
     totalShares: shares.length,
@@ -259,29 +288,37 @@ export function buildShareMetrics(shares: ShareEvent[]): ShareMetrics {
   };
 }
 
-export function buildTimeMetrics(products: ProductRef[], exits: ExitEvent[]): TimeOnPageMetrics {
-  const avgTimeOnPage = safeAverage(exits.map((event) => event.duration_seconds));
-  const exitsWithProduct = exits.filter((event) => event.product_id);
-  const avgTimePerProduct = safeAverage(exitsWithProduct.map((event) => event.duration_seconds));
-
-  const productNameById = Object.fromEntries(products.map((product) => [product.id, product.name]));
-  const durationsByProduct = exitsWithProduct.reduce<Record<string, { sum: number; count: number }>>(
-    (acc, event) => {
-      const productId = event.product_id;
-      if (!productId) {
-        return acc;
-      }
-
-      if (!acc[productId]) {
-        acc[productId] = { sum: 0, count: 0 };
-      }
-
-      acc[productId].sum += event.duration_seconds ?? 0;
-      acc[productId].count += 1;
-      return acc;
-    },
-    {},
+export function buildTimeMetrics(
+  products: ProductRef[],
+  exits: ExitEvent[],
+): TimeOnPageMetrics {
+  const avgTimeOnPage = safeAverage(
+    exits.map((event) => event.duration_seconds),
   );
+  const exitsWithProduct = exits.filter((event) => event.product_id);
+  const avgTimePerProduct = safeAverage(
+    exitsWithProduct.map((event) => event.duration_seconds),
+  );
+
+  const productNameById = Object.fromEntries(
+    products.map((product) => [product.id, product.name]),
+  );
+  const durationsByProduct = exitsWithProduct.reduce<
+    Record<string, { sum: number; count: number }>
+  >((acc, event) => {
+    const productId = event.product_id;
+    if (!productId) {
+      return acc;
+    }
+
+    if (!acc[productId]) {
+      acc[productId] = { sum: 0, count: 0 };
+    }
+
+    acc[productId].sum += event.duration_seconds ?? 0;
+    acc[productId].count += 1;
+    return acc;
+  }, {});
 
   const mostAttention = Object.entries(durationsByProduct)
     .map(([id, values]) => ({
@@ -308,52 +345,58 @@ export function buildNavigationPatterns(
   categoryViews: CategoryViewEvent[],
   categories: CategoryRef[],
 ): NavigationPattern[] {
-  const categoryNameById = Object.fromEntries(categories.map((category) => [category.id, category.name]));
-  const sessionPaths = categoryViews.reduce<Record<string, string[]>>((acc, event) => {
-    if (!event.session_id || !event.category_id) {
-      return acc;
-    }
-
-    if (!acc[event.session_id]) {
-      acc[event.session_id] = [];
-    }
-
-    const path = acc[event.session_id];
-    if (path.length >= 5) {
-      return acc;
-    }
-
-    const previousCategory = path[path.length - 1];
-    if (previousCategory !== event.category_id) {
-      path.push(event.category_id);
-    }
-
-    return acc;
-  }, {});
-
-  const pathCounts = Object.values(sessionPaths).reduce<Record<string, { path: string[]; count: number }>>(
-    (acc, path) => {
-      if (path.length < 2) {
+  const categoryNameById = Object.fromEntries(
+    categories.map((category) => [category.id, category.name]),
+  );
+  const sessionPaths = categoryViews.reduce<Record<string, string[]>>(
+    (acc, event) => {
+      if (!event.session_id || !event.category_id) {
         return acc;
       }
 
-      const key = path.join("->");
-      if (!acc[key]) {
-        acc[key] = { path, count: 0 };
+      if (!acc[event.session_id]) {
+        acc[event.session_id] = [];
       }
 
-      acc[key].count += 1;
+      const path = acc[event.session_id];
+      if (path.length >= 5) {
+        return acc;
+      }
+
+      const previousCategory = path[path.length - 1];
+      if (previousCategory !== event.category_id) {
+        path.push(event.category_id);
+      }
+
       return acc;
     },
     {},
   );
+
+  const pathCounts = Object.values(sessionPaths).reduce<
+    Record<string, { path: string[]; count: number }>
+  >((acc, path) => {
+    if (path.length < 2) {
+      return acc;
+    }
+
+    const key = path.join("->");
+    if (!acc[key]) {
+      acc[key] = { path, count: 0 };
+    }
+
+    acc[key].count += 1;
+    return acc;
+  }, {});
 
   const totalSessions = Object.keys(sessionPaths).length;
   return Object.values(pathCounts)
     .sort((a, b) => b.count - a.count)
     .slice(0, 5)
     .map((entry) => ({
-      path: entry.path.map((categoryId) => categoryNameById[categoryId] ?? categoryId),
+      path: entry.path.map(
+        (categoryId) => categoryNameById[categoryId] ?? categoryId,
+      ),
       count: entry.count,
       percentage: totalSessions > 0 ? (entry.count / totalSessions) * 100 : 0,
     }));

@@ -46,7 +46,8 @@ export function PromotionCardCover({ promotion, onClick }: Props) {
 
           {/* Descripción */}
           <p className="text-gray-400 text-xs leading-relaxed line-clamp-2">
-            {promotion.description || "Descripción promoción dos líneas máximo."}
+            {promotion.description ||
+              "Descripción promoción dos líneas máximo."}
           </p>
         </div>
       </button>

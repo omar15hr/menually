@@ -3,12 +3,9 @@
 import z from "zod";
 import { revalidatePath } from "next/cache";
 
-import type { BusinessSettingsState, Schedule } from "@/types/business.types";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/types/database.types";
-
-// Validation schemas
-const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+import type { BusinessSettingsState, Schedule } from "@/types/business.types";
 
 const businessDataSchema = z.object({
   business_name: z
@@ -21,15 +18,29 @@ const businessDataSchema = z.object({
     .optional()
     .or(z.literal("")),
   business_type: z.string().min(1, "El tipo de negocio es requerido"),
-  address: z.string().max(200, "La dirección es demasiado larga").optional().or(z.literal("")),
-  region: z.string().max(100, "La región es demasiado larga").optional().or(z.literal("")),
-  comuna: z.string().max(100, "La comuna es demasiado larga").optional().or(z.literal("")),
+  address: z
+    .string()
+    .max(200, "La dirección es demasiado larga")
+    .optional()
+    .or(z.literal("")),
+  region: z
+    .string()
+    .max(100, "La región es demasiado larga")
+    .optional()
+    .or(z.literal("")),
+  comuna: z
+    .string()
+    .max(100, "La comuna es demasiado larga")
+    .optional()
+    .or(z.literal("")),
   show_address: z.string().transform((v) => v === "on"),
   // Schedule is validated separately for opening < closing
   schedule: z.unknown(),
 });
 
-export async function getBusiness(profileId: string): Promise<Database["public"]["Tables"]["business"]["Row"] | null> {
+export async function getBusiness(
+  profileId: string,
+): Promise<Database["public"]["Tables"]["business"]["Row"] | null> {
   const supabase = await createClient();
 
   // Verify user owns this profile
@@ -51,7 +62,9 @@ export async function getBusiness(profileId: string): Promise<Database["public"]
   return business;
 }
 
-export async function getOrCreateBusiness(profileId: string): Promise<Database["public"]["Tables"]["business"]["Row"] | null> {
+export async function getOrCreateBusiness(
+  profileId: string,
+): Promise<Database["public"]["Tables"]["business"]["Row"] | null> {
   const supabase = await createClient();
 
   // Verify user owns this profile
@@ -93,7 +106,15 @@ export async function updateBusiness(
 ): Promise<BusinessSettingsState> {
   // Extract schedule from formData (days + opening/closing)
   const schedule: Schedule = {};
-  const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+  const days = [
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+    "Domingo",
+  ];
 
   for (const day of days) {
     const closed = formData.get(`closed-${day}`) === "on";
@@ -106,7 +127,9 @@ export async function updateBusiness(
         return {
           status: "error",
           message: `El horario de cierre debe ser después de la apertura para ${day}`,
-          errors: { [`closing-${day}`]: ["El cierre debe ser después de la apertura"] },
+          errors: {
+            [`closing-${day}`]: ["El cierre debe ser después de la apertura"],
+          },
         };
       }
     }

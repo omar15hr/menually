@@ -174,7 +174,9 @@ export default function ProductForm({ categoryId, product }: Props) {
           className="w-fit text-base bg-[#CDF545] hover:bg-[#c0e740] text-[#114821] font-semibold py-2 px-4 rounded-lg h-10 cursor-pointer transition-colors"
         >
           {isPending ? (
-            <span className="flex gap-2 justify-center items-center"><Spinner /> Guardar cambios</span>
+            <span className="flex gap-2 justify-center items-center">
+              <Spinner /> Guardar cambios
+            </span>
           ) : isEditMode ? (
             "Guardar cambios"
           ) : (

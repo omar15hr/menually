@@ -51,7 +51,7 @@ export function MultiSelectChips({
                 "h-auto min-w-0 flex items-center gap-2",
                 isSelected
                   ? "bg-green-800 text-white hover:bg-green-700 data-[state=on]:bg-green-800 data-[state=on]:text-white"
-                  : "bg-muted text-foreground hover:bg-muted/80 data-[state=on]:bg-green-800 data-[state=on]:text-white"
+                  : "bg-muted text-foreground hover:bg-muted/80 data-[state=on]:bg-green-800 data-[state=on]:text-white",
               )}
             >
               {opt.label}

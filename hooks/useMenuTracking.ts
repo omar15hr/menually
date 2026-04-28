@@ -22,7 +22,9 @@ export function useMenuTracking({
 
   const sessionRef = useRef<{ id: string; isNew: boolean } | null>(null);
   const lastEventTimeRef = useRef<number>(Date.now());
-  const categoryDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const categoryDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   // Initialize session on mount
   useEffect(() => {
@@ -84,7 +86,8 @@ export function useMenuTracking({
   // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
-      if (categoryDebounceRef.current) clearTimeout(categoryDebounceRef.current);
+      if (categoryDebounceRef.current)
+        clearTimeout(categoryDebounceRef.current);
     };
   }, []);
 
@@ -92,7 +95,9 @@ export function useMenuTracking({
   useEffect(() => {
     function handleVisibilityChange() {
       if (document.visibilityState === "hidden" && sessionRef.current) {
-        const duration = Math.round((Date.now() - lastEventTimeRef.current) / 1000);
+        const duration = Math.round(
+          (Date.now() - lastEventTimeRef.current) / 1000,
+        );
 
         const formData = new FormData();
         formData.set("event_type", "exit");
@@ -124,7 +129,7 @@ export function useMenuTracking({
       formData.set("product_id", productId);
       trackEvent(null, formData).catch(() => {});
     },
-    [businessId, selectedCategoryId]
+    [businessId, selectedCategoryId],
   );
 
   // Expose trackShare for share button
@@ -138,5 +143,9 @@ export function useMenuTracking({
     trackEvent(null, formData).catch(() => {});
   }, [businessId]);
 
-  return { trackShare, trackProductClick, sessionId: sessionRef.current?.id ?? null };
+  return {
+    trackShare,
+    trackProductClick,
+    sessionId: sessionRef.current?.id ?? null,
+  };
 }

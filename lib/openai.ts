@@ -18,7 +18,7 @@ export function createOpenAIClient(): OpenAI {
   if (!apiKey) {
     throw new Error(
       "Neither AI_GATEWAY_API_KEY nor OPENAI_APIKEY is set. " +
-        "Please add one to your .env file."
+        "Please add one to your .env file.",
     );
   }
 

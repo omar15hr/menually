@@ -1,15 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import Header from "@/components/shared/Header";
-import { Plus, ChevronLeft, ChevronRight, MoreHorizontal, X, Pencil, Trash2 } from "lucide-react";
-import Image from "next/image";
 import { toast } from "sonner";
+import Image from "next/image";
+import { useState } from "react";
+import {
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+  X,
+  Pencil,
+  Trash2,
+} from "lucide-react";
+
+import Header from "@/components/shared/Header";
 import { PromotionForm } from "./PromotionForm";
-import { PromotionCarousel } from "./PromotionCarousel";
-import { deletePromotion, togglePromotionActive } from "@/actions/promotion.action";
-import type { Promotion, PromotionStatus } from "@/types/promotions.types";
 import type { Database } from "@/types/database.types";
+import { PromotionCarousel } from "./PromotionCarousel";
+import type { Promotion, PromotionStatus } from "@/types/promotions.types";
+import {
+  deletePromotion,
+  togglePromotionActive,
+} from "@/actions/promotion.action";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
@@ -34,11 +46,15 @@ function formatDateRange(p: Promotion): string {
   if (p.start_date && p.end_date) {
     const fmt = (d: string) => {
       const date = new Date(d);
-      return date.toLocaleDateString("es-CL", { day: "numeric", month: "short" });
+      return date.toLocaleDateString("es-CL", {
+        day: "numeric",
+        month: "short",
+      });
     };
     return `${fmt(p.start_date)} - ${fmt(p.end_date)}`;
   }
-  if (p.start_date) return `Desde ${new Date(p.start_date).toLocaleDateString("es-CL", { day: "numeric", month: "short" })}`;
+  if (p.start_date)
+    return `Desde ${new Date(p.start_date).toLocaleDateString("es-CL", { day: "numeric", month: "short" })}`;
   return `Hasta ${new Date(p.end_date!).toLocaleDateString("es-CL", { day: "numeric", month: "short" })}`;
 }
 
@@ -56,9 +72,14 @@ const STATUS_LABELS: Record<PromotionStatus, string> = {
   expired: "Vencida",
 };
 
-export default function PromotionsContent({ initialPromotions, products }: Props) {
+export default function PromotionsContent({
+  initialPromotions,
+  products,
+}: Props) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(null);
+  const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(
+    null,
+  );
   const [promotions, setPromotions] = useState<Promotion[]>(initialPromotions);
   const [filter, setFilter] = useState<FilterStatus>("all");
   const [search, setSearch] = useState("");
@@ -81,7 +102,8 @@ export default function PromotionsContent({ initialPromotions, products }: Props
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Eliminar esta promoción? Esta acción no se puede deshacer.")) return;
+    if (!confirm("¿Eliminar esta promoción? Esta acción no se puede deshacer."))
+      return;
     const result = await deletePromotion(id);
     if (result.success) {
       setPromotions((prev) => prev.filter((p) => p.id !== id));
@@ -92,10 +114,13 @@ export default function PromotionsContent({ initialPromotions, products }: Props
   };
 
   const handleToggle = async (promotion: Promotion) => {
-    const result = await togglePromotionActive(promotion.id, !promotion.is_active);
+    const result = await togglePromotionActive(
+      promotion.id,
+      !promotion.is_active,
+    );
     if (result.success) {
       setPromotions((prev) =>
-        prev.map((p) => (p.id === promotion.id ? result.promotion! : p))
+        prev.map((p) => (p.id === promotion.id ? result.promotion! : p)),
       );
       toast.success(result.message);
     } else {
@@ -114,18 +139,39 @@ export default function PromotionsContent({ initialPromotions, products }: Props
   };
 
   // Stats
-  const activePromos = promotions.filter((p) => computeStatus(p) === "active").length;
-  const scheduledPromos = promotions.filter((p) => computeStatus(p) === "scheduled").length;
+  const activePromos = promotions.filter(
+    (p) => computeStatus(p) === "active",
+  ).length;
+  const scheduledPromos = promotions.filter(
+    (p) => computeStatus(p) === "scheduled",
+  ).length;
   const thisMonth = promotions.filter((p) => {
     const d = new Date(p.created_at);
     const now = new Date();
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    return (
+      d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    );
   }).length;
 
   const stats = [
-    { id: 1, title: "Activas", desc: "Mostrándose actualmente", value: activePromos },
-    { id: 2, title: "Programadas", desc: "Inicia pronto", value: scheduledPromos },
-    { id: 3, title: "Este mes", desc: "Promociones publicadas", value: thisMonth },
+    {
+      id: 1,
+      title: "Activas",
+      desc: "Mostrándose actualmente",
+      value: activePromos,
+    },
+    {
+      id: 2,
+      title: "Programadas",
+      desc: "Inicia pronto",
+      value: scheduledPromos,
+    },
+    {
+      id: 3,
+      title: "Este mes",
+      desc: "Promociones publicadas",
+      value: thisMonth,
+    },
   ];
 
   // Filter
@@ -147,9 +193,18 @@ export default function PromotionsContent({ initialPromotions, products }: Props
 
   const filterButtons: { label: string; value: FilterStatus }[] = [
     { label: `Todas (${promotions.length})`, value: "all" },
-    { label: `Programadas (${promotions.filter((p) => computeStatus(p) === "scheduled").length})`, value: "scheduled" },
-    { label: `Vencidas (${promotions.filter((p) => computeStatus(p) === "expired").length})`, value: "expired" },
-    { label: `Pausadas (${promotions.filter((p) => computeStatus(p) === "paused").length})`, value: "paused" },
+    {
+      label: `Programadas (${promotions.filter((p) => computeStatus(p) === "scheduled").length})`,
+      value: "scheduled",
+    },
+    {
+      label: `Vencidas (${promotions.filter((p) => computeStatus(p) === "expired").length})`,
+      value: "expired",
+    },
+    {
+      label: `Pausadas (${promotions.filter((p) => computeStatus(p) === "paused").length})`,
+      value: "paused",
+    },
   ];
 
   return (
@@ -159,9 +214,12 @@ export default function PromotionsContent({ initialPromotions, products }: Props
         {/* HEADER */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-extrabold text-[#0F172A]">Promociones</h1>
+            <h1 className="text-3xl font-extrabold text-[#0F172A]">
+              Promociones
+            </h1>
             <p className="text-[#64748B] text-base mt-1">
-              Crea y gestiona promociones, y productos que quieras destacar para atraer más clientes.
+              Crea y gestiona promociones, y productos que quieras destacar para
+              atraer más clientes.
             </p>
           </div>
           <button
@@ -183,14 +241,18 @@ export default function PromotionsContent({ initialPromotions, products }: Props
                 <p className="text-sm font-semibold text-gray-800">{s.title}</p>
                 <p className="text-xs text-gray-500 mt-1">{s.desc}</p>
               </div>
-              <span className="text-4xl font-bold text-gray-900">{s.value}</span>
+              <span className="text-4xl font-bold text-gray-900">
+                {s.value}
+              </span>
             </div>
           ))}
         </div>
 
         {/* CAROUSEL PREVIEW */}
         <div className="bg-[#FBFBFA] border border-[#E2E8F0] rounded-xl p-6">
-          <h2 className="text-lg font-bold mb-4 text-[#1C1C1C]">Vista previa del carrusel</h2>
+          <h2 className="text-lg font-bold mb-4 text-[#1C1C1C]">
+            Vista previa del carrusel
+          </h2>
           {carouselPromotions.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-6">
               No hay promociones activas para mostrar.
@@ -202,17 +264,20 @@ export default function PromotionsContent({ initialPromotions, products }: Props
 
         {/* HISTORY TABLE */}
         <div>
-          <h2 className="text-xl font-bold text-[#1C1C1C] mb-4">Historial de promociones</h2>
+          <h2 className="text-xl font-bold text-[#1C1C1C] mb-4">
+            Historial de promociones
+          </h2>
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-2 flex-wrap">
               {filterButtons.map((btn) => (
                 <button
                   key={btn.value}
                   onClick={() => setFilter(btn.value)}
-                  className={`px-4 py-2 rounded-md text-base font-bold transition-colors ${filter === btn.value
-                    ? "bg-[#F5FDDA] text-green-800"
-                    : "bg-[#FBFBFA] text-[#1C1C1C] border border-[#E2E8F0]"
-                    }`}
+                  className={`px-4 py-2 rounded-md text-base font-bold transition-colors ${
+                    filter === btn.value
+                      ? "bg-[#F5FDDA] text-green-800"
+                      : "bg-[#FBFBFA] text-[#1C1C1C] border border-[#E2E8F0]"
+                  }`}
                 >
                   {btn.label}
                 </button>
@@ -221,7 +286,17 @@ export default function PromotionsContent({ initialPromotions, products }: Props
             <div className="w-72">
               <div className="relative w-full">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#64748B]">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                  </svg>
                 </div>
                 <input
                   type="text"
@@ -237,7 +312,12 @@ export default function PromotionsContent({ initialPromotions, products }: Props
           <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
             {filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-                <p className="text-sm">No hay promociones {filter !== "all" ? `con estado "${STATUS_LABELS[filter]}"` : "aún"}</p>
+                <p className="text-sm">
+                  No hay promociones{" "}
+                  {filter !== "all"
+                    ? `con estado "${STATUS_LABELS[filter]}"`
+                    : "aún"}
+                </p>
               </div>
             ) : (
               <table className="w-full text-left text-sm text-gray-600">
@@ -270,7 +350,9 @@ export default function PromotionsContent({ initialPromotions, products }: Props
                               </div>
                             )}
                             <div>
-                              <p className="font-bold text-gray-900">{p.title}</p>
+                              <p className="font-bold text-gray-900">
+                                {p.title}
+                              </p>
                               <p className="text-gray-500 text-xs truncate max-w-50">
                                 {p.product_ids?.length ?? 0} producto(s)
                               </p>
@@ -279,21 +361,27 @@ export default function PromotionsContent({ initialPromotions, products }: Props
                         </td>
                         <td className="p-4">{p.keyword || "—"}</td>
                         <td className="p-4">
-                          <span className={`px-2 py-1 rounded-md text-xs font-semibold ${STATUS_COLORS[status]}`}>
+                          <span
+                            className={`px-2 py-1 rounded-md text-xs font-semibold ${STATUS_COLORS[status]}`}
+                          >
                             {STATUS_LABELS[status]}
                           </span>
                         </td>
-                        <td className="p-4 text-gray-500">{formatDateRange(p)}</td>
+                        <td className="p-4 text-gray-500">
+                          {formatDateRange(p)}
+                        </td>
                         <td className="p-4">
                           <button
                             onClick={() => handleToggle(p)}
-                            className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${p.is_active ? "bg-blue-500" : "bg-gray-200"
-                              }`}
+                            className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${
+                              p.is_active ? "bg-blue-500" : "bg-gray-200"
+                            }`}
                             title={p.is_active ? "Pausar" : "Activar"}
                           >
                             <div
-                              className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${p.is_active ? "left-5" : "left-0.5"
-                                }`}
+                              className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${
+                                p.is_active ? "left-5" : "left-0.5"
+                              }`}
                             />
                           </button>
                         </td>
@@ -356,15 +444,19 @@ export default function PromotionsContent({ initialPromotions, products }: Props
 
       {/* SIDEBAR */}
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-112.5 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-full w-full sm:w-112.5 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+          isSidebarOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         {/* Header Sidebar */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
           <h2 className="text-xl font-bold text-gray-900">
             {selectedPromotion ? "Editar promoción" : "Nueva promoción"}
           </h2>
-          <button onClick={closeSidebar} className="text-gray-400 hover:text-gray-600">
+          <button
+            onClick={closeSidebar}
+            className="text-gray-400 hover:text-gray-600"
+          >
             <X size={20} />
           </button>
         </div>
