@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
+import { useState, useCallback, useMemo } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";

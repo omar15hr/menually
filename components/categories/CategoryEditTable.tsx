@@ -1,19 +1,14 @@
 "use client";
 
-import { useOptimistic, useRef, useMemo, useState, startTransition } from "react";
-import { Category } from "@/types/categories.types";
-import type { Tables } from "@/types/database.types";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import PlusIcon from "../icons/PlusIcon";
-import LoaderIcon from "../icons/LoaderIcon";
-import XIcon from "../icons/XIcon";
-import CheckIcon from "../icons/CheckIcon";
-import GripIcon from "../icons/GrapIcon";
-import { createCategory, reorderCategories } from "@/actions/categories.action";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { useMenuStore } from "@/store/useMenuStore";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  useOptimistic,
+  useRef,
+  useMemo,
+  useState,
+  startTransition,
+} from "react";
 import {
   DndContext,
   type DragEndEvent,
@@ -28,7 +23,19 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+
+import { cn } from "@/lib/utils";
+import XIcon from "../icons/XIcon";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import PlusIcon from "../icons/PlusIcon";
+import GripIcon from "../icons/GrapIcon";
+import CheckIcon from "../icons/CheckIcon";
+import LoaderIcon from "../icons/LoaderIcon";
+import { useMenuStore } from "@/store/useMenuStore";
+import { Category } from "@/types/categories.types";
+import type { Tables } from "@/types/database.types";
+import { createCategory, reorderCategories } from "@/actions/categories.action";
 
 type CategoryWithProducts = Category & {
   products: Tables<"products">[];

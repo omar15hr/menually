@@ -15,7 +15,9 @@ export default function UserSidebarInfo() {
   useEffect(() => {
     const fetchProfile = async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user) return setLoading(false);
 
@@ -35,13 +37,13 @@ export default function UserSidebarInfo() {
   if (loading) {
     return (
       <div className="flex flex-col gap-1">
-      <span className="text-[#0F172A] text-xs font-semibold">
-        <Skeleton className="h-3 w-24" />
-      </span>
-      <span className="text-[#64748B] text-[10px] font-normal">
-        <Skeleton className="h-3 w-18" />
-      </span>
-    </div>
+        <span className="text-[#0F172A] text-xs font-semibold">
+          <Skeleton className="h-3 w-24" />
+        </span>
+        <span className="text-[#64748B] text-[10px] font-normal">
+          <Skeleton className="h-3 w-18" />
+        </span>
+      </div>
     );
   }
 

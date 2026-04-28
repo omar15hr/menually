@@ -8,9 +8,10 @@ import type { Database } from "@/types/database.types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
-type CategoryWithProducts = Database["public"]["Tables"]["categories"]["Row"] & {
-  products: Product[];
-};
+type CategoryWithProducts =
+  Database["public"]["Tables"]["categories"]["Row"] & {
+    products: Product[];
+  };
 
 interface Props {
   menuId: string;
@@ -20,12 +21,10 @@ interface Props {
 export default function CategoriesWorkflow({ menuId, categories }: Props) {
   const { setCategories, selectCategory, selectedCategoryId } = useMenuStore();
 
-  // Hydrate store with categories from server
   useEffect(() => {
     setCategories(categories);
   }, [categories, setCategories]);
 
-  // Select first category if none selected
   useEffect(() => {
     if (!selectedCategoryId && categories.length > 0) {
       selectCategory(categories[0].id);

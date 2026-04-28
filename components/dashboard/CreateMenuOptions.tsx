@@ -15,7 +15,7 @@ function SubmitButton({
   intent,
   variant = "default",
   className,
-  children
+  children,
 }: {
   intent: string;
   variant?: "default" | "outline";
@@ -51,7 +51,10 @@ export function CreateMenuOptions() {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 mb-2">
-        <form action={formAction} className="relative h-90 border-2 bg-linear-to-b border-[#CDF545] rounded-xl p-8 flex flex-col items-center text-center gap-4">
+        <form
+          action={formAction}
+          className="relative h-90 border-2 bg-linear-to-b border-[#CDF545] rounded-xl p-8 flex flex-col items-center text-center gap-4"
+        >
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#CDF545] text-[#114821] text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
             Recomendado
           </div>
@@ -61,12 +64,10 @@ export function CreateMenuOptions() {
           </div>
 
           <div className="flex-1 space-y-3 text-left w-full">
-            <h3 className="text-lg font-bold text-[#0F172A]">
-              Importar PDF
-            </h3>
+            <h3 className="text-lg font-bold text-[#0F172A]">Importar PDF</h3>
             <p className="text-[#64748B] text-sm leading-relaxed">
-              Tienes tu carta en PDF o foto. La subes y en minutos tienes
-              tu menú digital listo — sin escribir nada.
+              Tienes tu carta en PDF o foto. La subes y en minutos tienes tu
+              menú digital listo — sin escribir nada.
             </p>
           </div>
 
@@ -78,7 +79,10 @@ export function CreateMenuOptions() {
           </SubmitButton>
         </form>
 
-        <form action={formAction} className="border border-[#E2E8F0] rounded-xl p-8 flex flex-col items-center text-center gap-4">
+        <form
+          action={formAction}
+          className="border border-[#E2E8F0] rounded-xl p-8 flex flex-col items-center text-center gap-4"
+        >
           <div className="size-14 flex items-center justify-center bg-[#F1F5F9] rounded-xl self-start mb-2">
             <ListIcon />
           </div>
@@ -88,8 +92,8 @@ export function CreateMenuOptions() {
               Crear Manualmente
             </h3>
             <p className="text-[#64748B] text-sm leading-relaxed">
-              Prefieres armar tu carta desde cero. Agrega categorías y
-              platos a tu ritmo, como tu quieras.
+              Prefieres armar tu carta desde cero. Agrega categorías y platos a
+              tu ritmo, como tu quieras.
             </p>
           </div>
 
