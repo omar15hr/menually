@@ -4,9 +4,9 @@ import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useImportStore } from "@/store/useImportStore";
-import { MenuImportLoading } from "@/components/menu-import";
-import { MenuImportPreview } from "@/components/menu-import";
-import { MenuImportDropzone } from "@/components/menu-import";
+import { MenuImportDropzone } from "@/components/menu-import/MenuImportDropzone";
+import { MenuImportLoading } from "@/components/menu-import/MenuImportLoading";
+import { MenuImportPreview } from "@/components/menu-import/MenuImportPreview";
 
 export default function MenuImportPage() {
   const { step, error, reset } = useImportStore();
