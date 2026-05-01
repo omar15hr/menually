@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { toast } from "sonner";
 
 import { Input } from "../ui/input";
 import { signIn } from "@/actions/auth.action";
@@ -17,6 +18,12 @@ const initialState: SignInState = {
 
 export default function SignInForm() {
   const [state, action, isPending] = useActionState(signIn, initialState);
+
+  useEffect(() => {
+    if (state.status === "error" && state.error) {
+      toast.error(state.error);
+    }
+  }, [state.status, state.error]);
 
   return (
     <div className="flex flex-col mt-30 mx-auto gap-6 animate-fade-in w-102.75">

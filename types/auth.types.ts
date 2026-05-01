@@ -16,7 +16,7 @@ export type SignUpState =
       data: { fullName: string; businessName: string; email: string } | null;
     };
 
-type SignUpField =
+export type SignUpField =
   | "fullName"
   | "businessName"
   | "email"
