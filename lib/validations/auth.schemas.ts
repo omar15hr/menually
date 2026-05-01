@@ -19,7 +19,7 @@ export const signInSchema = z.object({
 export const signUpSchema = z
   .object({
     fullName: z.string().min(1, "Nombre completo es requerido").max(100),
-    businessName: z.string().min(1, "Nombre completo es requerido").max(100),
+    businessName: z.string().min(1, "Nombre del negocio es requerido").max(100),
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: z.string().min(1, "Confirma tu contraseña"),

@@ -32,7 +32,7 @@ export default function SignUpForm() {
             name="fullName"
             autoComplete="name"
             placeholder="Juan Pérez"
-            defaultValue={state.data?.email ?? ""}
+            defaultValue={state.data?.fullName ?? ""}
           />
         </div>
 
@@ -44,7 +44,7 @@ export default function SignUpForm() {
             name="businessName"
             autoComplete="businessName"
             placeholder="Ej: La casa del chef"
-            defaultValue={state.data?.fullName ?? ""}
+            defaultValue={state.data?.businessName ?? ""}
           />
         </div>
 
@@ -56,7 +56,7 @@ export default function SignUpForm() {
             name="email"
             autoComplete="email"
             placeholder="tucorreo@gmail.com"
-            defaultValue={state.data?.businessName ?? ""}
+            defaultValue={state.data?.email ?? ""}
           />
         </div>
 
