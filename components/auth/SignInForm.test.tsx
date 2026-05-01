@@ -1,9 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/react";
 import type { SignInState } from "@/types/auth.types";
 
-// ── Mock dependencies BEFORE imports ──────────────────────────────────
+// ── Controlled state for useActionState mock ──────────────────────────
+
+let mockState: SignInState = {
+  status: "idle",
+  error: null,
+  data: null,
+};
+let mockPending = false;
+
+// ── Mocks (hoisted — no outer scope references in factories) ──────────
 
 vi.mock("next/link", () => ({
   default: ({
@@ -27,12 +35,21 @@ vi.mock("sonner", () => ({
   },
 }));
 
-const mockSignIn = vi.fn();
 vi.mock("@/actions/auth.action", () => ({
-  signIn: mockSignIn,
+  signIn: vi.fn(),
 }));
 
-// ── Now import the component ──────────────────────────────────────────
+// Mock useActionState to return our controlled state
+vi.mock("react", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("react")>();
+  return {
+    ...actual,
+    useActionState: vi.fn(() => [mockState, vi.fn(), mockPending]),
+  };
+});
+
+// ── Import AFTER mocks ────────────────────────────────────────────────
 
 import SignInForm from "./SignInForm";
 import { toast } from "sonner";
@@ -50,22 +67,32 @@ function buildErrorState(overrides: Partial<SignInState> = {}): SignInState {
   } as SignInState;
 }
 
+function setState(state: SignInState, pending = false) {
+  mockState = state;
+  mockPending = pending;
+}
+
+function resetState() {
+  mockState = {
+    status: "idle",
+    error: null,
+    data: null,
+  };
+  mockPending = false;
+}
+
 // ── Tests ──────────────────────────────────────────────────────────────
 
 describe("SignInForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSignIn.mockResolvedValue({
-      status: "idle",
-      error: null,
-      data: null,
-    } as SignInState);
+    resetState();
   });
 
   // ── R3: Toast for signIn errors ───────────────────────────────────
 
-  it("shows toast when signIn fails with wrong credentials", async () => {
-    mockSignIn.mockResolvedValueOnce(
+  it("shows toast when signIn fails with wrong credentials", () => {
+    setState(
       buildErrorState({
         error: "Correo o contraseña incorrectos.",
         data: { email: "test@test.com" },
@@ -74,20 +101,18 @@ describe("SignInForm", () => {
 
     render(<SignInForm />);
 
-    await act(async () => {
-      await userEvent.click(
-        screen.getByRole("button", { name: /iniciar sesión/i }),
-      );
-    });
-
-    await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith(
-        "Correo o contraseña incorrectos.",
-      );
-    });
+    expect(mockToastError).toHaveBeenCalledWith(
+      "Correo o contraseña incorrectos.",
+    );
   });
 
   it("does NOT show toast on initial render (idle status)", () => {
+    setState({
+      status: "idle",
+      error: null,
+      data: null,
+    });
+
     render(<SignInForm />);
 
     expect(mockToastError).not.toHaveBeenCalled();
@@ -95,8 +120,8 @@ describe("SignInForm", () => {
 
   // ── R6: No regressions ───────────────────────────────────────────
 
-  it("preserves email value on error via defaultValue", async () => {
-    mockSignIn.mockResolvedValueOnce(
+  it("preserves email value on error via defaultValue", () => {
+    setState(
       buildErrorState({
         error: "Correo o contraseña incorrectos.",
         data: { email: "usuario@test.com" },
@@ -105,22 +130,14 @@ describe("SignInForm", () => {
 
     render(<SignInForm />);
 
-    await act(async () => {
-      await userEvent.click(
-        screen.getByRole("button", { name: /iniciar sesión/i }),
-      );
-    });
-
-    await waitFor(() => {
-      const emailInput = screen.getByPlaceholderText(
-        "tucorreo@gmail.com",
-      ) as HTMLInputElement;
-      expect(emailInput.value).toBe("usuario@test.com");
-    });
+    const emailInput = screen.getByPlaceholderText(
+      "tucorreo@gmail.com",
+    ) as HTMLInputElement;
+    expect(emailInput.value).toBe("usuario@test.com");
   });
 
-  it("password field has no defaultValue (clear on error)", async () => {
-    mockSignIn.mockResolvedValueOnce(
+  it("password field has no defaultValue (clear on error)", () => {
+    setState(
       buildErrorState({
         error: "Correo o contraseña incorrectos.",
         data: { email: "usuario@test.com" },
@@ -129,51 +146,36 @@ describe("SignInForm", () => {
 
     render(<SignInForm />);
 
-    await act(async () => {
-      await userEvent.click(
-        screen.getByRole("button", { name: /iniciar sesión/i }),
-      );
-    });
-
-    await waitFor(() => {
-      const passwordInput = screen.getByPlaceholderText(
-        "Contraseña",
-      ) as HTMLInputElement;
-      expect(passwordInput.value).toBe("");
-    });
+    const passwordInput = screen.getByPlaceholderText(
+      "Contraseña",
+    ) as HTMLInputElement;
+    expect(passwordInput.value).toBe("");
   });
 
-  it("shows spinner and disables button while pending", async () => {
-    mockSignIn.mockImplementationOnce(
-      () =>
-        new Promise<SignInState>((resolve) =>
-          setTimeout(
-            () =>
-              resolve(
-                buildErrorState({
-                  error: "Correo o contraseña incorrectos.",
-                }),
-              ),
-            100,
-          ),
-        ),
+  it("shows spinner and disables button while pending", () => {
+    setState(
+      buildErrorState({
+        error: "Correo o contraseña incorrectos.",
+      }),
+      true, // pending
     );
 
     render(<SignInForm />);
 
-    await act(async () => {
-      await userEvent.click(
-        screen.getByRole("button", { name: /iniciar sesión/i }),
-      );
-    });
-
-    const button = screen.getByRole("button", { name: /iniciar sesión/i });
+    // When pending, button shows Spinner (aria-label="Loading") instead of text
+    const button = screen.getByRole("button", { name: /loading/i });
     expect(button).toBeDisabled();
   });
 
   // ── Smoke test ─────────────────────────────────────────────────────
 
   it("renders the form with all expected elements", () => {
+    setState({
+      status: "idle",
+      error: null,
+      data: null,
+    });
+
     render(<SignInForm />);
 
     expect(
