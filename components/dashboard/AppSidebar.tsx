@@ -47,7 +47,7 @@ const menuLinks = [
   },
   {
     name: "QR",
-    url: "/dashboard/menu/qr",
+    url: "/dashboard/qr",
     icon: QRIcon,
   },
 ];

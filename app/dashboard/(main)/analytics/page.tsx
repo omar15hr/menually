@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { LoaderIcon } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { getAuthUser } from "@/lib/queries/auth.queries";
 import { getMenuByUserId } from "@/lib/queries/menu.queries";
 import type { AnalyticsPeriod } from "@/components/analytics/types";
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
+import { MenuallySpinner } from "@/components/shared/MenuallySpinner";
 
 export default async function AnalyticsPage({
   searchParams,
@@ -25,7 +25,7 @@ export default async function AnalyticsPage({
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <LoaderIcon className="h-8 w-8 animate-spin text-[#CDF545]" />
+          <MenuallySpinner size={64} />
         </div>
       }
     >
