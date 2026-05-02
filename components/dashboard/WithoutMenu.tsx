@@ -19,8 +19,9 @@ export default async function WithoutMenu() {
     .maybeSingle();
 
   return (
-    <section className="max-w-7xl mx-auto w-full px-18 mb-10">
-      <div className="flex flex-col w-full my-5">
+    <section className="w-full p-6 md:p-10 mb-10">
+      <div className="max-w-7xl mx-auto w-full">
+      <div className="flex flex-col w-full mb-5">
         <h1 className="text-3xl font-extrabold text-left text-[#0F172A] mb-2 capitalize">
           {`Hola, ${profile?.full_name}`}
         </h1>
@@ -30,6 +31,7 @@ export default async function WithoutMenu() {
       </div>
 
       <CreateMenuBanner />
+      </div>
     </section>
   );
 }
