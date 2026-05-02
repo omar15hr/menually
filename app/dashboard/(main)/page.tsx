@@ -18,7 +18,7 @@ export default async function DashboardPage() {
     <div className="w-full bg-white flex flex-col min-h-screen">
       <Header />
 
-      {menu ? (
+      {!menu ? (
         <WithMenu profile={profile} categories={categories} />
       ) : (
         <WithoutMenu />
