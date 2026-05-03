@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
 import { useMenuStore } from "@/store/useMenuStore";
 import { useMenuTracking } from "@/hooks/useMenuTracking";
+import { useCategoryHydration } from "@/hooks/useCategoryHydration";
 import { MenuPreview } from "@/components/menu/MenuPreview";
 import { PrivacyBanner } from "@/components/PrivacyBanner";
 import type { Database } from "@/types/database.types";
 import type { Promotion } from "@/types/promotions.types";
 import type { CategoryWithProducts } from "@/types/categories.types";
 
- type Menu = Database["public"]["Tables"]["menus"]["Row"];
+type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
 interface PublicMenuProps {
   menu: Menu;
@@ -22,21 +22,10 @@ export function PublicMenu({
   categories,
   promotions = [],
 }: PublicMenuProps) {
-  const { setCategories, selectCategory, selectedCategoryId } = useMenuStore();
+  useCategoryHydration(categories);
 
-  // Hydrate store with categories
-  useEffect(() => {
-    setCategories(categories);
-  }, [categories, setCategories]);
+  const selectCategory = useMenuStore((s) => s.selectCategory);
 
-  // Select first category if none selected
-  useEffect(() => {
-    if (!selectedCategoryId && categories.length > 0) {
-      selectCategory(categories[0].id);
-    }
-  }, [categories, selectedCategoryId, selectCategory]);
-
-  // Initialize tracking
   const { trackShare, trackProductClick } = useMenuTracking({
     businessId: menu.user_id,
     menuSlug: menu.slug,
