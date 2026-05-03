@@ -2,7 +2,7 @@
 
 import { toast } from "sonner";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Plus,
   ChevronLeft,
@@ -22,6 +22,10 @@ import {
   deletePromotion,
   togglePromotionActive,
 } from "@/actions/promotion.action";
+import {
+  computePromotionsMetrics,
+  type FilterStatus,
+} from "@/lib/promotions";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
@@ -30,8 +34,6 @@ interface Props {
   products: Product[];
   menuId: string;
 }
-
-type FilterStatus = "all" | "scheduled" | "expired" | "paused";
 
 function computeStatus(p: Promotion): PromotionStatus {
   if (!p.is_active) return "paused";
@@ -138,74 +140,11 @@ export default function PromotionsContent({
     });
   };
 
-  // Stats
-  const activePromos = promotions.filter(
-    (p) => computeStatus(p) === "active",
-  ).length;
-  const scheduledPromos = promotions.filter(
-    (p) => computeStatus(p) === "scheduled",
-  ).length;
-  const thisMonth = promotions.filter((p) => {
-    const d = new Date(p.created_at);
-    const now = new Date();
-    return (
-      d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-    );
-  }).length;
-
-  const stats = [
-    {
-      id: 1,
-      title: "Activas",
-      desc: "Mostrándose actualmente",
-      value: activePromos,
-    },
-    {
-      id: 2,
-      title: "Programadas",
-      desc: "Inicia pronto",
-      value: scheduledPromos,
-    },
-    {
-      id: 3,
-      title: "Este mes",
-      desc: "Promociones publicadas",
-      value: thisMonth,
-    },
-  ];
-
-  // Filter
-  const filtered = promotions.filter((p) => {
-    const status = computeStatus(p);
-    const matchesFilter = filter === "all" || status === filter;
-    const matchesSearch =
-      !search ||
-      p.title.toLowerCase().includes(search.toLowerCase()) ||
-      p.keyword?.toLowerCase().includes(search.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
-
-  // Carousel preview — only active/scheduled
-  const carouselPromotions = promotions.filter((p) => {
-    const s = computeStatus(p);
-    return s === "active" || s === "scheduled";
-  });
-
-  const filterButtons: { label: string; value: FilterStatus }[] = [
-    { label: `Todas (${promotions.length})`, value: "all" },
-    {
-      label: `Programadas (${promotions.filter((p) => computeStatus(p) === "scheduled").length})`,
-      value: "scheduled",
-    },
-    {
-      label: `Vencidas (${promotions.filter((p) => computeStatus(p) === "expired").length})`,
-      value: "expired",
-    },
-    {
-      label: `Pausadas (${promotions.filter((p) => computeStatus(p) === "paused").length})`,
-      value: "paused",
-    },
-  ];
+  // Single-pass computation: statusMap + stats + filtered + carousel + filterCounts
+  const computed = useMemo(
+    () => computePromotionsMetrics(promotions, filter, search),
+    [promotions, filter, search],
+  );
 
   return (
     <>
@@ -232,7 +171,7 @@ export default function PromotionsContent({
 
         {/* STATS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {stats.map((s) => (
+          {computed.stats.map((s) => (
             <div
               key={s.id}
               className="w-full border border-[#E2E8F0] rounded-2xl p-5 flex justify-between items-center bg-[#FBFBFA]"
@@ -253,12 +192,12 @@ export default function PromotionsContent({
           <h2 className="text-lg font-bold mb-4 text-[#1C1C1C]">
             Vista previa del carrusel
           </h2>
-          {carouselPromotions.length === 0 ? (
+          {computed.carouselPromotions.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-6">
               No hay promociones activas para mostrar.
             </p>
           ) : (
-            <PromotionCarousel promotions={carouselPromotions} />
+            <PromotionCarousel promotions={computed.carouselPromotions} />
           )}
         </div>
 
@@ -269,7 +208,7 @@ export default function PromotionsContent({
           </h2>
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-2 flex-wrap">
-              {filterButtons.map((btn) => (
+              {computed.filterButtons.map((btn) => (
                 <button
                   key={btn.value}
                   onClick={() => setFilter(btn.value)}
@@ -310,7 +249,7 @@ export default function PromotionsContent({
           </div>
 
           <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
-            {filtered.length === 0 ? (
+            {computed.filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-gray-400">
                 <p className="text-sm">
                   No hay promociones{" "}
@@ -332,8 +271,8 @@ export default function PromotionsContent({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filtered.map((p) => {
-                    const status = computeStatus(p);
+                  {computed.filtered.map((p) => {
+                    const status = computed.statusMap.get(p.id) ?? computeStatus(p);
                     return (
                       <tr key={p.id} className="hover:bg-gray-50">
                         <td className="p-4">
@@ -410,7 +349,7 @@ export default function PromotionsContent({
               </table>
             )}
 
-            {filtered.length > 0 && (
+            {computed.filtered.length > 0 && (
               <div className="flex items-center justify-center gap-2 p-4 text-sm text-gray-600 border-t border-gray-100">
                 <button className="flex items-center gap-1 hover:text-gray-900">
                   <ChevronLeft size={16} /> Anterior

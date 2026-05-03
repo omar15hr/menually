@@ -7,18 +7,17 @@ import React, {
   useEffect,
 } from "react";
 import { toast } from "sonner";
-import Image from "next/image";
-import { Camera, Info, Check, X, Loader2 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { Check, Loader2 } from "lucide-react";
 import { createPromotion, updatePromotion } from "@/actions/promotion.action";
 import { uploadImageToStorage } from "@/actions/uploadImageToStorage.action";
 import type {
   Promotion,
   PromotionActionResult,
 } from "@/types/promotions.types";
-import type { Database } from "@/types/database.types";
-
-type Product = Database["public"]["Tables"]["products"]["Row"];
+import type { Product } from "@/types/categories.types";
+import { PromotionStep1BasicInfo } from "./PromotionStep1BasicInfo";
+import { PromotionStep2Image } from "./PromotionStep2Image";
+import { PromotionStep3Schedule } from "./PromotionStep3Schedule";
 
 interface Props {
   promotion?: Promotion | null;
@@ -119,6 +118,11 @@ export function PromotionForm({
     }
   };
 
+  const handleImageRemove = () => {
+    setImagePreview(null);
+    setImageFile(null);
+  };
+
   const handleSubmit = async () => {
     const fd = new FormData();
     fd.append("title", formData.title);
@@ -184,316 +188,6 @@ export function PromotionForm({
     }
   }, [state?.success, state?.promotion, onSuccess, onClose]);
 
-  const renderStepContent = () => {
-    switch (step) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Título *
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => updateField("title", e.target.value)}
-                placeholder="Ej: Dos cafés por $3.990"
-                maxLength={100}
-                className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-[#114821]"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Descripción (opcional)
-              </label>
-              <textarea
-                rows={3}
-                value={formData.description}
-                onChange={(e) => updateField("description", e.target.value)}
-                placeholder="Ej: Válido todos los días, solo en el local."
-                maxLength={500}
-                className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-[#114821] resize-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Palabra clave *
-              </label>
-              <input
-                type="text"
-                value={formData.keyword}
-                onChange={(e) => updateField("keyword", e.target.value)}
-                placeholder="Ej: Promo Verano"
-                maxLength={30}
-                className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-[#114821]"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Productos vinculados *
-              </label>
-              <div className="space-y-2 border border-gray-100 rounded-lg p-3">
-                {products.length === 0 ? (
-                  <p className="text-sm text-gray-400">
-                    No hay productos disponibles
-                  </p>
-                ) : (
-                  products.map((product) => (
-                    <label
-                      key={product.id}
-                      className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedProducts.has(product.id)}
-                        onChange={() => toggleProduct(product.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-[#114821] focus:ring-[#114821]"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {product.name}
-                        </p>
-                        {product.price > 0 && (
-                          <p className="text-xs text-gray-500">
-                            ${product.price.toLocaleString("es-CL")}
-                          </p>
-                        )}
-                      </div>
-                    </label>
-                  ))
-                )}
-              </div>
-              {selectedProducts.size === 0 && (
-                <p className="text-xs text-red-500 mt-1">
-                  Selecciona al menos un producto
-                </p>
-              )}
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <h3 className="font-bold text-sm text-gray-900">
-              Imagen del banner
-            </h3>
-            <label className="border-2 border-dashed border-gray-200 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4 hover:bg-gray-50 cursor-pointer transition-colors">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
-              {imagePreview || formData.image_url ? (
-                <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-                  <Image
-                    src={imagePreview || formData.image_url || ""}
-                    alt="Preview"
-                    fill
-                    className="object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setImagePreview(null);
-                      setImageFile(null);
-                    }}
-                    className="absolute top-2 right-2 bg-white rounded-full p-1 shadow"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center shrink-0">
-                    <Camera size={24} className="text-gray-500" />
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <p className="font-bold text-sm text-gray-900">
-                      Sube una imagen
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Recomendado 328 x 200px PNG.
-                    </p>
-                    <span className="text-[#34A853] text-xs font-bold mt-2 inline-block">
-                      Seleccionar archivo
-                    </span>
-                  </div>
-                </>
-              )}
-            </label>
-            <div className="bg-[#F8F9FA] rounded-xl p-4 flex gap-3 items-start">
-              <Info size={20} className="text-gray-800 shrink-0 mt-0.5" />
-              <p className="text-xs text-gray-600 leading-relaxed">
-                El 70% del banner es imagen. Una foto con buena luz y colores
-                cálidos puede aumentar el interés y las ventas de tus platos.
-              </p>
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-sm text-gray-900">
-                  Definir periodo de tiempo
-                </h3>
-                <p className="text-xs text-gray-500">
-                  Si no defines fecha, se muestran de forma permanente.
-                </p>
-              </div>
-              <Switch
-                checked={formData.has_date_range}
-                onCheckedChange={(checked) =>
-                  updateField("has_date_range", checked)
-                }
-              />
-            </div>
-
-            {formData.has_date_range && (
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
-                    Fecha inicio
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.start_date}
-                    onChange={(e) => updateField("start_date", e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-[#114821]"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
-                    Fecha fin
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.end_date}
-                    onChange={(e) => updateField("end_date", e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:border-[#114821]"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-sm text-gray-900">
-                  Día de la semana
-                </h3>
-                <p className="text-xs text-gray-500">
-                  Elige los días en que estará disponible la promoción.
-                </p>
-              </div>
-              <Switch
-                checked={formData.has_day_filter}
-                onCheckedChange={(checked) =>
-                  updateField("has_day_filter", checked)
-                }
-              />
-            </div>
-
-            {formData.has_day_filter && (
-              <div className="flex flex-wrap gap-2">
-                {DAYS_ES.map((day, idx) => {
-                  const isActive = formData.days_of_week.includes(idx);
-                  return (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => toggleDay(idx)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 border ${
-                        isActive
-                          ? "bg-[#114821] text-white border-[#114821]"
-                          : "bg-gray-100 text-gray-600 border-transparent"
-                      }`}
-                    >
-                      {day}
-                      {isActive && <X size={12} />}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-sm text-gray-900">
-                  Activar promoción
-                </h3>
-                <p className="text-xs text-gray-500">
-                  Mostrar en el menú público inmediatamente.
-                </p>
-              </div>
-              <Switch
-                checked={formData.is_active}
-                onCheckedChange={(checked) => updateField("is_active", checked)}
-              />
-            </div>
-
-            {/* Summary */}
-            <div className="bg-[#F8F9FA] rounded-xl p-5 space-y-4 border border-gray-100 mt-4">
-              <h4 className="font-bold text-sm text-gray-900">Resumen</h4>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-semibold">
-                    Título
-                  </p>
-                  <p className="text-xs font-medium text-gray-900">
-                    {formData.title || "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-semibold">
-                    Descripción
-                  </p>
-                  <p className="text-xs font-medium text-gray-900">
-                    {formData.description || "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-semibold">
-                    Palabra clave
-                  </p>
-                  <p className="text-xs font-medium text-gray-900">
-                    {formData.keyword || "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-semibold">
-                    Productos
-                  </p>
-                  <p className="text-xs font-medium text-gray-900">
-                    {selectedProducts.size} producto(s)
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-semibold">
-                    Vigencia
-                  </p>
-                  <p className="text-xs font-medium text-gray-900">
-                    {formData.has_date_range &&
-                    formData.start_date &&
-                    formData.end_date
-                      ? `Del ${formData.start_date} al ${formData.end_date}`
-                      : "Sin fecha de término"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="flex flex-col h-full">
       {/* Stepper */}
@@ -545,7 +239,32 @@ export function PromotionForm({
 
       {/* Form Content */}
       <div className="flex-1 overflow-y-auto px-6 pb-6">
-        {renderStepContent()}
+        {step === 1 && (
+          <PromotionStep1BasicInfo
+            formData={formData}
+            updateField={updateField}
+            products={products}
+            selectedProducts={selectedProducts}
+            toggleProduct={toggleProduct}
+          />
+        )}
+        {step === 2 && (
+          <PromotionStep2Image
+            imagePreview={imagePreview}
+            imageUrl={formData.image_url}
+            onImageChange={handleImageChange}
+            onImageRemove={handleImageRemove}
+          />
+        )}
+        {step === 3 && (
+          <PromotionStep3Schedule
+            formData={formData}
+            updateField={updateField}
+            toggleDay={toggleDay}
+            daysOfWeek={DAYS_ES}
+            selectedProductCount={selectedProducts.size}
+          />
+        )}
       </div>
 
       {/* Footer actions */}

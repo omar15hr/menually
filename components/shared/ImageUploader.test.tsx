@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
 import ImageUploader from "./ImageUploader";
+import Image from "next/image";
 
 // ── Mocks ─────────────────────────────────────────────────────────────
 
@@ -14,7 +15,7 @@ vi.mock("next/image", () => ({
     src: string;
     alt: string;
     [key: string]: unknown;
-  }) => <img src={src} alt={alt} {...props} />,
+  }) => <Image src={src} alt={alt} {...props} />,
 }));
 
 vi.mock("@/components/shared/PhotoUpload", () => ({

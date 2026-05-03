@@ -1,7 +1,6 @@
 "use client";
 
 import { toast } from "sonner";
-import { CSS } from "@dnd-kit/utilities";
 import {
   useOptimistic,
   useRef,
@@ -20,7 +19,6 @@ import {
 } from "@dnd-kit/core";
 import {
   SortableContext,
-  useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
@@ -29,71 +27,15 @@ import XIcon from "../icons/XIcon";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import PlusIcon from "../icons/PlusIcon";
-import GripIcon from "../icons/GrapIcon";
 import CheckIcon from "../icons/CheckIcon";
 import LoaderIcon from "../icons/LoaderIcon";
 import { useMenuStore } from "@/store/useMenuStore";
 import type { CategoryWithProducts } from "@/types/categories.types";
 import { createCategory, reorderCategories } from "@/actions/categories.action";
+import SortableCategoryItem from "./SortableCategoryItem";
 
 interface Props {
   menuId: string;
-}
-
-interface SortableCategoryProps {
-  category: CategoryWithProducts;
-  isSelected: boolean;
-  onSelect: (id: string) => void;
-}
-
-function SortableCategory({
-  category,
-  isSelected,
-  onSelect,
-}: SortableCategoryProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: category.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style}>
-      <Button
-        type="button"
-        variant="ghost"
-        className={cn(
-          "h-auto w-full p-4 justify-between rounded-none text-[#1C1C1C] bg-white text-sm font-semibold capitalize",
-          isSelected && "bg-[#CDF5454D] hover:bg-[#CDF5454D]",
-        )}
-        style={{
-          borderLeft: isSelected
-            ? "2px solid #114821"
-            : "2px solid transparent",
-        }}
-        onClick={() => onSelect(category.id)}
-        aria-pressed={isSelected}
-      >
-        {category.name}
-        <span
-          className="cursor-grab active:cursor-grabbing"
-          {...attributes}
-          {...listeners}
-        >
-          <GripIcon />
-        </span>
-      </Button>
-    </div>
-  );
 }
 
 export default function CategoryEditTable({ menuId }: Props) {
@@ -228,7 +170,7 @@ export default function CategoryEditTable({ menuId }: Props) {
 
               return (
                 <div key={category.id}>
-                  <SortableCategory
+                  <SortableCategoryItem
                     category={category}
                     isSelected={isSelected}
                     onSelect={selectCategory}
