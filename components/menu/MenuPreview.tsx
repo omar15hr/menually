@@ -6,6 +6,10 @@ import type { Database } from "@/types/database.types";
 import type { Promotion } from "@/types/promotions.types";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { PromotionCarousel } from "../promotions/PromotionCarousel";
+import ShareIcon from "../icons/ShareIcon";
+import ChevronDownSmallIcon from "../icons/ChevronDownSmallIcon";
+import EmptyBoxIcon from "../icons/EmptyBoxIcon";
+import ProductPlaceholderIcon from "../icons/ProductPlaceholderIcon";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
 type Category = Database["public"]["Tables"]["categories"]["Row"];
@@ -163,16 +167,7 @@ export function MenuPreview({
         {menu.show_filters && (
           <button className="flex items-center gap-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-600 font-medium whitespace-nowrap shrink-0 mt-0.5">
             Español
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
+            <ChevronDownSmallIcon />
           </button>
         )}
         {onShare && (
@@ -181,20 +176,7 @@ export function MenuPreview({
             className="flex items-center gap-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-600 font-medium whitespace-nowrap shrink-0 mt-0.5 hover:bg-gray-50"
             title="Share menu"
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="18" cy="5" r="3" />
-              <circle cx="6" cy="12" r="3" />
-              <circle cx="18" cy="19" r="3" />
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-            </svg>
+            <ShareIcon />
             Share
           </button>
         )}
@@ -255,21 +237,7 @@ export function MenuPreview({
                     }
                   />
                 ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={isVertical ? 36 : 28}
-                    height={isVertical ? 36 : 28}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#C8A882"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    opacity={0.6}
-                  >
-                    <path d="M3 2l1.5 1.5M21 2l-1.5 1.5M12 2v2M4.5 6A7.5 7.5 0 0 0 12 21a7.5 7.5 0 0 0 7.5-7.5c0-3-1.7-5.6-4.2-6.9" />
-                    <path d="M12 6a6 6 0 0 1 6 6" />
-                  </svg>
+                  <ProductPlaceholderIcon size={isVertical ? 36 : 28} />
                 )}
               </div>
 
@@ -307,22 +275,7 @@ export function MenuPreview({
         })}
         {products.length === 0 && (
           <div className="flex flex-col items-center justify-center text-center py-10 h-full text-gray-400">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mb-2 opacity-50"
-            >
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-              <path d="M3 6h18" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
+            <EmptyBoxIcon />
             <p className="text-sm">
               Aún no hay productos <br />
               en esta categoría.

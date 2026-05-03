@@ -11,7 +11,7 @@ export default async function DashboardPage() {
 
   const menu = await getMenuByUserId(user.id);
 
-  const [profile] = await Promise.all([getProfileByUserId(user.id)]);
+  const profile = await getProfileByUserId(user.id);
   const categories = menu ? await getCategoriesByMenuId(menu.id) : [];
 
   return (

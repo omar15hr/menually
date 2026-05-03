@@ -16,6 +16,7 @@ import {
   type ActionSuccess,
   type ActionSuccessWithData,
 } from "@/lib/security/server-action-guards";
+import type { Database } from "@/types/database.types";
 
 const VALID_INTENTS = ["manual", "import", "ai"] as const;
 type Intent = (typeof VALID_INTENTS)[number];
@@ -261,6 +262,3 @@ export async function deleteMenu(
     errors: {},
   };
 }
-
-// Add type import for Database
-import type { Database } from "@/types/database.types";
