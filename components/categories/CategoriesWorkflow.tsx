@@ -4,14 +4,7 @@ import { useEffect } from "react";
 import CategoryEditTable from "./CategoryEditTable";
 import ProductPanel from "../products/ProductPanel";
 import { useMenuStore } from "@/store/useMenuStore";
-import type { Database } from "@/types/database.types";
-
-type Product = Database["public"]["Tables"]["products"]["Row"];
-
-type CategoryWithProducts =
-  Database["public"]["Tables"]["categories"]["Row"] & {
-    products: Product[];
-  };
+import type { CategoryWithProducts } from "@/types/categories.types";
 
 interface Props {
   menuId: string;

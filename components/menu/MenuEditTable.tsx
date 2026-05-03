@@ -1,9 +1,5 @@
 "use client";
 
-import Image from "next/image";
-
-import CameraIcon from "../icons/CameraIcon";
-import PhotoUpload from "../shared/PhotoUpload";
 import type { Database } from "@/types/database.types";
 import {
   Select,
@@ -12,8 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import XIcon from "../icons/XIcon";
+import ImageUploader from "@/components/shared/ImageUploader";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
@@ -109,104 +104,19 @@ export function MenuEditTable({
           </span>
         </Row>
 
-        <div className="flex flex-col gap-2 p-4">
-          <span className="text-sm text-[#1C1C1C] font-semibold shrink-0">
-            Logo
-          </span>
-          <PhotoUpload imagePath={"logos"} onPhotoUploaded={onLogoUrlSelected}>
-            <div
-              className={cn(
-                "flex gap-4 justify-center rounded-2xl p-4 cursor-pointer transition-colors items-center",
-                logoUrl
-                  ? "border-[#E4E4E6] border-2"
-                  : "border-dashed border-[#E4E4E6] border-2",
-              )}
-            >
-              {logoUrl ? (
-                <Image
-                  src={logoUrl}
-                  alt="Image placeholder"
-                  width={300}
-                  height={300}
-                  className="rounded-lg size-15"
-                />
-              ) : (
-                <span className="bg-[#E5E7EA] px-2.5 py-4 rounded-full">
-                  <CameraIcon />
-                </span>
-              )}
-              <div className="text-sm w-full">
-                {!logoUrl ? (
-                  <div className="">
-                    <h2 className="text-[#1C1C1C] font-semibold">
-                      Sube una imagen
-                    </h2>
-                    <p className="text-[#58606E]">
-                      Recomendado 328 x 200px PNG.
-                    </p>
-                    <span className="text-[#25B205]">Seleccionar archivo</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between text-[#58606E]">
-                    <span>Archivo subido</span>
-                    <XIcon />
-                  </div>
-                )}
-              </div>
-            </div>
-          </PhotoUpload>
-        </div>
+        <ImageUploader
+          label="Logo"
+          imagePath="logos"
+          imageUrl={logoUrl}
+          onImageUploaded={onLogoUrlSelected}
+        />
 
-        <div className="flex flex-col gap-2 p-4">
-          <span className="text-sm text-[#1C1C1C] font-semibold shrink-0">
-            Portada
-          </span>
-          <PhotoUpload
-            imagePath={"backgrounds"}
-            onPhotoUploaded={onCoverUrlSelected}
-          >
-            <div
-              className={cn(
-                "flex gap-4 justify-center rounded-2xl p-4 cursor-pointer transition-colors items-center",
-                coverUrl
-                  ? "border-[#E4E4E6] border-2"
-                  : "border-dashed border-[#E4E4E6] border-2",
-              )}
-            >
-              {coverUrl ? (
-                <Image
-                  src={coverUrl}
-                  alt="Image placeholder"
-                  width={300}
-                  height={300}
-                  className="rounded-lg size-15"
-                />
-              ) : (
-                <span className="bg-[#E5E7EA] px-2.5 py-4 rounded-full">
-                  <CameraIcon />
-                </span>
-              )}
-              <div className="text-sm w-full">
-                {!coverUrl ? (
-                  <div className="">
-                    <h2 className="text-[#1C1C1C] font-semibold">
-                      Sube una imagen
-                    </h2>
-                    <p className="text-[#58606E]">
-                      Recomendado 328 x 200px PNG.
-                    </p>
-                    <span className="text-[#25B205]">Seleccionar archivo</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between text-[#58606E]">
-                    <span>Archivo subido</span>
-                    <XIcon />
-                  </div>
-                )}
-              </div>
-            </div>
-          </PhotoUpload>
-        </div>
+        <ImageUploader
+          label="Portada"
+          imagePath="backgrounds"
+          imageUrl={coverUrl}
+          onImageUploaded={onCoverUrlSelected}
+        />
 
         <div className="flex flex-col gap-2 px-4 py-3">
           <span className="text-sm text-[#1C1C1C] font-semibold">Colores</span>

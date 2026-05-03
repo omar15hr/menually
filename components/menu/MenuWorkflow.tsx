@@ -10,15 +10,12 @@ import type { Promotion } from "@/types/promotions.types";
 import { MenuPreview } from "@/components/menu/MenuPreview";
 import { MenuEditTable } from "@/components/menu/MenuEditTable";
 import type { UpdateMenuSchema } from "@/lib/validations/menu.schemas";
+import type { CategoryWithProducts } from "@/types/categories.types";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
-type Category = Database["public"]["Tables"]["categories"]["Row"];
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-type Product = Database["public"]["Tables"]["products"]["Row"];
 
-export type CategoryWithProducts = Category & {
-  products: Product[];
-};
+export type { CategoryWithProducts } from "@/types/categories.types";
 
 interface Props {
   menu: Menu;

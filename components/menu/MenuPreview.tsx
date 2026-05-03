@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import type { Database } from "@/types/database.types";
 import type { Promotion } from "@/types/promotions.types";
+import type { CategoryWithProducts } from "@/types/categories.types";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { PromotionCarousel } from "../promotions/PromotionCarousel";
 import ShareIcon from "../icons/ShareIcon";
@@ -11,13 +12,7 @@ import ChevronDownSmallIcon from "../icons/ChevronDownSmallIcon";
 import EmptyBoxIcon from "../icons/EmptyBoxIcon";
 import ProductPlaceholderIcon from "../icons/ProductPlaceholderIcon";
 
-type Menu = Database["public"]["Tables"]["menus"]["Row"];
-type Category = Database["public"]["Tables"]["categories"]["Row"];
-type Product = Database["public"]["Tables"]["products"]["Row"];
-
-type CategoryWithProducts = Category & {
-  products: Product[];
-};
+ type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
 interface Props {
   menu: Menu;

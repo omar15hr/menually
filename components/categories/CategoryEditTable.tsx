@@ -33,13 +33,8 @@ import GripIcon from "../icons/GrapIcon";
 import CheckIcon from "../icons/CheckIcon";
 import LoaderIcon from "../icons/LoaderIcon";
 import { useMenuStore } from "@/store/useMenuStore";
-import { Category } from "@/types/categories.types";
-import type { Tables } from "@/types/database.types";
+import type { CategoryWithProducts } from "@/types/categories.types";
 import { createCategory, reorderCategories } from "@/actions/categories.action";
-
-type CategoryWithProducts = Category & {
-  products: Tables<"products">[];
-};
 
 interface Props {
   menuId: string;

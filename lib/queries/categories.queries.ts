@@ -1,10 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/types/database.types";
-
-type Product = Database["public"]["Tables"]["products"]["Row"];
-type Category = Database["public"]["Tables"]["categories"]["Row"];
-
-export type CategoryWithProducts = Category & { products: Product[] };
+import type { CategoryWithProducts, Product } from "@/types/categories.types";
 
 export type CategorySummaryWithProducts = {
   id: string;

@@ -7,14 +7,9 @@ import { MenuPreview } from "@/components/menu/MenuPreview";
 import { PrivacyBanner } from "@/components/PrivacyBanner";
 import type { Database } from "@/types/database.types";
 import type { Promotion } from "@/types/promotions.types";
+import type { CategoryWithProducts } from "@/types/categories.types";
 
-type Category = Database["public"]["Tables"]["categories"]["Row"];
-type Product = Database["public"]["Tables"]["products"]["Row"];
-type Menu = Database["public"]["Tables"]["menus"]["Row"];
-
-type CategoryWithProducts = Category & {
-  products: Product[];
-};
+ type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
 interface PublicMenuProps {
   menu: Menu;

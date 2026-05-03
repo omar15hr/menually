@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
 
-import { Database } from "@/types/database.types";
+import type { Database } from "@/types/database.types";
+import type { CategoryWithProducts } from "@/types/categories.types";
 import DashboardMenuCard from "./DashboardMenuCard";
 import DashboardProductTable from "./DashboardProductTable";
-import { CategoryWithProducts } from "../menu/MenuWorkflow";
 import DashboardInsightsCard from "./DashboardInsightsCard";
 import DashboardAnalyticsCard from "./DashboardAnalyticsCard";
 

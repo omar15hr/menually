@@ -21,3 +21,9 @@ export type UpdateCategoryInput = Pick<
 export type ReorderCategoriesInput = {
   categories: Array<{ id: string; position: number }>;
 };
+
+export type Product = Tables<"products">;
+
+export type CategoryWithProducts = Category & {
+  products: Product[];
+};

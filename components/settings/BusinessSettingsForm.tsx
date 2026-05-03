@@ -12,11 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
-import PhotoUpload from "@/components/shared/PhotoUpload";
-import XIcon from "@/components/icons/XIcon";
-import CameraIcon from "@/components/icons/CameraIcon";
-import { cn } from "@/lib/utils";
+import ImageUploader from "@/components/shared/ImageUploader";
 import { toast } from "sonner";
 import { updateBusiness } from "@/actions/business.action";
 import type { Business, BusinessSettingsState, Schedule } from "@/types/business.types";
@@ -159,52 +155,12 @@ export function BusinessSettingsForm({ profile, business, menuLogoUrl }: Busines
             </RadioGroup>
           </div>
 
-          {/* Logo (Opcional) - Note: logo is managed via menu settings */}
-          <div>
-            <h3 className="text-base font-semibold mb-3">Logo del negocio (opcional)</h3>
-            <PhotoUpload imagePath={"logos"} onPhotoUploaded={() => { }}>
-              <div
-                className={cn(
-                  "flex gap-4 justify-center rounded-2xl p-4 cursor-pointer transition-colors items-center",
-                  logoUrl
-                    ? "border-[#E4E4E6] border-2"
-                    : "border-dashed border-[#E4E4E6] border-2",
-                )}
-              >
-                {logoUrl ? (
-                  <Image
-                    src={logoUrl}
-                    alt="Logo del negocio"
-                    width={300}
-                    height={300}
-                    className="rounded-lg size-15"
-                  />
-                ) : (
-                  <span className="bg-[#E5E7EA] px-2.5 py-4 rounded-full">
-                    <CameraIcon />
-                  </span>
-                )}
-                <div className="text-sm w-full">
-                  {!logoUrl ? (
-                    <div className="">
-                      <h2 className="text-[#1C1C1C] font-semibold">
-                        Sube una imagen
-                      </h2>
-                      <p className="text-[#58606E]">
-                        Recomendado 328 x 200px PNG.
-                      </p>
-                      <span className="text-[#25B205]">Seleccionar archivo</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between text-[#58606E]">
-                      <span>Archivo subido</span>
-                      <XIcon />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </PhotoUpload>
-          </div>
+          <ImageUploader
+            label="Logo del negocio (opcional)"
+            imagePath="logos"
+            imageUrl={logoUrl ?? ""}
+            onImageUploaded={() => {}}
+          />
         </CardContent>
       </Card>
 
