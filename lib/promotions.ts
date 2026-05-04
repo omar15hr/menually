@@ -10,11 +10,28 @@ export interface ComputedPromotions {
   filterButtons: { label: string; value: FilterStatus }[];
 }
 
-function computeStatus(p: Promotion, now: Date): PromotionStatus {
+export function computeStatus(p: Promotion, now = new Date()): PromotionStatus {
   if (!p.is_active) return "paused";
   if (p.start_date && new Date(p.start_date) > now) return "scheduled";
   if (p.end_date && new Date(p.end_date) < now) return "expired";
   return "active";
+}
+
+export function formatDateRange(p: Promotion): string {
+  if (!p.start_date && !p.end_date) return "Sin fecha de término";
+  if (p.start_date && p.end_date) {
+    const fmt = (d: string) => {
+      const date = new Date(d);
+      return date.toLocaleDateString("es-CL", {
+        day: "numeric",
+        month: "short",
+      });
+    };
+    return `${fmt(p.start_date)} - ${fmt(p.end_date)}`;
+  }
+  if (p.start_date)
+    return `Desde ${new Date(p.start_date).toLocaleDateString("es-CL", { day: "numeric", month: "short" })}`;
+  return `Hasta ${new Date(p.end_date!).toLocaleDateString("es-CL", { day: "numeric", month: "short" })}`;
 }
 
 export function computePromotionsMetrics(

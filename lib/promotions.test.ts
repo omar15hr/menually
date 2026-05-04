@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   computePromotionsMetrics,
+  computeStatus,
+  formatDateRange,
   type ComputedPromotions,
 } from "./promotions";
 import type { Promotion, PromotionStatus } from "@/types/promotions.types";
@@ -23,6 +25,68 @@ function makePromotion(overrides: Partial<Promotion> = {}): Promotion {
     ...overrides,
   } as Promotion;
 }
+
+describe("computeStatus", () => {
+  const now = new Date("2024-06-15T12:00:00Z");
+
+  it("returns 'paused' when is_active is false", () => {
+    const p = makePromotion({ is_active: false });
+    expect(computeStatus(p, now)).toBe("paused");
+  });
+
+  it("returns 'scheduled' when start_date is in the future", () => {
+    const p = makePromotion({ start_date: "2024-07-01T00:00:00Z" });
+    expect(computeStatus(p, now)).toBe("scheduled");
+  });
+
+  it("returns 'expired' when end_date is in the past", () => {
+    const p = makePromotion({ end_date: "2024-05-01T00:00:00Z" });
+    expect(computeStatus(p, now)).toBe("expired");
+  });
+
+  it("returns 'active' when no date constraints and is_active is true", () => {
+    const p = makePromotion();
+    expect(computeStatus(p, now)).toBe("active");
+  });
+});
+
+describe("formatDateRange", () => {
+  it("returns 'Sin fecha de término' when no dates", () => {
+    const p = makePromotion();
+    expect(formatDateRange(p)).toBe("Sin fecha de término");
+  });
+
+  it("formats start and end dates", () => {
+    const p = makePromotion({
+      start_date: "2024-07-01T00:00:00Z",
+      end_date: "2024-07-31T00:00:00Z",
+    });
+    const result = formatDateRange(p);
+    expect(result).toContain(" - ");
+    // Locale-dependent month abbreviations; verify structure instead of exact day
+    expect(result).toMatch(/\d{1,2}\s+\w{3,}\s+-\s+\d{1,2}\s+\w{3,}/);
+  });
+
+  it("formats only start date", () => {
+    const p = makePromotion({
+      start_date: "2024-07-01T00:00:00Z",
+      end_date: null,
+    });
+    const result = formatDateRange(p);
+    expect(result).toContain("Desde");
+    expect(result).toMatch(/Desde\s+\d{1,2}\s+\w{3,}/);
+  });
+
+  it("formats only end date", () => {
+    const p = makePromotion({
+      start_date: null,
+      end_date: "2024-07-31T00:00:00Z",
+    });
+    const result = formatDateRange(p);
+    expect(result).toContain("Hasta");
+    expect(result).toMatch(/Hasta\s+\d{1,2}\s+\w{3,}/);
+  });
+});
 
 describe("computePromotionsMetrics", () => {
   const now = new Date("2024-06-15T12:00:00Z");
