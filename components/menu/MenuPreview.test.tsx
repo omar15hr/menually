@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MenuPreview } from "./MenuPreview";
 import { PublicMenu } from "./PublicMenu";
 
@@ -147,6 +148,130 @@ describe("MenuPreview", () => {
     const coverImg = container.querySelector('img[alt="Portada del menú"]');
     expect(coverImg?.classList.contains("rounded-2xl")).toBe(false);
   });
+
+  it("share overlay renders inside cover when onShare provided and responsive=true", async () => {
+    const menu = makeMenu();
+    const onShare = vi.fn();
+    const { container } = render(
+      <MenuPreview
+        menu={menu}
+        categories={mockCategories}
+        responsive={true}
+        onShare={onShare}
+      />,
+    );
+    const coverDiv = container.querySelector("div[style=\"height: 190px;\"]");
+    const shareButton = coverDiv?.querySelector('button[aria-label="Compartir menú"]');
+    expect(shareButton).toBeTruthy();
+    if (shareButton) {
+      await userEvent.click(shareButton);
+      expect(onShare).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it("share overlay absent when onShare undefined", () => {
+    const menu = makeMenu();
+    const { container } = render(
+      <MenuPreview menu={menu} categories={mockCategories} responsive={true} />,
+    );
+    const coverDiv = container.querySelector("div[style=\"height: 190px;\"]");
+    const shareButton = coverDiv?.querySelector('button[aria-label="Compartir menú"]');
+    expect(shareButton).toBeFalsy();
+  });
+
+  it("share overlay absent when responsive=false even if onShare provided", () => {
+    const menu = makeMenu();
+    const onShare = vi.fn();
+    const { container } = render(
+      <MenuPreview
+        menu={menu}
+        categories={mockCategories}
+        responsive={false}
+        onShare={onShare}
+      />,
+    );
+    const coverDiv = container.querySelector("div[style=\"height: 190px;\"]");
+    const shareButton = coverDiv?.querySelector('button[aria-label="Compartir menú"]');
+    expect(shareButton).toBeFalsy();
+  });
+
+  it("language overlay renders inside cover when show_filters=true and responsive=true", () => {
+    const menu = makeMenu({ show_filters: true });
+    const { container } = render(
+      <MenuPreview menu={menu} categories={mockCategories} responsive={true} />,
+    );
+    const coverDiv = container.querySelector("div[style=\"height: 190px;\"]");
+    const langButton = coverDiv?.querySelector('button[aria-label="Cambiar idioma"]');
+    expect(langButton).toBeTruthy();
+    expect(langButton?.textContent).toContain("Español");
+  });
+
+  it("language overlay absent when show_filters=false", () => {
+    const menu = makeMenu({ show_filters: false });
+    const { container } = render(
+      <MenuPreview menu={menu} categories={mockCategories} responsive={true} />,
+    );
+    const coverDiv = container.querySelector("div[style=\"height: 190px;\"]");
+    const langButton = coverDiv?.querySelector('button[aria-label="Cambiar idioma"]');
+    expect(langButton).toBeFalsy();
+  });
+
+  it("language overlay absent when responsive=false even if show_filters=true", () => {
+    const menu = makeMenu({ show_filters: true });
+    const { container } = render(
+      <MenuPreview menu={menu} categories={mockCategories} responsive={false} />,
+    );
+    const coverDiv = container.querySelector("div[style=\"height: 190px;\"]");
+    const langButton = coverDiv?.querySelector('button[aria-label="Cambiar idioma"]');
+    expect(langButton).toBeFalsy();
+  });
+
+  it("'Filtrar' button renders in business-name row when responsive=true", () => {
+    const menu = makeMenu();
+    const { container } = render(
+      <MenuPreview menu={menu} categories={mockCategories} responsive={true} />,
+    );
+    const filtrarButton = screen.getByText("Filtrar");
+    expect(filtrarButton).toBeInTheDocument();
+    expect(filtrarButton.tagName).toBe("BUTTON");
+  });
+
+  it("'Filtrar' button absent when responsive=false", () => {
+    const menu = makeMenu();
+    const { container } = render(
+      <MenuPreview menu={menu} categories={mockCategories} responsive={false} />,
+    );
+    const filtrarButton = screen.queryByText("Filtrar");
+    expect(filtrarButton).not.toBeInTheDocument();
+  });
+
+  it("no share button in business-name row when onShare provided", () => {
+    const menu = makeMenu();
+    const onShare = vi.fn();
+    render(
+      <MenuPreview
+        menu={menu}
+        categories={mockCategories}
+        responsive={true}
+        onShare={onShare}
+      />,
+    );
+    const shareButton = screen.queryByTitle("Share menu");
+    expect(shareButton).not.toBeInTheDocument();
+  });
+
+  it("no language button in business-name row when show_filters=true", () => {
+    const menu = makeMenu({ show_filters: true });
+    render(
+      <MenuPreview menu={menu} categories={mockCategories} responsive={true} />,
+    );
+    const langButton = screen.queryByText("Español");
+    // Only the overlay has Español, the old inline button is gone
+    // We verify there's no button with "Español" outside the cover
+    const allLangButtons = screen.queryAllByText("Español");
+    // There should be exactly 1 (the overlay inside cover)
+    expect(allLangButtons).toHaveLength(1);
+  });
 });
 
 // ── Tests: PublicMenu ─────────────────────────────────────────────────
@@ -160,5 +285,17 @@ describe("PublicMenu", () => {
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper.style.width).toBe("100%");
     expect(wrapper.style.height).toBe("100dvh");
+  });
+
+  it("page wrapper constrains PublicMenu to max-w-md mx-auto", () => {
+    const menu = makeMenu();
+    const { container } = render(
+      <div className="max-w-md mx-auto">
+        <PublicMenu menu={menu} categories={mockCategories} />
+      </div>,
+    );
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper.classList.contains("max-w-md")).toBe(true);
+    expect(wrapper.classList.contains("mx-auto")).toBe(true);
   });
 });

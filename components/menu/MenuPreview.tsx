@@ -95,8 +95,8 @@ export function MenuPreview({
   return (
     <div
       className={cn(
-        "relative flex flex-col bg-white overflow-hidden p-2",
-        !responsive && "rounded-2xl p-2 border border-[#E4E4E6] my-10 mx-auto",
+        "relative flex flex-col bg-white overflow-hidden rounded-2xl",
+        !responsive && "border border-[#E4E4E6] my-10 mx-auto",
       )}
       style={{
         ...(responsive
@@ -117,7 +117,7 @@ export function MenuPreview({
             loading="eager"
             src={coverImage}
             alt="Portada del menú"
-            className={cn("object-cover rounded-2xl")}
+            className={cn("object-cover rounded-2xl p-2")}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
@@ -126,9 +126,31 @@ export function MenuPreview({
             loading="eager"
             src={coverPlaceholder}
             alt="Portada del menú"
-            className={cn("object-cover rounded-2xl")}
+            className={cn("object-cover rounded-2xl p-2")}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
+        )}
+
+        {/* Share overlay — rendered when onShare provided and responsive */}
+        {onShare && responsive && (
+          <button
+            onClick={onShare}
+            className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
+            aria-label="Compartir menú"
+          >
+            <ShareIcon />
+          </button>
+        )}
+
+        {/* Language overlay — rendered when show_filters is true and responsive */}
+        {menu.show_filters && responsive && (
+          <button
+            className="absolute top-3 left-3 flex items-center gap-0.5 px-2.5 py-1.5 rounded-full bg-white/80 backdrop-blur-sm text-[12px] text-gray-600 font-medium hover:bg-white transition-colors"
+            aria-label="Cambiar idioma"
+          >
+            Español
+            <ChevronDownSmallIcon />
+          </button>
         )}
 
         <div
@@ -166,20 +188,9 @@ export function MenuPreview({
             {businessName || "Nombre del local"}
           </p>
         </div>
-        {menu.show_filters && (
+        {responsive && (
           <button className="flex items-center gap-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-600 font-medium whitespace-nowrap shrink-0 mt-0.5">
-            Español
-            <ChevronDownSmallIcon />
-          </button>
-        )}
-        {onShare && (
-          <button
-            onClick={onShare}
-            className="flex items-center gap-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-600 font-medium whitespace-nowrap shrink-0 mt-0.5 hover:bg-gray-50"
-            title="Share menu"
-          >
-            <ShareIcon />
-            Share
+            Filtrar
           </button>
         )}
       </div>

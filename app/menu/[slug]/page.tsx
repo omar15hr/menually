@@ -21,12 +21,14 @@ export default async function PublicMenuPage({ params }: Props) {
   ]);
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5]">
-      <PublicMenu
-        menu={menu}
-        categories={categories ?? []}
-        promotions={promotions ?? []}
-      />
+    <div className="min-h-screen">
+      <div className="max-w-md mx-auto">
+        <PublicMenu
+          menu={menu}
+          categories={categories ?? []}
+          promotions={promotions ?? []}
+        />
+      </div>
     </div>
   );
 }
