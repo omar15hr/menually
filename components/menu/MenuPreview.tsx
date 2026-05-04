@@ -5,12 +5,12 @@ import { useState } from "react";
 import type { Database } from "@/types/database.types";
 import type { Promotion } from "@/types/promotions.types";
 import type { CategoryWithProducts } from "@/types/categories.types";
-import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { PromotionCarousel } from "../promotions/PromotionCarousel";
 import ShareIcon from "../icons/ShareIcon";
 import ChevronDownSmallIcon from "../icons/ChevronDownSmallIcon";
-import EmptyBoxIcon from "../icons/EmptyBoxIcon";
-import ProductPlaceholderIcon from "../icons/ProductPlaceholderIcon";
+import { ProductCard } from "./ProductCard";
+import { CategoryTabs } from "./CategoryTabs";
+import { EmptyProductsState } from "./EmptyProductsState";
 
  type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
@@ -185,98 +185,30 @@ export function MenuPreview({
         />
       </div>
 
-      <ScrollArea className="w-full mt-1">
-        <div className="flex px-4 gap-5 border-b border-gray-100 pb-2">
-          {tabs.map((tab, i) => (
-            <button
-              key={i}
-              onClick={() => handleTabChange(i)}
-              className="pb-2 text-base font-bold whitespace-nowrap"
-              style={{
-                color:
-                  activeTab === i ? menu.primary_color || "#2563EB" : "#9CA3AF",
-                borderBottom:
-                  activeTab === i
-                    ? `2px solid ${menu.primary_color || "#2563EB"}`
-                    : "2px solid transparent",
-              }}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      <CategoryTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        primaryColor={menu.primary_color || undefined}
+        onTabChange={handleTabChange}
+      />
 
       <div className="overflow-y-auto flex-1 px-4 flex flex-col divide-y divide-gray-100">
-        {products.map((product) => {
-          const isVertical = menu.layout_card === "vertical";
-
-          return (
-            <div
-              key={product.id}
-              onClick={() => onProductClick?.(product.id)}
-              className={`flex gap-3 py-3 ${isVertical ? "flex-col" : "flex-row items-center"} cursor-pointer`}
-            >
-              <div>
-                {product.image ? (
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={80}
-                    height={80}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className={`${imageShape} object-cover overflow-hidden bg-[#F5EEE8] shrink-0 flex items-center justify-center ${isVertical ? "w-full" : ""}`}
-                    style={
-                      isVertical ? { height: 120 } : { width: 56, height: 56 }
-                    }
-                  />
-                ) : (
-                  <ProductPlaceholderIcon size={isVertical ? 36 : 28} />
-                )}
-              </div>
-
-              <div
-                className={`flex min-w-0 ${isVertical ? "flex-col" : "flex-1 flex-row items-center gap-3"}`}
-              >
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="font-semibold text-sm leading-tight truncate"
-                    style={{ color: menu.text_color || "#000000" }}
-                  >
-                    {product.name}
-                  </p>
-                  {menu.show_descriptions && product.description && (
-                    <p
-                      className="text-sm leading-tight mt-0.5 truncate"
-                      style={{ color: menu.description_color || "#6B7280" }}
-                    >
-                      {product.description}
-                    </p>
-                  )}
-                </div>
-
-                {menu.show_price && product.price > 0 && (
-                  <span
-                    className={`text-sm font-bold shrink-0 ${isVertical ? "mt-1" : ""}`}
-                    style={{ color: menu.price_color || "#000000" }}
-                  >
-                    {formatPrice(product.price)}
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-        {products.length === 0 && (
-          <div className="flex flex-col items-center justify-center text-center py-10 h-full text-gray-400">
-            <EmptyBoxIcon />
-            <p className="text-sm">
-              Aún no hay productos <br />
-              en esta categoría.
-            </p>
-          </div>
-        )}
+        {products.map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            imageShape={imageShape}
+            isVertical={menu.layout_card === "vertical"}
+            textColor={menu.text_color || undefined}
+            descriptionColor={menu.description_color || undefined}
+            priceColor={menu.price_color || undefined}
+            showDescriptions={menu.show_descriptions}
+            showPrice={menu.show_price}
+            onProductClick={onProductClick}
+            formatPrice={formatPrice}
+          />
+        ))}
+        {products.length === 0 && <EmptyProductsState />}
       </div>
     </div>
   );

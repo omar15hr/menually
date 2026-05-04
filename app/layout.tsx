@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import { Figtree, Geist } from "next/font/google";
+import { Figtree } from "next/font/google";
 
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
-
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Menually",
@@ -31,7 +29,6 @@ export default function RootLayout({
         "h-full",
         "font-sans",
         "antialiased",
-        geist.variable,
         figtree.className,
       )}
     >

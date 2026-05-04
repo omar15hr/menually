@@ -4,7 +4,6 @@ import { useMenuStore } from "@/store/useMenuStore";
 import { useMenuTracking } from "@/hooks/useMenuTracking";
 import { useCategoryHydration } from "@/hooks/useCategoryHydration";
 import { MenuPreview } from "@/components/menu/MenuPreview";
-import { PrivacyBanner } from "@/components/PrivacyBanner";
 import type { Database } from "@/types/database.types";
 import type { Promotion } from "@/types/promotions.types";
 import type { CategoryWithProducts } from "@/types/categories.types";
@@ -37,7 +36,6 @@ export function PublicMenu({
 
   return (
     <>
-      <PrivacyBanner />
       <MenuPreview
         menu={menu}
         categories={categories}

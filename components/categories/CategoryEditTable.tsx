@@ -3,9 +3,7 @@
 import { toast } from "sonner";
 import {
   useOptimistic,
-  useRef,
   useMemo,
-  useState,
   startTransition,
 } from "react";
 import {
@@ -23,16 +21,11 @@ import {
 } from "@dnd-kit/sortable";
 
 import { cn } from "@/lib/utils";
-import XIcon from "../icons/XIcon";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import PlusIcon from "../icons/PlusIcon";
-import CheckIcon from "../icons/CheckIcon";
-import LoaderIcon from "../icons/LoaderIcon";
 import { useMenuStore } from "@/store/useMenuStore";
 import type { CategoryWithProducts } from "@/types/categories.types";
 import { createCategory, reorderCategories } from "@/actions/categories.action";
 import SortableCategoryItem from "./SortableCategoryItem";
+import { AddCategoryForm } from "./AddCategoryForm";
 
 interface Props {
   menuId: string;
@@ -48,9 +41,6 @@ export default function CategoryEditTable({ menuId }: Props) {
     reorderCategories: reorderStoreCategories,
   } = useMenuStore();
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -59,12 +49,6 @@ export default function CategoryEditTable({ menuId }: Props) {
     }),
     useSensor(KeyboardSensor),
   );
-
-  function handleCancel() {
-    setIsEditing(false);
-    if (inputRef.current) inputRef.current.value = "";
-  }
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const [optimisticCategories, addOptimisticCategory] = useOptimistic(
     categories,
@@ -79,13 +63,7 @@ export default function CategoryEditTable({ menuId }: Props) {
     return selectedCategoryId ?? optimisticCategories[0].id;
   }, [optimisticCategories, selectedCategoryId]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const name = inputRef.current?.value.trim();
-    if (!name) return;
-
-    setIsPending(true);
-
+  async function handleCategorySubmit(name: string) {
     const optimisticEntry: CategoryWithProducts = {
       id: `optimistic-${Date.now()}`,
       menu_id: menuId,
@@ -102,9 +80,11 @@ export default function CategoryEditTable({ menuId }: Props) {
 
     const { error } = await createCategory({ menu_id: menuId, name });
 
-    if (error) return toast.error("Error al crear categoría");
-    setIsPending(false);
-    toast.success("Categoría creada");
+    if (error) {
+      return { error };
+    }
+
+    return {};
   }
 
   async function handleDragEnd(event: DragEndEvent) {
@@ -116,9 +96,6 @@ export default function CategoryEditTable({ menuId }: Props) {
     const newIndex = categories.findIndex((cat) => cat.id === over.id);
 
     if (oldIndex === -1 || newIndex === -1) return;
-
-    // Store current order for rollback
-    const previousOrder = [...categories];
 
     // Optimistic update
     reorderStoreCategories(oldIndex, newIndex);
@@ -204,49 +181,7 @@ export default function CategoryEditTable({ menuId }: Props) {
         </SortableContext>
       </DndContext>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 p-4">
-        {isEditing ? (
-          <div className="flex gap-2">
-            <Input
-              ref={inputRef}
-              autoFocus
-              type="text"
-              placeholder="Ej. Platos principales"
-              autoComplete="off"
-            />
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="flex-1 text-[#114821] rounded-none cursor-pointer bg-white"
-            >
-              {isPending ? (
-                <LoaderIcon className="text-white animate-spin" />
-              ) : (
-                <CheckIcon className="size-8" fill="#64748B" />
-              )}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={isPending}
-              onClick={handleCancel}
-              className="rounded-none text-gray-500 hover:text-gray-700 cursor-pointer"
-            >
-              <XIcon />
-            </Button>
-          </div>
-        ) : (
-          <Button
-            type="button"
-            onClick={() => setIsEditing(true)}
-            className="bg-white border border-[#E4E4E6] py-6 w-full rounded-none cursor-pointer"
-          >
-            <span className="flex items-center gap-2 text-[#114821] text-base font-semibold">
-              <PlusIcon /> Añadir categoría
-            </span>
-          </Button>
-        )}
-      </form>
+      <AddCategoryForm onSubmit={handleCategorySubmit} />
     </div>
   );
 }
