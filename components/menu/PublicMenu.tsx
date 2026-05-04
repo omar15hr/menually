@@ -43,6 +43,7 @@ export function PublicMenu({
         onProductClick={trackProductClick}
         onCategoryChange={handleCategoryChange}
         promotions={promotions}
+        responsive={true}
       />
     </>
   );

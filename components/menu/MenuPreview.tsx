@@ -8,6 +8,7 @@ import type { CategoryWithProducts } from "@/types/categories.types";
 import { PromotionCarousel } from "../promotions/PromotionCarousel";
 import ShareIcon from "../icons/ShareIcon";
 import ChevronDownSmallIcon from "../icons/ChevronDownSmallIcon";
+import { cn } from "@/lib/utils";
 import { ProductCard } from "./ProductCard";
 import { CategoryTabs } from "./CategoryTabs";
 import { EmptyProductsState } from "./EmptyProductsState";
@@ -25,6 +26,7 @@ interface Props {
   onCategoryChange?: (categoryId: string) => void;
   promotions?: Promotion[];
   onPromotionClick?: (promotion: Promotion) => void;
+  responsive?: boolean;
 }
 
 const shapeMap: Record<string, string> = {
@@ -52,6 +54,7 @@ export function MenuPreview({
   onCategoryChange,
   promotions = [],
   onPromotionClick,
+  responsive = false,
 }: Props) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -91,11 +94,15 @@ export function MenuPreview({
 
   return (
     <div
-      className="relative flex flex-col bg-white rounded-2xl overflow-hidden p-2 border border-[#E4E4E6] my-10 mx-auto"
+      className={cn(
+        "relative flex flex-col bg-white overflow-hidden p-2",
+        !responsive && "rounded-2xl p-2 border border-[#E4E4E6] my-10 mx-auto",
+      )}
       style={{
-        width: 344,
-        height: 800,
-        flexShrink: 0,
+        ...(responsive
+          ? { width: "100%", height: "100dvh" }
+          : { width: 344, height: 800, flexShrink: 0 }
+        ),
         fontFamily: `var(--font-${menu.typography}, inherit)`,
         backgroundColor: menu.bg_color,
       }}
@@ -110,7 +117,7 @@ export function MenuPreview({
             loading="eager"
             src={coverImage}
             alt="Portada del menú"
-            className="object-cover rounded-2xl"
+            className={cn("object-cover rounded-2xl")}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
@@ -119,7 +126,7 @@ export function MenuPreview({
             loading="eager"
             src={coverPlaceholder}
             alt="Portada del menú"
-            className="object-cover rounded-2xl"
+            className={cn("object-cover rounded-2xl")}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         )}
