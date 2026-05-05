@@ -5,15 +5,18 @@ import { useState } from "react";
 import type { Database } from "@/types/database.types";
 import type { Promotion } from "@/types/promotions.types";
 import type { CategoryWithProducts } from "@/types/categories.types";
+import type { TranslationsMap } from "@/types/translations.types";
+import { useLanguageStore } from "@/store/useLanguageStore";
+import { applyTranslations, UI_STRINGS } from "@/lib/translations";
 import { PromotionCarousel } from "../promotions/PromotionCarousel";
 import ShareIcon from "../icons/ShareIcon";
-import ChevronDownSmallIcon from "../icons/ChevronDownSmallIcon";
 import { cn } from "@/lib/utils";
 import { ProductCard } from "./ProductCard";
 import { CategoryTabs } from "./CategoryTabs";
 import { EmptyProductsState } from "./EmptyProductsState";
+import { LanguageSelector } from "./LanguageSelector";
 
- type Menu = Database["public"]["Tables"]["menus"]["Row"];
+type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
 interface Props {
   menu: Menu;
@@ -27,6 +30,8 @@ interface Props {
   promotions?: Promotion[];
   onPromotionClick?: (promotion: Promotion) => void;
   responsive?: boolean;
+  translations?: TranslationsMap;
+  showLanguageSelector?: boolean;
 }
 
 const shapeMap: Record<string, string> = {
@@ -55,8 +60,11 @@ export function MenuPreview({
   promotions = [],
   onPromotionClick,
   responsive = false,
+  translations,
+  showLanguageSelector = false,
 }: Props) {
   const [activeTab, setActiveTab] = useState(0);
+  const { language } = useLanguageStore();
 
   const formatPrice = (price: number) => `$${price.toLocaleString("es-CL")}`;
 
@@ -66,20 +74,47 @@ export function MenuPreview({
   const imageShape =
     shapeMap[menu.image_product_shape ?? "rounded"] ?? "rounded-xl";
 
+  // Apply translations if available and language is not Spanish
+  const translatedCategories =
+    translations && language !== "es" && categories
+      ? applyTranslations(categories, translations, language, "category", [
+          "name",
+        ]).map((cat) => ({
+          ...cat,
+          products: applyTranslations(
+            cat.products,
+            translations,
+            language,
+            "product",
+            ["name", "description"],
+          ),
+        }))
+      : categories;
+
+  const translatedPromotions =
+    translations && language !== "es"
+      ? applyTranslations(promotions, translations, language, "promotion", [
+          "title",
+          "description",
+        ])
+      : promotions;
+
   const tabs =
-    categories && categories.length > 0 ? categories.map((c) => c.name) : [];
+    translatedCategories && translatedCategories.length > 0
+      ? translatedCategories.map((c) => c.name)
+      : [];
 
   function handleTabChange(index: number) {
     setActiveTab(index);
-    const cat = categories?.[index];
+    const cat = translatedCategories?.[index];
     if (cat && onCategoryChange) {
       onCategoryChange(cat.id);
     }
   }
 
   const products: DisplayProduct[] =
-    categories && categories.length > 0
-      ? (categories[activeTab]?.products ?? []).map((p) => ({
+    translatedCategories && translatedCategories.length > 0
+      ? (translatedCategories[activeTab]?.products ?? []).map((p) => ({
           id: p.id,
           name: p.name,
           description: p.description,
@@ -87,10 +122,13 @@ export function MenuPreview({
           image: p.image_url,
         }))
       : [];
+
   const coverPlaceholder =
     "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/background-image-placeholder.png";
   const logoPlaceholder =
     "https://rfizreodpxlnsskujhyg.supabase.co/storage/v1/object/public/images/menually/logo-image-placeholder.png";
+
+  const ui = UI_STRINGS[language];
 
   return (
     <div
@@ -116,7 +154,7 @@ export function MenuPreview({
             fill
             loading="eager"
             src={coverImage}
-            alt="Portada del menú"
+            alt={ui.coverAlt}
             className={cn("object-cover rounded-2xl p-2")}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
@@ -125,7 +163,7 @@ export function MenuPreview({
             fill
             loading="eager"
             src={coverPlaceholder}
-            alt="Portada del menú"
+            alt={ui.coverAlt}
             className={cn("object-cover rounded-2xl p-2")}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
@@ -136,21 +174,17 @@ export function MenuPreview({
           <button
             onClick={onShare}
             className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
-            aria-label="Compartir menú"
+            aria-label={ui.shareAriaLabel}
           >
             <ShareIcon />
           </button>
         )}
 
-        {/* Language overlay — rendered when show_filters is true and responsive */}
-        {menu.show_filters && responsive && (
-          <button
-            className="absolute top-3 left-3 flex items-center gap-0.5 px-2.5 py-1.5 rounded-full bg-white/80 backdrop-blur-sm text-[12px] text-gray-600 font-medium hover:bg-white transition-colors"
-            aria-label="Cambiar idioma"
-          >
-            Español
-            <ChevronDownSmallIcon />
-          </button>
+        {/* Language selector — rendered when show_filters is true and responsive, or when showLanguageSelector is true */}
+        {((menu.show_filters && responsive) || showLanguageSelector) && (
+          <div className="absolute top-3 left-3">
+            <LanguageSelector />
+          </div>
         )}
 
         <div
@@ -190,7 +224,7 @@ export function MenuPreview({
         </div>
         {responsive && (
           <button className="flex items-center gap-1 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-600 font-medium whitespace-nowrap shrink-0 mt-0.5">
-            Filtrar
+            {ui.filter}
           </button>
         )}
       </div>
@@ -198,7 +232,7 @@ export function MenuPreview({
       {/* Promotions Carousel — arriba de los tabs */}
       <div className="px-4">
         <PromotionCarousel
-          promotions={promotions}
+          promotions={translatedPromotions}
           onPromotionClick={onPromotionClick}
         />
       </div>

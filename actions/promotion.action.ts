@@ -21,6 +21,7 @@ import {
   type ActionSuccess,
   type ActionSuccessWithData,
 } from "@/lib/security/server-action-guards";
+import { generateEntityTranslations } from "./translate.action";
 
 // ─── Create ──────────────────────────────────────────────────────────────────
 
@@ -149,6 +150,12 @@ export async function createPromotion(
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
+  // Fire-and-forget AI translation generation
+  void generateEntityTranslations("promotion", inserted.id, menu.id, {
+    title: inserted.title,
+    description: inserted.description ?? "",
+  });
+
   revalidatePath("/dashboard/promotions");
   revalidatePath("/dashboard/menu");
 
@@ -256,6 +263,14 @@ export async function updatePromotion(
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
+  }
+
+  // Fire-and-forget AI translation generation
+  if (updated) {
+    void generateEntityTranslations("promotion", updated.id, ownershipResult.menuId, {
+      title: updated.title,
+      description: updated.description ?? "",
+    });
   }
 
   revalidatePath("/dashboard/promotions");

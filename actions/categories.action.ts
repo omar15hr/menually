@@ -15,6 +15,7 @@ import {
   requireCategoryOwner,
   assertValidRevalidatePaths,
 } from "@/lib/security/server-action-guards";
+import { generateEntityTranslations } from "./translate.action";
 
 /**
  * Obtiene las categorías de un menú.
@@ -95,6 +96,13 @@ export async function createCategory(
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
+  // Fire-and-forget AI translation generation
+  if (data) {
+    void generateEntityTranslations("category", data.id, input.menu_id, {
+      name: data.name,
+    });
+  }
+
   revalidatePath("/dashboard/menu/menu-content");
   return { data, error: null };
 }
@@ -136,6 +144,21 @@ export async function updateCategory(
     .single();
 
   if (error) return { data: null, error: error.message };
+
+  // Fire-and-forget AI translation generation if name changed
+  if (data && input.name !== undefined) {
+    const { data: category } = await supabase
+      .from("categories")
+      .select("menu_id")
+      .eq("id", id)
+      .single();
+    if (category) {
+      void generateEntityTranslations("category", data.id, category.menu_id, {
+        name: data.name,
+      });
+    }
+  }
+
   return { data, error: null };
 }
 

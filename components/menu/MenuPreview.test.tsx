@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MenuPreview } from "./MenuPreview";
 import { PublicMenu } from "./PublicMenu";
+import { useLanguageStore } from "@/store/useLanguageStore";
 
 // ── Mocks ─────────────────────────────────────────────────────────────
 
@@ -39,6 +40,13 @@ vi.mock("@/hooks/useMenuTracking", () => ({
 
 vi.mock("@/hooks/useCategoryHydration", () => ({
   useCategoryHydration: vi.fn(),
+}));
+
+vi.mock("@/store/useLanguageStore", () => ({
+  useLanguageStore: vi.fn((selector?: (state: { language: string }) => unknown) => {
+    const state = { language: "es" };
+    return selector ? selector(state) : state;
+  }),
 }));
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -271,6 +279,134 @@ describe("MenuPreview", () => {
     const allLangButtons = screen.queryAllByText("Español");
     // There should be exactly 1 (the overlay inside cover)
     expect(allLangButtons).toHaveLength(1);
+  });
+
+  it("language selector renders when showLanguageSelector=true even if show_filters=false", () => {
+    const menu = makeMenu({ show_filters: false });
+    const { container } = render(
+      <MenuPreview
+        menu={menu}
+        categories={mockCategories}
+        responsive={false}
+        showLanguageSelector={true}
+      />,
+    );
+    const coverDiv = container.querySelector("div[style=\"height: 190px;\"]");
+    const langButton = coverDiv?.querySelector('button[aria-label="Cambiar idioma"]');
+    expect(langButton).toBeTruthy();
+  });
+
+  it("renders translated content when translations map provided and language is en", () => {
+    (useLanguageStore as any).mockImplementation((selector?: (state: { language: string }) => unknown) => {
+      const state = { language: "en", setLanguage: vi.fn() };
+      return selector ? selector(state) : state;
+    });
+
+    const categories = [
+      {
+        id: "cat-1",
+        name: "Entradas",
+        menu_id: "menu-1",
+        position: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        products: [
+          {
+            id: "prod-1",
+            name: "Empanada",
+            description: "Rica empanada",
+            price: 100,
+            category_id: "cat-1",
+            image_url: null,
+            is_available: true,
+            labels: null,
+            position: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ],
+      },
+    ];
+
+    const translations: import("@/types/translations.types").TranslationsMap = new Map();
+    translations.set("category:cat-1:name", { en: "Starters" });
+    translations.set("product:prod-1:name", { en: "Meat Pie" });
+    translations.set("product:prod-1:description", { en: "Tasty pastry" });
+
+    render(
+      <MenuPreview
+        menu={makeMenu()}
+        categories={categories}
+        translations={translations}
+        responsive={true}
+      />,
+    );
+
+    expect(screen.getByText("Starters")).toBeInTheDocument();
+    expect(screen.getByText("Meat Pie")).toBeInTheDocument();
+    expect(screen.getByText("Tasty pastry")).toBeInTheDocument();
+  });
+
+  it("renders 'Filter' when language is en", () => {
+    (useLanguageStore as any).mockImplementation((selector?: (state: { language: string }) => unknown) => {
+      const state = { language: "en", setLanguage: vi.fn() };
+      return selector ? selector(state) : state;
+    });
+
+    render(
+      <MenuPreview menu={makeMenu()} categories={mockCategories} responsive={true} />,
+    );
+    expect(screen.getByText("Filter")).toBeInTheDocument();
+  });
+
+  it("falls back to Spanish when translation is missing for a field", () => {
+    (useLanguageStore as any).mockImplementation((selector?: (state: { language: string }) => unknown) => {
+      const state = { language: "en", setLanguage: vi.fn() };
+      return selector ? selector(state) : state;
+    });
+
+    const categories = [
+      {
+        id: "cat-1",
+        name: "Entradas",
+        menu_id: "menu-1",
+        position: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        products: [
+          {
+            id: "prod-1",
+            name: "Empanada",
+            description: "Rica empanada",
+            price: 100,
+            category_id: "cat-1",
+            image_url: null,
+            is_available: true,
+            labels: null,
+            position: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ],
+      },
+    ];
+
+    const translations: import("@/types/translations.types").TranslationsMap = new Map();
+    translations.set("category:cat-1:name", { en: "Starters" });
+    // No product translations
+
+    render(
+      <MenuPreview
+        menu={makeMenu()}
+        categories={categories}
+        translations={translations}
+        responsive={true}
+      />,
+    );
+
+    expect(screen.getByText("Starters")).toBeInTheDocument();
+    expect(screen.getByText("Empanada")).toBeInTheDocument();
+    expect(screen.getByText("Rica empanada")).toBeInTheDocument();
   });
 });
 

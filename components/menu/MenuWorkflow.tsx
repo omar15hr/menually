@@ -131,6 +131,7 @@ export default function MenuWorkflow({
           categories={categories}
           businessName={profiles?.business_name ?? null}
           promotions={promotions}
+          showLanguageSelector={true}
         />
       </div>
     </div>
