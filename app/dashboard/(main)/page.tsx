@@ -5,6 +5,8 @@ import WithoutMenu from "@/components/dashboard/WithoutMenu";
 import { getMenuByUserId } from "@/lib/queries/menu.queries";
 import { getProfileByUserId } from "@/lib/queries/profile.queries";
 import { getCategoriesByMenuId } from "@/lib/queries/categories.queries";
+import { getBusiness } from "@/actions/business.action";
+import IncompleteProfileBanner from "@/components/dashboard/IncompleteProfileBanner";
 
 export default async function DashboardPage() {
   const user = await getAuthUser();
@@ -13,10 +15,12 @@ export default async function DashboardPage() {
 
   const profile = await getProfileByUserId(user.id);
   const categories = menu ? await getCategoriesByMenuId(menu.id) : [];
+  const business = await getBusiness(user.id);
 
   return (
     <div className="w-full bg-white flex flex-col min-h-screen">
       <Header />
+      <IncompleteProfileBanner hasBusiness={business !== null} />
 
       {menu ? (
         <WithMenu profile={profile} categories={categories} />
