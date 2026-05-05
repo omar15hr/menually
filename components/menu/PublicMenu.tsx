@@ -48,6 +48,7 @@ export function PublicMenu({
         promotions={promotions}
         responsive={true}
         translations={translations}
+        showLanguageSelector={true}
       />
     </>
   );

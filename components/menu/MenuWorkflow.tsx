@@ -7,6 +7,7 @@ import { Spinner } from "../ui/spinner";
 import { updateMenu } from "@/actions/menu.action";
 import type { Database } from "@/types/database.types";
 import type { Promotion } from "@/types/promotions.types";
+import type { TranslationsMap } from "@/types/translations.types";
 import { MenuPreview } from "@/components/menu/MenuPreview";
 import { MenuEditTable } from "@/components/menu/MenuEditTable";
 import type { UpdateMenuSchema } from "@/lib/validations/menu.schemas";
@@ -22,6 +23,7 @@ interface Props {
   categories: CategoryWithProducts[];
   profiles: Profile | null;
   promotions?: Promotion[];
+  translations?: TranslationsMap;
 }
 
 export default function MenuWorkflow({
@@ -29,6 +31,7 @@ export default function MenuWorkflow({
   categories,
   profiles,
   promotions = [],
+  translations,
 }: Props) {
   const [menu, setMenu] = useState<Menu>(initialMenu);
   const [editMenu, setEditMenu] = useState<Menu>(initialMenu);
@@ -131,6 +134,7 @@ export default function MenuWorkflow({
           categories={categories}
           businessName={profiles?.business_name ?? null}
           promotions={promotions}
+          translations={translations}
           showLanguageSelector={true}
         />
       </div>
