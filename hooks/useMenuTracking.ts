@@ -5,6 +5,7 @@ import { useMenuStore } from "@/store/useMenuStore";
 import { getSession, setSession } from "@/lib/analytics/session";
 import { registerScan } from "@/actions/scan.action";
 import { trackEvent } from "@/actions/track.event.action";
+import { toast } from "sonner";
 
 interface UseMenuTrackingProps {
   businessId: string;
@@ -141,7 +142,25 @@ export function useMenuTracking({
     formData.set("session_id", sessionRef.current.id);
     formData.set("business_id", businessId);
     trackEvent(null, formData).catch(() => {});
-  }, [businessId]);
+
+    if (!menuSlug) {
+      toast.error("URL del menú no disponible");
+      return;
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const menuUrl = `${baseUrl}/menu/${menuSlug}`;
+
+    if (!navigator.clipboard) {
+      toast.error("Error al copiar el enlace");
+      return;
+    }
+
+    navigator.clipboard
+      .writeText(menuUrl)
+      .then(() => toast.success("Enlace copiado al portapapeles"))
+      .catch(() => toast.error("Error al copiar el enlace"));
+  }, [businessId, menuSlug]);
 
   return {
     trackShare,
