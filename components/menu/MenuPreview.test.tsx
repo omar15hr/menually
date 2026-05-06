@@ -295,119 +295,6 @@ describe("MenuPreview", () => {
     const langButton = coverDiv?.querySelector('button[aria-label="Cambiar idioma"]');
     expect(langButton).toBeTruthy();
   });
-
-  it("renders translated content when translations map provided and language is en", () => {
-    (useLanguageStore as any).mockImplementation((selector?: (state: { language: string }) => unknown) => {
-      const state = { language: "en", setLanguage: vi.fn() };
-      return selector ? selector(state) : state;
-    });
-
-    const categories = [
-      {
-        id: "cat-1",
-        name: "Entradas",
-        menu_id: "menu-1",
-        position: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        products: [
-          {
-            id: "prod-1",
-            name: "Empanada",
-            description: "Rica empanada",
-            price: 100,
-            category_id: "cat-1",
-            image_url: null,
-            is_available: true,
-            labels: null,
-            position: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ],
-      },
-    ];
-
-    const translations: import("@/types/translations.types").TranslationsMap = new Map();
-    translations.set("category:cat-1:name", { en: "Starters" });
-    translations.set("product:prod-1:name", { en: "Meat Pie" });
-    translations.set("product:prod-1:description", { en: "Tasty pastry" });
-
-    render(
-      <MenuPreview
-        menu={makeMenu()}
-        categories={categories}
-        translations={translations}
-        responsive={true}
-      />,
-    );
-
-    expect(screen.getByText("Starters")).toBeInTheDocument();
-    expect(screen.getByText("Meat Pie")).toBeInTheDocument();
-    expect(screen.getByText("Tasty pastry")).toBeInTheDocument();
-  });
-
-  it("renders 'Filter' when language is en", () => {
-    (useLanguageStore as any).mockImplementation((selector?: (state: { language: string }) => unknown) => {
-      const state = { language: "en", setLanguage: vi.fn() };
-      return selector ? selector(state) : state;
-    });
-
-    render(
-      <MenuPreview menu={makeMenu()} categories={mockCategories} responsive={true} />,
-    );
-    expect(screen.getByText("Filter")).toBeInTheDocument();
-  });
-
-  it("falls back to Spanish when translation is missing for a field", () => {
-    (useLanguageStore as any).mockImplementation((selector?: (state: { language: string }) => unknown) => {
-      const state = { language: "en", setLanguage: vi.fn() };
-      return selector ? selector(state) : state;
-    });
-
-    const categories = [
-      {
-        id: "cat-1",
-        name: "Entradas",
-        menu_id: "menu-1",
-        position: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        products: [
-          {
-            id: "prod-1",
-            name: "Empanada",
-            description: "Rica empanada",
-            price: 100,
-            category_id: "cat-1",
-            image_url: null,
-            is_available: true,
-            labels: null,
-            position: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ],
-      },
-    ];
-
-    const translations: import("@/types/translations.types").TranslationsMap = new Map();
-    translations.set("category:cat-1:name", { en: "Starters" });
-    // No product translations
-
-    render(
-      <MenuPreview
-        menu={makeMenu()}
-        categories={categories}
-        translations={translations}
-        responsive={true}
-      />,
-    );
-
-    expect(screen.getByText("Starters")).toBeInTheDocument();
-    expect(screen.getByText("Empanada")).toBeInTheDocument();
-    expect(screen.getByText("Rica empanada")).toBeInTheDocument();
-  });
 });
 
 // ── Tests: PublicMenu ─────────────────────────────────────────────────
@@ -449,156 +336,22 @@ describe("PublicMenu", () => {
     expect(wrapper.classList.contains("mx-auto")).toBe(true);
   });
 
- // ── Tests: PublicMenu + Translations integration ─────────────────────
+  it("renders LanguageSelector even when show_filters is false", () => {
+    const menu = makeMenu({ show_filters: false });
+    render(
+      <PublicMenu menu={menu} categories={mockCategories} />,
+    );
+    const langButton = screen.getByRole("button", { name: /Cambiar idioma|Change language|Mudar idioma/i });
+    expect(langButton).toBeInTheDocument();
+  });
 
- describe("PublicMenu with translations", () => {
-    it("renders LanguageSelector even when show_filters is false", () => {
-      const menu = makeMenu({ show_filters: false });
-      render(
-        <PublicMenu menu={menu} categories={mockCategories} />,
-      );
-      const langButton = screen.getByRole("button", { name: /Cambiar idioma|Change language|Mudar idioma/i });
-      expect(langButton).toBeInTheDocument();
-    });
-
-    it("renders LanguageSelector when show_filters is true", () => {
-      const menu = makeMenu({ show_filters: true });
-      render(
-        <PublicMenu menu={menu} categories={mockCategories} />,
-      );
-      const langButton = screen.getByRole("button", { name: /Cambiar idioma|Change language|Mudar idioma/i });
-      expect(langButton).toBeInTheDocument();
-    });
-
-   it("passes translations to MenuPreview and applies them", () => {
-     (useLanguageStore as any).mockImplementation((selector?: (state: { language: string }) => unknown) => {
-       const state = { language: "en", setLanguage: vi.fn() };
-       return selector ? selector(state) : state;
-     });
-
-     const categories = [
-       {
-         id: "cat-1",
-         name: "Entradas",
-         menu_id: "menu-1",
-         position: 0,
-         created_at: new Date().toISOString(),
-         updated_at: new Date().toISOString(),
-         products: [
-           {
-             id: "prod-1",
-             name: "Empanada",
-             description: "Rica empanada",
-             price: 100,
-             category_id: "cat-1",
-             image_url: null,
-             is_available: true,
-             labels: null,
-             position: 0,
-             created_at: new Date().toISOString(),
-             updated_at: new Date().toISOString(),
-           },
-         ],
-       },
-     ];
-
-     const translations: import("@/types/translations.types").TranslationsMap = new Map();
-     translations.set("category:cat-1:name", { en: "Starters" });
-     translations.set("product:prod-1:name", { en: "Meat Pie" });
-     translations.set("product:prod-1:description", { en: "Tasty pastry" });
-
-     render(
-       <PublicMenu
-         menu={makeMenu()}
-         categories={categories}
-         translations={translations}
-       />,
-     );
-
-     expect(screen.getByText("Starters")).toBeInTheDocument();
-     expect(screen.getByText("Meat Pie")).toBeInTheDocument();
-     expect(screen.getByText("Tasty pastry")).toBeInTheDocument();
-   });
-
-   it("falls back to Spanish content when translations map is provided but no translations exist for a language", () => {
-     (useLanguageStore as any).mockImplementation((selector?: (state: { language: string }) => unknown) => {
-       const state = { language: "pt", setLanguage: vi.fn() };
-       return selector ? selector(state) : state;
-     });
-
-     const categories = [
-       {
-         id: "cat-1",
-         name: "Entradas",
-         menu_id: "menu-1",
-         position: 0,
-         created_at: new Date().toISOString(),
-         updated_at: new Date().toISOString(),
-         products: [
-           {
-             id: "prod-1",
-             name: "Empanada",
-             description: "Rica empanada",
-             price: 100,
-             category_id: "cat-1",
-             image_url: null,
-             is_available: true,
-             labels: null,
-             position: 0,
-             created_at: new Date().toISOString(),
-             updated_at: new Date().toISOString(),
-           },
-         ],
-       },
-     ];
-
-     // Only English translations exist, no Portuguese
-     const translations: import("@/types/translations.types").TranslationsMap = new Map();
-     translations.set("category:cat-1:name", { en: "Starters" });
-     translations.set("product:prod-1:name", { en: "Meat Pie" });
-
-     render(
-       <PublicMenu
-         menu={makeMenu()}
-         categories={categories}
-         translations={translations}
-       />,
-     );
-
-     // Falls back to Spanish because no Portuguese translations
-     expect(screen.getByText("Entradas")).toBeInTheDocument();
-     expect(screen.getByText("Empanada")).toBeInTheDocument();
-     expect(screen.getByText("Rica empanada")).toBeInTheDocument();
-   });
-
-   it("does not translate when translations prop is undefined", () => {
-     (useLanguageStore as any).mockImplementation((selector?: (state: { language: string }) => unknown) => {
-       const state = { language: "en", setLanguage: vi.fn() };
-       return selector ? selector(state) : state;
-     });
-
-     const categories = [
-       {
-         id: "cat-1",
-         name: "Entradas",
-         menu_id: "menu-1",
-         position: 0,
-         created_at: new Date().toISOString(),
-         updated_at: new Date().toISOString(),
-         products: [],
-       },
-     ];
-
-     render(
-       <PublicMenu
-         menu={makeMenu()}
-         categories={categories}
-       />,
-     );
-
-     // Content stays in Spanish since no translations provided
-      expect(screen.getByText("Entradas")).toBeInTheDocument();
-    });
+  it("renders LanguageSelector when show_filters is true", () => {
+    const menu = makeMenu({ show_filters: true });
+    render(
+      <PublicMenu menu={menu} categories={mockCategories} />,
+    );
+    const langButton = screen.getByRole("button", { name: /Cambiar idioma|Change language|Mudar idioma/i });
+    expect(langButton).toBeInTheDocument();
   });
 });
 

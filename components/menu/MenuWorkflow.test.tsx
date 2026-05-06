@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render } from "@testing-library/react";
 import MenuWorkflow from "./MenuWorkflow";
-import type { TranslationsMap } from "@/types/translations.types";
 
 // ── Mocks ─────────────────────────────────────────────────────────────
 
@@ -120,35 +119,6 @@ describe("MenuWorkflow", () => {
     expect(container.querySelector('[data-testid="menu-edit-table-mock"]')).toBeTruthy();
   });
 
-  it("passes translations prop to MenuPreview when provided", () => {
-    const translations: TranslationsMap = new Map();
-    translations.set("category:cat-1:name", { en: "Starters" });
-
-    render(
-      <MenuWorkflow
-        menu={makeMenu()}
-        categories={mockCategories}
-        profiles={mockProfile}
-        translations={translations}
-      />,
-    );
-
-    expect(mockMenuPreviewProps.translations).toBe(translations);
-    expect(mockMenuPreviewProps.translations).toBeDefined();
-  });
-
-  it("translations is undefined when not provided", () => {
-    render(
-      <MenuWorkflow
-        menu={makeMenu()}
-        categories={mockCategories}
-        profiles={mockProfile}
-      />,
-    );
-
-    expect(mockMenuPreviewProps.translations).toBeUndefined();
-  });
-
   it("passes showLanguageSelector={true} to MenuPreview", () => {
     render(
       <MenuWorkflow
@@ -237,21 +207,5 @@ describe("MenuWorkflow", () => {
 
     expect(mockMenuPreviewProps.logoUrlSelected).toBe("https://example.com/logo.png");
     expect(mockMenuPreviewProps.coverUrlSelected).toBe("https://example.com/cover.jpg");
-  });
-
-  it("empty translations map is passed through correctly", () => {
-    const emptyMap: TranslationsMap = new Map();
-
-    render(
-      <MenuWorkflow
-        menu={makeMenu()}
-        categories={mockCategories}
-        profiles={mockProfile}
-        translations={emptyMap}
-      />,
-    );
-
-    expect(mockMenuPreviewProps.translations).toBe(emptyMap);
-    expect((mockMenuPreviewProps.translations as TranslationsMap).size).toBe(0);
   });
 });

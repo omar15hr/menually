@@ -11,7 +11,7 @@ import {
   type ActionError,
   type ActionSuccess,
 } from "@/lib/security/server-action-guards";
-import { generateEntityTranslations } from "./translate.action";
+
 
 type ProductLabel = Database["public"]["Enums"]["product_label"];
 
@@ -159,12 +159,6 @@ export async function createProduct(
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
-  // Queue AI translation generation; processing is best-effort and observable via translation_jobs.
-  await generateEntityTranslations("product", insertedProduct.id, categoryRow.menu_id, {
-    name: insertedProduct.name,
-    description: insertedProduct.description ?? "",
-  });
-
   revalidatePath("/dashboard/create-menu");
   return {
     success: true,
@@ -268,22 +262,6 @@ export async function batchUpdateProducts(
 
   if (errorMessages.length > 0) {
     return { success: false, message: errorMessages[0], errors: {} };
-  }
-
-  // Fire-and-forget AI translations for updated products
-  for (let i = 0; i < updates.length; i++) {
-    const update = updates[i];
-    const result = results[i];
-    if (
-      result.status === "fulfilled" &&
-      result.value.data &&
-      (update.data.name !== undefined || update.data.description !== undefined)
-    ) {
-      await generateEntityTranslations("product", update.id, userMenu.id, {
-        name: result.value.data.name ?? "",
-        description: result.value.data.description ?? "",
-      });
-    }
   }
 
   // Validate revalidate paths

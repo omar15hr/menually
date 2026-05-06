@@ -2,11 +2,16 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useLanguageStore } from "@/store/useLanguageStore";
-import { UI_STRINGS } from "@/lib/translations";
-import type { Language } from "@/types/translations.types";
+import type { Language } from "@/types/language";
 import ChevronDownSmallIcon from "../icons/ChevronDownSmallIcon";
 
 const languages: Language[] = ["es", "en", "pt"];
+
+const LANGUAGE_LABELS: Record<Language, string> = {
+  es: "Español",
+  en: "English",
+  pt: "Português",
+};
 
 export function LanguageSelector() {
   const { language, setLanguage } = useLanguageStore();
@@ -30,18 +35,18 @@ export function LanguageSelector() {
     setOpen(false);
   }
 
-  const strings = UI_STRINGS[language];
+  const currentLangLabel = LANGUAGE_LABELS[language] ?? "Español";
 
   return (
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((prev) => !prev)}
         className="flex items-center gap-0.5 px-2.5 py-1.5 rounded-full bg-white/80 backdrop-blur-sm text-[12px] text-gray-600 font-medium hover:bg-white transition-colors"
-        aria-label={strings.languageAriaLabel}
+        aria-label="Cambiar idioma"
         aria-expanded={open}
         aria-haspopup="listbox"
       >
-        {strings[`language${language.charAt(0).toUpperCase() + language.slice(1)}` as keyof typeof strings]}
+        {currentLangLabel}
         <ChevronDownSmallIcon />
       </button>
 
@@ -61,7 +66,7 @@ export function LanguageSelector() {
                   lang === language ? "font-semibold text-gray-900" : "text-gray-600"
                 }`}
               >
-                {UI_STRINGS[lang][`language${lang.charAt(0).toUpperCase() + lang.slice(1)}` as keyof typeof UI_STRINGS["es"]]}
+                {LANGUAGE_LABELS[lang]}
               </button>
             </li>
           ))}

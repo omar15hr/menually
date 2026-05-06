@@ -21,7 +21,7 @@ import {
   type ActionSuccess,
   type ActionSuccessWithData,
 } from "@/lib/security/server-action-guards";
-import { generateEntityTranslations } from "./translate.action";
+
 
 // ─── Create ──────────────────────────────────────────────────────────────────
 
@@ -150,12 +150,6 @@ export async function createPromotion(
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
-  // Queue AI translation generation; processing is best-effort and observable via translation_jobs.
-  await generateEntityTranslations("promotion", inserted.id, menu.id, {
-    title: inserted.title,
-    description: inserted.description ?? "",
-  });
-
   revalidatePath("/dashboard/promotions");
   revalidatePath("/dashboard/menu");
 
@@ -263,14 +257,6 @@ export async function updatePromotion(
   );
   if (!pathValidation.valid) {
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
-  }
-
-  // Queue AI translation generation; processing is best-effort and observable via translation_jobs.
-  if (updated) {
-    await generateEntityTranslations("promotion", updated.id, ownershipResult.menuId, {
-      title: updated.title,
-      description: updated.description ?? "",
-    });
   }
 
   revalidatePath("/dashboard/promotions");

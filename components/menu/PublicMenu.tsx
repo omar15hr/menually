@@ -7,7 +7,6 @@ import { MenuPreview } from "@/components/menu/MenuPreview";
 import type { Database } from "@/types/database.types";
 import type { Promotion } from "@/types/promotions.types";
 import type { CategoryWithProducts } from "@/types/categories.types";
-import type { TranslationsMap } from "@/types/translations.types";
 
 type Menu = Database["public"]["Tables"]["menus"]["Row"];
 
@@ -15,14 +14,12 @@ interface PublicMenuProps {
   menu: Menu;
   categories: CategoryWithProducts[];
   promotions?: Promotion[];
-  translations?: TranslationsMap;
 }
 
 export function PublicMenu({
   menu,
   categories,
   promotions = [],
-  translations,
 }: PublicMenuProps) {
   useCategoryHydration(categories);
 
@@ -47,7 +44,6 @@ export function PublicMenu({
         onCategoryChange={handleCategoryChange}
         promotions={promotions}
         responsive={true}
-        translations={translations}
         showLanguageSelector={true}
       />
     </>
