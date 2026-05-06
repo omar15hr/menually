@@ -453,6 +453,59 @@ export type Database = {
           },
         ]
       }
+      translation_jobs: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          error_message: string | null
+          fields: Json
+          id: string
+          menu_id: string
+          processed_at: string | null
+          retries: number
+          status: string
+          target_languages: string[]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          error_message?: string | null
+          fields?: Json
+          id?: string
+          menu_id: string
+          processed_at?: string | null
+          retries?: number
+          status?: string
+          target_languages?: string[]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          error_message?: string | null
+          fields?: Json
+          id?: string
+          menu_id?: string
+          processed_at?: string | null
+          retries?: number
+          status?: string
+          target_languages?: string[]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translation_jobs_menu_id_fkey"
+            columns: ["menu_id"]
+            isOneToOne: false
+            referencedRelation: "menus"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       translations: {
         Row: {
           content: string

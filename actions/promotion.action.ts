@@ -150,8 +150,8 @@ export async function createPromotion(
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
-  // Fire-and-forget AI translation generation
-  void generateEntityTranslations("promotion", inserted.id, menu.id, {
+  // Queue AI translation generation; processing is best-effort and observable via translation_jobs.
+  await generateEntityTranslations("promotion", inserted.id, menu.id, {
     title: inserted.title,
     description: inserted.description ?? "",
   });
@@ -265,9 +265,9 @@ export async function updatePromotion(
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
-  // Fire-and-forget AI translation generation
+  // Queue AI translation generation; processing is best-effort and observable via translation_jobs.
   if (updated) {
-    void generateEntityTranslations("promotion", updated.id, ownershipResult.menuId, {
+    await generateEntityTranslations("promotion", updated.id, ownershipResult.menuId, {
       title: updated.title,
       description: updated.description ?? "",
     });

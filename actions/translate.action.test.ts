@@ -1,8 +1,36 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateEntityTranslations } from "./translate.action";
+import {
+  enqueueEntityTranslationJob,
+  generateEntityTranslations,
+  processTranslationJob,
+} from "./translate.action";
 
-const mockUpsert = vi.fn().mockReturnValue({ error: null });
-const mockFrom = vi.fn().mockReturnValue({ upsert: mockUpsert });
+const mockSingle = vi.fn();
+const mockUpdateEq = vi.fn();
+const mockSelect = vi.fn();
+const mockEq = vi.fn();
+const mockUpdate = vi.fn();
+const mockUpsert = vi.fn();
+const mockBuilder = {
+  select: mockSelect,
+  eq: mockEq,
+  single: mockSingle,
+  update: mockUpdate,
+  upsert: mockUpsert,
+};
+
+mockSelect.mockReturnValue(mockBuilder);
+mockEq.mockReturnValue(mockBuilder);
+mockUpdate.mockReturnValue({ eq: mockUpdateEq });
+mockUpsert.mockReturnValue(mockBuilder);
+
+const mockFrom = vi.fn(() => ({
+  upsert: mockUpsert,
+  select: mockSelect,
+  update: mockUpdate,
+  eq: mockEq,
+  single: mockSingle,
+}));
 
 const mockOpenAICreate = vi.fn().mockResolvedValue({
   choices: [
@@ -10,7 +38,10 @@ const mockOpenAICreate = vi.fn().mockResolvedValue({
       message: {
         content: JSON.stringify({
           name: { en: "Meat empanada", pt: "Empanada de carne" },
-          description: { en: "Delicious meat pastry", pt: "Massa de carne deliciosa" },
+          description: {
+            en: "Delicious meat pastry",
+            pt: "Massa de carne deliciosa",
+          },
         }),
       },
     },
@@ -33,16 +64,27 @@ vi.mock("@/lib/openai", () => ({
   })),
 }));
 
-describe("generateEntityTranslations", () => {
+describe("translation actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSelect.mockReturnValue(mockBuilder);
+    mockEq.mockReturnValue(mockBuilder);
+    mockUpdate.mockReturnValue({ eq: mockUpdateEq });
+    mockUpsert.mockReturnValue(mockBuilder);
+    mockSingle.mockResolvedValue({
+      data: { id: "job-1" },
+      error: null,
+    });
     mockOpenAICreate.mockResolvedValue({
       choices: [
         {
           message: {
             content: JSON.stringify({
               name: { en: "Meat empanada", pt: "Empanada de carne" },
-              description: { en: "Delicious meat pastry", pt: "Massa de carne deliciosa" },
+              description: {
+                en: "Delicious meat pastry",
+                pt: "Massa de carne deliciosa",
+              },
             }),
           },
         },
@@ -50,17 +92,63 @@ describe("generateEntityTranslations", () => {
     });
   });
 
-  it("upserts translations on success", async () => {
-    await generateEntityTranslations("product", "p1", "m1", {
-      name: "Empanada de carne",
-      description: "Muy rica",
+  it("enqueues translation jobs with sanitized fields", async () => {
+    const jobId = await enqueueEntityTranslationJob("product", "p1", "m1", {
+      name: " Empanada de carne ",
+      description: "",
     });
 
+    expect(jobId).toBe("job-1");
+    expect(mockFrom).toHaveBeenCalledWith("translation_jobs");
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entity_type: "product",
+        entity_id: "p1",
+        menu_id: "m1",
+        fields: { name: "Empanada de carne" },
+        target_languages: ["en", "pt"],
+        status: "pending",
+        retries: 0,
+      }),
+      { onConflict: "entity_id, entity_type" },
+    );
+  });
+
+  it("does not enqueue when there are no translatable fields", async () => {
+    const jobId = await enqueueEntityTranslationJob("category", "c1", "m1", {
+      name: " ",
+    });
+
+    expect(jobId).toBeNull();
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it("processes a job and upserts translations", async () => {
+    mockSingle.mockResolvedValueOnce({
+      data: {
+        id: "job-1",
+        menu_id: "m1",
+        entity_type: "product",
+        entity_id: "p1",
+        fields: {
+          name: "Empanada de carne",
+          description: "Muy rica",
+        },
+        target_languages: ["en", "pt"],
+        status: "pending",
+        retries: 0,
+        error_message: null,
+        created_at: null,
+        updated_at: null,
+        processed_at: null,
+      },
+      error: null,
+    });
+    await processTranslationJob("job-1");
+
+    expect(mockOpenAICreate).toHaveBeenCalled();
     expect(mockFrom).toHaveBeenCalledWith("translations");
-    expect(mockUpsert).toHaveBeenCalled();
-    const upsertArg = mockUpsert.mock.calls[0][0];
-    expect(upsertArg).toHaveLength(4); // 2 fields × 2 languages
-    expect(upsertArg).toEqual(
+    expect(mockUpsert).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
           entity_type: "product",
@@ -71,30 +159,48 @@ describe("generateEntityTranslations", () => {
           content: "Meat empanada",
         }),
       ]),
+      { onConflict: "entity_id, entity_type, field, language" },
     );
   });
 
-  it("does not throw when OpenAI fails", async () => {
+  it("marks the job as failed when OpenAI fails", async () => {
+    mockSingle.mockResolvedValueOnce({
+      data: {
+        id: "job-1",
+        menu_id: "m1",
+        entity_type: "category",
+        entity_id: "c1",
+        fields: { name: "Entradas" },
+        target_languages: ["en", "pt"],
+        status: "pending",
+        retries: 0,
+        error_message: null,
+        created_at: null,
+        updated_at: null,
+        processed_at: null,
+      },
+      error: null,
+    });
     mockOpenAICreate.mockRejectedValueOnce(new Error("OpenAI down"));
 
+    await expect(processTranslationJob("job-1")).resolves.toBeUndefined();
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "failed",
+        retries: 1,
+        error_message: "OpenAI down",
+      }),
+    );
+  });
+
+  it("generateEntityTranslations resolves after queuing the job", async () => {
     await expect(
       generateEntityTranslations("product", "p1", "m1", {
         name: "Empanada",
       }),
     ).resolves.toBeUndefined();
 
-    expect(mockUpsert).not.toHaveBeenCalled();
-  });
-
-  it("does not throw when upsert fails", async () => {
-    mockUpsert.mockReturnValueOnce({ error: { message: "DB error" } });
-
-    await expect(
-      generateEntityTranslations("category", "c1", "m1", {
-        name: "Entradas",
-      }),
-    ).resolves.toBeUndefined();
-
-    expect(mockUpsert).toHaveBeenCalled();
+    expect(mockFrom).toHaveBeenCalledWith("translation_jobs");
   });
 });

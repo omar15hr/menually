@@ -96,9 +96,9 @@ export async function createCategory(
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
-  // Fire-and-forget AI translation generation
+  // Queue AI translation generation; processing is best-effort and observable via translation_jobs.
   if (data) {
-    void generateEntityTranslations("category", data.id, input.menu_id, {
+    await generateEntityTranslations("category", data.id, input.menu_id, {
       name: data.name,
     });
   }
@@ -153,7 +153,7 @@ export async function updateCategory(
       .eq("id", id)
       .single();
     if (category) {
-      void generateEntityTranslations("category", data.id, category.menu_id, {
+      await generateEntityTranslations("category", data.id, category.menu_id, {
         name: data.name,
       });
     }

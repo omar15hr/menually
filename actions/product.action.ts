@@ -159,8 +159,8 @@ export async function createProduct(
     console.warn("Invalid revalidate paths:", pathValidation.invalidPaths);
   }
 
-  // Fire-and-forget AI translation generation
-  void generateEntityTranslations("product", insertedProduct.id, categoryRow.menu_id, {
+  // Queue AI translation generation; processing is best-effort and observable via translation_jobs.
+  await generateEntityTranslations("product", insertedProduct.id, categoryRow.menu_id, {
     name: insertedProduct.name,
     description: insertedProduct.description ?? "",
   });
@@ -279,7 +279,7 @@ export async function batchUpdateProducts(
       result.value.data &&
       (update.data.name !== undefined || update.data.description !== undefined)
     ) {
-      void generateEntityTranslations("product", update.id, userMenu.id, {
+      await generateEntityTranslations("product", update.id, userMenu.id, {
         name: result.value.data.name ?? "",
         description: result.value.data.description ?? "",
       });
