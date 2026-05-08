@@ -80,7 +80,7 @@ export default function OnboardingWizard() {
         {renderStepContent()}
       </div>
 
-      <div className="border-t bg-white px-4 py-4">
+      <div className="bg-white px-4 py-4">
         <OnboardingProgress
           currentStep={currentStep}
           steps={STEP_LABELS.map((label) => ({ label }))}

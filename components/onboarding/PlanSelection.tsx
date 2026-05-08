@@ -1,10 +1,9 @@
 "use client";
 
-import { useOnboardingStore } from "@/store/useOnboardingStore";
-import { PLANS } from "@/lib/plans";
-import { Button } from "@/components/ui/button";
-import PlanCard from "./PlanCard";
 import { cn } from "@/lib/utils";
+import PlanCard from "./PlanCard";
+import { PLANS } from "@/lib/plans";
+import { useOnboardingStore } from "@/store/useOnboardingStore";
 
 export default function PlanSelection() {
   const {
@@ -12,17 +11,10 @@ export default function PlanSelection() {
     billingCycle,
     setSelectedPlan,
     setBillingCycle,
-    nextStep,
   } = useOnboardingStore();
 
   const handleSelect = (planId: "basic" | "pro") => {
     setSelectedPlan(planId);
-  };
-
-  const handleNext = () => {
-    if (selectedPlan) {
-      nextStep();
-    }
   };
 
   return (
@@ -91,14 +83,6 @@ export default function PlanSelection() {
       <p className="text-center text-sm text-[#58606E]">
         30 días de prueba gratis. Cancelá cuando quieras.
       </p>
-
-      <Button
-        onClick={handleNext}
-        disabled={!selectedPlan}
-        className="w-full bg-[#CDF545] text-[#114821] hover:bg-[#b8df3e] disabled:opacity-50"
-      >
-        Siguiente
-      </Button>
     </div>
   );
 }

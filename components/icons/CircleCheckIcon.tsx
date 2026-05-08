@@ -15,7 +15,7 @@ export default function CircleCheckIcon({ className, size }: Props) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`lucide lucide-circle-check-icon lucide-circle-check ${className}`}
+      className={`lucide lucide-circle-check-icon lucide-circle-check ${className} text-[#114821]`}
     >
       <circle cx="12" cy="12" r="10" />
       <path d="m9 12 2 2 4-4" />

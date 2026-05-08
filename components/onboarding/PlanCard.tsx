@@ -38,8 +38,8 @@ export default function PlanCard({
       className={cn(
         "relative w-full h-fit rounded-2xl border-2 p-6 text-left transition-all duration-200",
         isSelected
-          ? "border-[#C8F135] bg-white shadow-md"
-          : "border-gray-200 bg-white hover:border-gray-300 shadow-sm",
+          ? "border-[#CDF545] bg-white"
+          : "border-[#E4E4E6] bg-white hover:border-gray-300",
       )}
     >
       {/* Badge RECOMENDADO — centrado en el borde superior */}
