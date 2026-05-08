@@ -26,37 +26,47 @@ export default function PlanSelection() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex justify-center gap-2">
+    <div className="flex flex-col gap-10 bg-white">
+      <div className="flex flex-col items-center justify-center gap-4">
+        <h1 className="text-[#1C1C1C] text-3xl font-extrabold">
+          Escoge el plan que quieres contratar
+        </h1>
+        <p className="text-[#58606E] text-lg">
+          Tenemos planes para todos todos los negocios, escoge el que mejor se
+          adapte a ti.
+        </p>
+      </div>
+      <div className="flex items-center gap-1 bg-[#F1F5F9] w-fit mx-auto rounded-2xl p-1.5 px-2">
         <button
           type="button"
           onClick={() => setBillingCycle("monthly")}
           className={cn(
-            "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+            "px-6 py-2.5 text-base font-semibold transition-all duration-200 rounded-xl",
             billingCycle === "monthly"
-              ? "bg-[#114821] text-white"
-              : "bg-gray-100 text-[#58606E] hover:bg-gray-200",
+              ? "bg-white text-[#0F1B3C] border border-[#C8F135] shadow-sm"
+              : "text-[#8C939D] bg-transparent",
           )}
         >
-          Mensual
+          Mensualmente
         </button>
         <button
           type="button"
           onClick={() => setBillingCycle("annual")}
           className={cn(
-            "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+            "px-6 py-2.5 text-base font-semibold transition-all duration-200 rounded-xl",
             billingCycle === "annual"
-              ? "bg-[#114821] text-white"
-              : "bg-gray-100 text-[#58606E] hover:bg-gray-200",
+              ? "bg-white text-[#0F1B3C] border border-[#C8F135] shadow-sm"
+              : "text-[#8C939D] bg-transparent",
           )}
         >
-          Anual
+          Anualmente
         </button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 max-w-4xl mx-auto">
         <PlanCard
           name={PLANS.basic.name}
+          description={PLANS.basic.description}
           price={PLANS.basic.monthlyPrice}
           currency={PLANS.basic.currency}
           features={PLANS.basic.features}
@@ -67,6 +77,7 @@ export default function PlanSelection() {
         />
         <PlanCard
           name={PLANS.pro.name}
+          description={PLANS.pro.description}
           price={PLANS.pro.monthlyPrice}
           currency={PLANS.pro.currency}
           features={PLANS.pro.features}

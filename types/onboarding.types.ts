@@ -5,6 +5,7 @@ export type BillingCycle = "monthly" | "annual";
 export interface PlanConfig {
   id: PlanId;
   name: string;
+  description?: string;
   monthlyPrice: number;
   annualPrice: number;
   currency: string;

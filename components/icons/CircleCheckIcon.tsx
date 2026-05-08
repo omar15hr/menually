@@ -1,13 +1,14 @@
 interface Props {
   className?: string;
+  size?: number;
 }
 
-export default function CircleCheckIcon({ className }: Props) {
+export default function CircleCheckIcon({ className, size }: Props) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
+      width={size || 24}
+      height={size || 24}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

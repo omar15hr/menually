@@ -9,6 +9,7 @@ import PlanSelection from "./PlanSelection";
 import RedirectingScreen from "./RedirectingScreen";
 import SuccessScreen from "./SuccessScreen";
 import ErrorScreen from "./ErrorScreen";
+import HeaderLogo from "../shared/HeaderLogo";
 
 const stepToProgressMap: Record<string, number> = {
   plan: 1,
@@ -73,7 +74,8 @@ export default function OnboardingWizard() {
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-white">
+      <HeaderLogo />
       <div className="flex-1 overflow-y-auto px-4 py-6">
         {renderStepContent()}
       </div>

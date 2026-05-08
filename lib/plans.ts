@@ -3,7 +3,8 @@ import type { PlanConfig, PlanId } from "@/types/onboarding.types";
 export const PLANS: Record<PlanId, PlanConfig> = {
   basic: {
     id: "basic",
-    name: "Basic",
+    name: "Plan Básico",
+    description: "Para pequeños locales o que estén iniciando",
     monthlyPrice: 24990,
     annualPrice: 24990 * 12,
     currency: "CLP",
@@ -17,7 +18,8 @@ export const PLANS: Record<PlanId, PlanConfig> = {
   },
   pro: {
     id: "pro",
-    name: "Pro",
+    name: "Plan Pro",
+    description: "Full control para restaurantes en crecimiento",
     monthlyPrice: 29990,
     annualPrice: 29990 * 12,
     currency: "CLP",
