@@ -109,6 +109,20 @@ describe("subscription.action", () => {
   // ─── createSubscription ───
 
   describe("createSubscription", () => {
+    it("returns error when NEXT_PUBLIC_SITE_URL is missing", async () => {
+      const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+      try {
+        delete process.env.NEXT_PUBLIC_SITE_URL;
+
+        const result = await createSubscription("basic", "monthly");
+
+        expect(result.success).toBe(false);
+        expect(result.message).toBe("Configuración del servidor incompleta");
+      } finally {
+        process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
+      }
+    });
+
     it("happy path: creates subscription, returns checkoutUrl", async () => {
       const mockPreapproval = {
         id: "preapproval-123",
@@ -134,9 +148,15 @@ describe("subscription.action", () => {
 
       expect(mockCreatePreapproval).toHaveBeenCalledWith(
         expect.objectContaining({
-          preapproval_plan_id: "plan-basic-monthly-123",
           reason: "Menually basic monthly",
           external_reference: TEST_USER.id,
+          payer_email: TEST_USER.email,
+          auto_recurring: {
+            frequency: 1,
+            frequency_type: "months",
+            transaction_amount: 24990,
+            currency_id: "CLP",
+          },
           back_url: "https://test.menually.app/onboarding?status=success&plan=basic&cycle=monthly",
           status: "pending",
           notification_url: "https://test.menually.app/api/webhooks/mercadopago",
@@ -225,19 +245,6 @@ describe("subscription.action", () => {
 
       expect(result.success).toBe(false);
       expect(result.message).toContain("Invalid plan ID");
-    });
-
-    it("returns error when plan env var is not set", async () => {
-      // Remove the env var for pro monthly
-      const original = process.env.MP_PLAN_PRO_MONTHLY_ID;
-      delete process.env.MP_PLAN_PRO_MONTHLY_ID;
-
-      const result = await createSubscription("pro", "monthly");
-
-      expect(result.success).toBe(false);
-      expect(result.message).toBe("Configuración de plan no encontrada");
-
-      process.env.MP_PLAN_PRO_MONTHLY_ID = original;
     });
 
     it("returns error when DB upsert fails", async () => {

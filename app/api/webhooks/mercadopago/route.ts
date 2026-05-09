@@ -19,10 +19,12 @@ function getPeriodEndDate(frequency: number, frequencyType: "days" | "months"): 
   return new Date(now.setMonth(now.getMonth() + frequency));
 }
 
-function mapFrequencyTypeToBillingCycle(frequencyType: "days" | "months"): "monthly" | "annual" {
-  if (frequencyType === "months") {
-    // Si frequency >= 12, es anual
-    return "monthly"; // Se determina por el plan, no por frequency_type
+function mapFrequencyTypeToBillingCycle(
+  frequencyType: "days" | "months",
+  frequency: number,
+): "monthly" | "annual" {
+  if (frequencyType === "months" && frequency >= 12) {
+    return "annual";
   }
   return "monthly";
 }
@@ -118,11 +120,33 @@ async function handleSubscriptionPreapproval(
       return new Response("OK", { status: 200 });
     }
 
+    // Validate user exists in profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      console.warn("[Webhook] User not found in profiles", { userId, preapprovalId });
+      return new Response("OK", { status: 200 });
+    }
+
+    // Read existing subscription to preserve fields
+    const { data: existingSub } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+
     // Map MP status to DB status
     const dbStatus = mapMpStatusToDbStatus(preapproval.status);
 
     // Calculate period end and billing cycle
-    const billingCycle = mapFrequencyTypeToBillingCycle(preapproval.auto_recurring.frequency_type);
+    const billingCycle = mapFrequencyTypeToBillingCycle(
+      preapproval.auto_recurring.frequency_type,
+      preapproval.auto_recurring.frequency,
+    );
     const periodEnd = getPeriodEndDate(
       preapproval.auto_recurring.frequency,
       preapproval.auto_recurring.frequency_type,
@@ -136,10 +160,11 @@ async function handleSubscriptionPreapproval(
           user_id: userId,
           mp_preapproval_id: preapproval.id,
           status: dbStatus,
-          plan_type: "basic", // TODO: infer plan_type from preapproval data when available
+          plan_type: existingSub?.plan_type ?? "basic",
           billing_cycle: billingCycle,
           current_period_end: periodEnd.toISOString(),
           amount: preapproval.auto_recurring.transaction_amount,
+          trial_ends_at: existingSub?.trial_ends_at ?? undefined,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "mp_preapproval_id" },
@@ -175,7 +200,30 @@ async function handleSubscriptionAuthorizedPayment(
       return new Response("OK", { status: 200 });
     }
 
-    // Calculate new period end
+    // Validate user exists in profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      console.warn("[Webhook] User not found in profiles", { userId, preapprovalId });
+      return new Response("OK", { status: 200 });
+    }
+
+    // Read existing subscription to preserve fields
+    const { data: existingSub } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    // Calculate billing cycle and new period end
+    const billingCycle = mapFrequencyTypeToBillingCycle(
+      preapproval.auto_recurring.frequency_type,
+      preapproval.auto_recurring.frequency,
+    );
     const periodEnd = getPeriodEndDate(
       preapproval.auto_recurring.frequency,
       preapproval.auto_recurring.frequency_type,
@@ -188,8 +236,12 @@ async function handleSubscriptionAuthorizedPayment(
         {
           user_id: userId,
           mp_preapproval_id: preapproval.id,
+          status: "active",
+          plan_type: existingSub?.plan_type ?? "basic",
+          billing_cycle: billingCycle,
           current_period_end: periodEnd.toISOString(),
           amount: preapproval.auto_recurring.transaction_amount,
+          trial_ends_at: existingSub?.trial_ends_at ?? undefined,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "mp_preapproval_id" },

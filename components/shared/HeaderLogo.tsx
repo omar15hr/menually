@@ -8,8 +8,10 @@ export default function HeaderLogo() {
         <Image
           src="/images/menually-logo.png"
           alt="Logo"
-          width={120}
-          height={120}
+          width={160}
+          height={160}
+          className="w-auto h-auto"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
       </Link>
     </header>

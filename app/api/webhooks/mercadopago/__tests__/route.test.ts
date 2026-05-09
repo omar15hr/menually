@@ -93,6 +93,9 @@ const validPaymentPayload = {
 };
 
 describe("POST /api/webhooks/mercadopago", () => {
+  let profileResult: { data: unknown; error: unknown } = { data: { id: "user-abc-123" }, error: null };
+  let existingSubResult: { data: unknown; error: unknown } = { data: null, error: null };
+
   beforeAll(() => {
     process.env.MP_WEBHOOK_SECRET = TEST_SECRET;
     process.env.MP_ACCESS_TOKEN = "test-access-token";
@@ -100,19 +103,41 @@ describe("POST /api/webhooks/mercadopago", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    profileResult = { data: { id: "user-abc-123" }, error: null };
+    existingSubResult = { data: null, error: null };
 
-    // Reset supabase chain mocks
-    mockSupabaseFrom.mockReturnValue({
-      select: mockSupabaseSelect.mockReturnValue({
-        eq: mockSupabaseEq.mockReturnValue({
-          single: mockSupabaseSingle.mockReturnValue(Promise.resolve({ data: null, error: null })),
-        }),
+    // Default: upsert succeeds
+    mockSupabaseUpsert.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockReturnValue(Promise.resolve({ data: null, error: null })),
       }),
-      upsert: mockSupabaseUpsert.mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockReturnValue(Promise.resolve({ data: null, error: null })),
-        }),
-      }),
+    });
+
+    // Flexible mock that routes by table name
+    mockSupabaseFrom.mockImplementation((table: string) => {
+      if (table === "profiles") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockReturnValue(Promise.resolve(profileResult)),
+            }),
+          }),
+        };
+      }
+      if (table === "subscriptions") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockReturnValue(Promise.resolve(existingSubResult)),
+              single: mockSupabaseSingle.mockReturnValue(
+                Promise.resolve({ data: null, error: null }),
+              ),
+            }),
+          }),
+          upsert: mockSupabaseUpsert,
+        };
+      }
+      return {};
     });
   });
 
@@ -196,6 +221,9 @@ describe("POST /api/webhooks/mercadopago", () => {
     expect(response.status).toBe(200);
     expect(mockSupabaseFrom).toHaveBeenCalledWith("subscriptions");
     expect(mockSupabaseUpsert).toHaveBeenCalled();
+
+    const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
+    expect(upsertCall.status).toBe("active");
   });
 
   // ─── 3. Invalid HMAC ───
@@ -336,9 +364,7 @@ describe("POST /api/webhooks/mercadopago", () => {
       }),
     };
 
-    mockSupabaseFrom.mockReturnValue({
-      upsert: vi.fn().mockReturnValue(mockUpsertChain),
-    });
+    mockSupabaseUpsert.mockReturnValue(mockUpsertChain);
 
     const request = createMockNextRequest({
       body: JSON.stringify(validPreapprovalPayload),
@@ -373,6 +399,7 @@ describe("POST /api/webhooks/mercadopago", () => {
     };
 
     mockGetPreapproval.mockResolvedValue(mockPreapproval);
+    profileResult = { data: null, error: null };
 
     const request = createMockNextRequest({
       body: JSON.stringify(validPreapprovalPayload),
@@ -389,6 +416,7 @@ describe("POST /api/webhooks/mercadopago", () => {
     const response = await POST(request);
 
     expect(response.status).toBe(200);
+    expect(mockSupabaseUpsert).not.toHaveBeenCalled();
   });
 
   // ─── 10. Idempotency ───
@@ -442,5 +470,251 @@ describe("POST /api/webhooks/mercadopago", () => {
 
     // Both should result in upsert calls
     expect(mockSupabaseUpsert).toHaveBeenCalledTimes(2);
+  });
+
+  // ─── NEW TESTS for fix-mp-upsert-constraints ───
+
+  // ─── 11. Annual billing cycle (frequency 12) ───
+  it("sets billing_cycle to annual when frequency is 12", async () => {
+    const userId = "user-abc-123";
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: userId,
+      auto_recurring: {
+        frequency: 12,
+        frequency_type: "months" as const,
+        transaction_amount: 254990,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPreapprovalPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_preapproval",
+      },
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpsert).toHaveBeenCalled();
+
+    const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
+    expect(upsertCall.billing_cycle).toBe("annual");
+    expect(upsertCall.amount).toBe(254990);
+  });
+
+  // ─── 12. User not found in profiles ───
+  it("returns 200 and skips upsert when user is not found in profiles", async () => {
+    const userId = "user-abc-123";
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: userId,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months" as const,
+        transaction_amount: 24990,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+    profileResult = { data: null, error: null };
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPreapprovalPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_preapproval",
+      },
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpsert).not.toHaveBeenCalled();
+  });
+
+  // ─── 13. Preserves plan_type and trial_ends_at ───
+  it("preserves existing plan_type and trial_ends_at on upsert", async () => {
+    const userId = "user-abc-123";
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: userId,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months" as const,
+        transaction_amount: 24990,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+    existingSubResult = {
+      data: {
+        id: "sub-456",
+        user_id: userId,
+        plan_type: "pro",
+        trial_ends_at: "2025-02-28T00:00:00.000Z",
+        billing_cycle: "monthly",
+      },
+      error: null,
+    };
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPreapprovalPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_preapproval",
+      },
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpsert).toHaveBeenCalled();
+
+    const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
+    expect(upsertCall.plan_type).toBe("pro");
+    expect(upsertCall.trial_ends_at).toBe("2025-02-28T00:00:00.000Z");
+  });
+
+  // ─── 14. Authorized payment sets status active ───
+  it("sets status to active in subscription_authorized_payment webhook", async () => {
+    const userId = "user-abc-123";
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: userId,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months" as const,
+        transaction_amount: 24990,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPaymentPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_authorized_payment",
+      },
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpsert).toHaveBeenCalled();
+
+    const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
+    expect(upsertCall.status).toBe("active");
+  });
+
+  // ─── 15. Days frequency always maps to monthly ───
+  it("sets billing_cycle to monthly when frequency_type is days", async () => {
+    const userId = "user-abc-123";
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: userId,
+      auto_recurring: {
+        frequency: 30,
+        frequency_type: "days" as const,
+        transaction_amount: 24990,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPreapprovalPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_preapproval",
+      },
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpsert).toHaveBeenCalled();
+
+    const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
+    expect(upsertCall.billing_cycle).toBe("monthly");
+  });
+
+  // ─── 16. Frequency 24 months maps to annual ───
+  it("sets billing_cycle to annual when frequency is 24 months", async () => {
+    const userId = "user-abc-123";
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: userId,
+      auto_recurring: {
+        frequency: 24,
+        frequency_type: "months" as const,
+        transaction_amount: 499980,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPreapprovalPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_preapproval",
+      },
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpsert).toHaveBeenCalled();
+
+    const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
+    expect(upsertCall.billing_cycle).toBe("annual");
   });
 });

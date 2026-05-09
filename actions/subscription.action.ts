@@ -30,6 +30,15 @@ export async function createSubscription(
       };
     }
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (!siteUrl) {
+      return {
+        success: false,
+        message: "Configuración del servidor incompleta",
+        errors: {},
+      };
+    }
+
     // Check for existing subscription
     const { data: existingSub, error: queryError } = await supabase
       .from("subscriptions")
@@ -77,9 +86,9 @@ export async function createSubscription(
         transaction_amount: amount,
         currency_id: "CLP",
       },
-      back_url: `${process.env.NEXT_PUBLIC_SITE_URL}/onboarding?status=success&plan=${planId}&cycle=${billingCycle}`,
+      back_url: `${siteUrl}/onboarding?status=success&plan=${planId}&cycle=${billingCycle}`,
       status: "pending",
-      notification_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/mercadopago`,
+      notification_url: `${siteUrl}/api/webhooks/mercadopago`,
     });
 
     const trialEndsAt = calculateTrialEnd();
