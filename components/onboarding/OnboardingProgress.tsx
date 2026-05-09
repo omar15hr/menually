@@ -1,79 +1,93 @@
-import { Check } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-interface Step {
-  label: string;
-}
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface OnboardingProgressProps {
-  currentStep: number;
-  steps: Step[];
+  currentStep: 1 | 2;
+  totalSteps: 2;
+  nextDisabled?: boolean;
+  showBack?: boolean;
+  showNext?: boolean;
+  onBack?: () => void;
+  onNext?: () => void;
+  actionLabel?: string;
+  onAction?: () => void;
+  actionHref?: string;
 }
 
 export default function OnboardingProgress({
   currentStep,
-  steps,
+  totalSteps,
+  nextDisabled,
+  showBack,
+  showNext,
+  onBack,
+  onNext,
+  actionLabel,
+  onAction,
+  actionHref,
 }: OnboardingProgressProps) {
+  const progressPercent = currentStep === 1 ? "25%" : "100%";
+
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
+      <div
+        role="progressbar"
+        aria-valuenow={currentStep}
+        aria-valuemin={0}
+        aria-valuemax={totalSteps}
+        className="h-2 w-full rounded-full bg-[#DDE3ED]"
+      >
+        <div
+          data-testid="progress-fill"
+          className="h-full rounded-full bg-[#114821] transition-all duration-500"
+          style={{ width: progressPercent }}
+        />
+      </div>
+
       <div className="flex items-center justify-between">
-        {steps.map((step, index) => {
-          const stepNumber = index + 1;
-          const isActive = stepNumber === currentStep;
-          const isCompleted = stepNumber < currentStep;
-          const isPending = stepNumber > currentStep;
+        <span className="text-sm font-medium text-[#114821]">
+          Paso {currentStep} de {totalSteps}
+        </span>
 
-          return (
-            <div key={step.label} className="flex flex-1 items-center">
-              <div
-                role="listitem"
-                data-status={
-                  isActive ? "active" : isCompleted ? "completed" : "pending"
-                }
-                className="flex flex-col items-center gap-2"
-              >
-                <div
-                  className={cn(
-                    "flex size-8 items-center justify-center rounded-full border-2 text-sm font-medium",
-                    isActive &&
-                      "border-[#114821] bg-[#114821] text-white",
-                    isCompleted &&
-                      "border-[#CDF545] bg-[#CDF545] text-[#114821]",
-                    isPending &&
-                      "border-[#58606E] bg-white text-[#58606E]",
-                  )}
-                >
-                  {isCompleted ? (
-                    <Check data-testid="check-icon" className="size-4" />
-                  ) : (
-                    stepNumber
-                  )}
-                </div>
-                <span
-                  className={cn(
-                    "text-xs font-medium",
-                    isActive && "text-[#114821]",
-                    isCompleted && "text-[#114821]",
-                    isPending && "text-[#58606E]",
-                  )}
-                >
-                  {step.label}
-                </span>
-              </div>
+        <div className="flex items-center gap-2">
+          {showBack && onBack && (
+            <Button
+              variant="outline"
+              onClick={onBack}
+              className="border-[#114821] text-[#114821] hover:bg-[#114821]/5"
+            >
+              Volver
+            </Button>
+          )}
 
-              {index < steps.length - 1 && (
-                <div className="mx-2 h-0.5 flex-1 bg-gray-200">
-                  <div
-                    className={cn(
-                      "h-full transition-all",
-                      isCompleted ? "w-full bg-[#CDF545]" : "w-0",
-                    )}
-                  />
-                </div>
-              )}
-            </div>
-          );
-        })}
+          {showNext && onNext && (
+            <Button
+              onClick={onNext}
+              disabled={nextDisabled}
+              className="bg-[#CDF545] text-[#114821] hover:bg-[#b8df3e] disabled:opacity-50 text-base font-semibold py-2 px-4 h-10"
+            >
+              Continuar
+            </Button>
+          )}
+
+          {actionLabel && actionHref && (
+            <Button
+              asChild
+              className="bg-[#CDF545] text-[#114821] hover:bg-[#b8df3e]"
+            >
+              <Link href={actionHref}>{actionLabel}</Link>
+            </Button>
+          )}
+
+          {actionLabel && onAction && !actionHref && (
+            <Button
+              onClick={onAction}
+              className="bg-[#CDF545] text-[#114821] hover:bg-[#b8df3e]"
+            >
+              {actionLabel}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

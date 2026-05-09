@@ -6,12 +6,8 @@ import { PLANS } from "@/lib/plans";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
 
 export default function PlanSelection() {
-  const {
-    selectedPlan,
-    billingCycle,
-    setSelectedPlan,
-    setBillingCycle,
-  } = useOnboardingStore();
+  const { selectedPlan, billingCycle, setSelectedPlan, setBillingCycle } =
+    useOnboardingStore();
 
   const handleSelect = (planId: "basic" | "pro") => {
     setSelectedPlan(planId);
@@ -55,6 +51,10 @@ export default function PlanSelection() {
         </button>
       </div>
 
+      <p className="text-center text-sm text-[#58606E]">
+        30 días de prueba gratis. Cancelá cuando quieras.
+      </p>
+
       <div className="grid gap-4 sm:grid-cols-2 max-w-4xl mx-auto">
         <PlanCard
           name={PLANS.basic.name}
@@ -79,10 +79,6 @@ export default function PlanSelection() {
           onSelect={() => handleSelect("pro")}
         />
       </div>
-
-      <p className="text-center text-sm text-[#58606E]">
-        30 días de prueba gratis. Cancelá cuando quieras.
-      </p>
     </div>
   );
 }

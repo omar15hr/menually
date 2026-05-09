@@ -6,7 +6,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     name: "Plan Básico",
     description: "Para pequeños locales o que estén iniciando",
     monthlyPrice: 24990,
-    annualPrice: 24990 * 12,
+    annualPrice: 254990, // ~15% discount from 12 × 24990 (299880)
     currency: "CLP",
     features: [
       "1 menú digital personalizado",
@@ -23,7 +23,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     name: "Plan Pro",
     description: "Full control para restaurantes en crecimiento",
     monthlyPrice: 29990,
-    annualPrice: 29990 * 12,
+    annualPrice: 305990, // ~15% discount from 12 × 29990 (359880)
     currency: "CLP",
     features: [
       "Todo lo del Plan Básico",

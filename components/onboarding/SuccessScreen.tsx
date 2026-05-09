@@ -1,8 +1,6 @@
 "use client";
 
 import { CheckCircle } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
 import { PLANS } from "@/lib/plans";
 
@@ -34,12 +32,6 @@ export default function SuccessScreen() {
           </p>
         )}
       </div>
-      <Button
-        asChild
-        className="bg-[#CDF545] text-[#114821] hover:bg-[#b8df3e]"
-      >
-        <Link href="/dashboard">Ir al dashboard</Link>
-      </Button>
     </div>
   );
 }

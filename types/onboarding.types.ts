@@ -14,4 +14,4 @@ export interface PlanConfig {
   badgeText?: string;
 }
 
-export const STEP_LABELS = ["Plan", "Pago", "¡Listo!"] as const;
+

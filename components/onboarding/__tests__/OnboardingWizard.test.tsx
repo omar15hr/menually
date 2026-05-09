@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
@@ -11,8 +11,8 @@ describe("OnboardingWizard", () => {
 
   it("renders PlanSelection when step is plan", () => {
     render(<OnboardingWizard />);
-    expect(screen.getByText("Basic")).toBeInTheDocument();
-    expect(screen.getByText("Pro")).toBeInTheDocument();
+    expect(screen.getByText("Plan Básico")).toBeInTheDocument();
+    expect(screen.getByText("Plan Pro")).toBeInTheDocument();
   });
 
   it("renders RedirectingScreen when step is redirecting", () => {
@@ -29,7 +29,9 @@ describe("OnboardingWizard", () => {
     useOnboardingStore.getState().nextStep();
     useOnboardingStore.getState().nextStep();
     render(<OnboardingWizard />);
-    expect(screen.getByText("¡Tu suscripción está activa!")).toBeInTheDocument();
+    expect(
+      screen.getByText("¡Tu suscripción está activa!"),
+    ).toBeInTheDocument();
   });
 
   it("renders ErrorScreen when step is error", () => {
@@ -39,18 +41,16 @@ describe("OnboardingWizard", () => {
     expect(screen.getByText("Pago rechazado")).toBeInTheDocument();
   });
 
-  it("renders progress bar", () => {
+  it("renders progress bar with step counter", () => {
     render(<OnboardingWizard />);
-    expect(screen.getByText("Plan")).toBeInTheDocument();
-    expect(screen.getByText("Pago")).toBeInTheDocument();
-    expect(screen.getByText("¡Listo!")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    expect(screen.getByText("Paso 1 de 2")).toBeInTheDocument();
   });
 
   it("hides Volver button on plan step", () => {
     render(<OnboardingWizard />);
-    const nav = screen.getByTestId("wizard-nav");
     expect(
-      within(nav).queryByRole("button", { name: "Volver" }),
+      screen.queryByRole("button", { name: "Volver" }),
     ).not.toBeInTheDocument();
   });
 
@@ -58,54 +58,49 @@ describe("OnboardingWizard", () => {
     useOnboardingStore.getState().setSelectedPlan("pro");
     useOnboardingStore.getState().nextStep();
     render(<OnboardingWizard />);
-    const nav = screen.getByTestId("wizard-nav");
     expect(
-      within(nav).getByRole("button", { name: "Volver" }),
+      screen.getByRole("button", { name: "Volver" }),
     ).toBeInTheDocument();
   });
 
-  it("shows Siguiente button on plan step in nav", () => {
+  it("shows Siguiente button on plan step", () => {
     render(<OnboardingWizard />);
-    const nav = screen.getByTestId("wizard-nav");
     expect(
-      within(nav).getByRole("button", { name: "Siguiente" }),
+      screen.getByRole("button", { name: "Siguiente" }),
     ).toBeInTheDocument();
   });
 
-  it("shows no right button on redirecting step in nav", () => {
+  it("shows no action buttons on redirecting step", () => {
     useOnboardingStore.getState().setSelectedPlan("pro");
     useOnboardingStore.getState().nextStep();
     render(<OnboardingWizard />);
-    const nav = screen.getByTestId("wizard-nav");
     expect(
-      within(nav).queryByRole("button", { name: "Siguiente" }),
+      screen.queryByRole("button", { name: "Siguiente" }),
     ).not.toBeInTheDocument();
     expect(
-      within(nav).queryByRole("button", { name: "Ir al dashboard" }),
+      screen.queryByRole("link", { name: "Ir al dashboard" }),
     ).not.toBeInTheDocument();
     expect(
-      within(nav).queryByRole("button", { name: "Reintentar" }),
+      screen.queryByRole("button", { name: "Reintentar" }),
     ).not.toBeInTheDocument();
   });
 
-  it("shows Ir al dashboard link on success step in nav", () => {
+  it("shows Ir al dashboard link on success step", () => {
     useOnboardingStore.getState().setSelectedPlan("pro");
     useOnboardingStore.getState().nextStep();
     useOnboardingStore.getState().nextStep();
     render(<OnboardingWizard />);
-    const nav = screen.getByTestId("wizard-nav");
     expect(
-      within(nav).getByRole("link", { name: "Ir al dashboard" }),
+      screen.getByRole("link", { name: "Ir al dashboard" }),
     ).toBeInTheDocument();
   });
 
-  it("shows Reintentar button on error step in nav", () => {
+  it("shows Reintentar button on error step", () => {
     useOnboardingStore.getState().setError("Error");
     useOnboardingStore.getState().goToStep("error");
     render(<OnboardingWizard />);
-    const nav = screen.getByTestId("wizard-nav");
     expect(
-      within(nav).getByRole("button", { name: "Reintentar" }),
+      screen.getByRole("button", { name: "Reintentar" }),
     ).toBeInTheDocument();
   });
 
@@ -114,8 +109,7 @@ describe("OnboardingWizard", () => {
     useOnboardingStore.getState().setSelectedPlan("pro");
     useOnboardingStore.getState().nextStep();
     render(<OnboardingWizard />);
-    const nav = screen.getByTestId("wizard-nav");
-    const backButton = within(nav).getByRole("button", { name: "Volver" });
+    const backButton = screen.getByRole("button", { name: "Volver" });
     await user.click(backButton);
     expect(useOnboardingStore.getState().step).toBe("plan");
   });

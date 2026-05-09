@@ -33,10 +33,4 @@ describe("SuccessScreen", () => {
     render(<SuccessScreen />);
     expect(screen.getByText(/299\.880/)).toBeInTheDocument();
   });
-
-  it("renders Ir al dashboard link pointing to /dashboard", () => {
-    render(<SuccessScreen />);
-    const link = screen.getByRole("link", { name: "Ir al dashboard" });
-    expect(link).toHaveAttribute("href", "/dashboard");
-  });
 });

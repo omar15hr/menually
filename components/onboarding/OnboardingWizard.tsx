@@ -1,27 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { useOnboardingStore } from "@/store/useOnboardingStore";
-import { STEP_LABELS } from "@/types/onboarding.types";
-import OnboardingProgress from "./OnboardingProgress";
-import PlanSelection from "./PlanSelection";
-import RedirectingScreen from "./RedirectingScreen";
-import SuccessScreen from "./SuccessScreen";
 import ErrorScreen from "./ErrorScreen";
+import PlanSelection from "./PlanSelection";
+import SuccessScreen from "./SuccessScreen";
 import HeaderLogo from "../shared/HeaderLogo";
-
-const stepToProgressMap: Record<string, number> = {
-  plan: 1,
-  redirecting: 2,
-  success: 3,
-  error: 3,
-};
+import RedirectingScreen from "./RedirectingScreen";
+import OnboardingProgress from "./OnboardingProgress";
+import { useOnboardingStore } from "@/store/useOnboardingStore";
 
 export default function OnboardingWizard() {
-  const { step, selectedPlan, nextStep, prevStep, reset } = useOnboardingStore();
-
-  const currentStep = stepToProgressMap[step] ?? 1;
+  const { step, selectedPlan, nextStep, prevStep, reset } =
+    useOnboardingStore();
 
   const renderStepContent = () => {
     switch (step) {
@@ -38,72 +27,58 @@ export default function OnboardingWizard() {
     }
   };
 
-  const renderRightButton = () => {
+  const getProgressProps = () => {
     switch (step) {
       case "plan":
-        return (
-          <Button
-            onClick={nextStep}
-            disabled={!selectedPlan}
-            className="bg-[#CDF545] text-[#114821] hover:bg-[#b8df3e] disabled:opacity-50"
-          >
-            Siguiente
-          </Button>
-        );
+        return {
+          currentStep: 1 as const,
+          totalSteps: 2 as const,
+          showNext: true,
+          onNext: nextStep,
+          nextDisabled: !selectedPlan,
+        };
+      case "redirecting":
+        return {
+          currentStep: 2 as const,
+          totalSteps: 2 as const,
+          showBack: true,
+          onBack: prevStep,
+        };
       case "success":
-        return (
-          <Button
-            asChild
-            className="bg-[#CDF545] text-[#114821] hover:bg-[#b8df3e]"
-          >
-            <Link href="/dashboard">Ir al dashboard</Link>
-          </Button>
-        );
+        return {
+          currentStep: 2 as const,
+          totalSteps: 2 as const,
+          showBack: true,
+          onBack: prevStep,
+          actionLabel: "Ir al dashboard" as const,
+          actionHref: "/dashboard" as const,
+        };
       case "error":
-        return (
-          <Button
-            onClick={reset}
-            className="bg-[#CDF545] text-[#114821] hover:bg-[#b8df3e]"
-          >
-            Reintentar
-          </Button>
-        );
+        return {
+          currentStep: 2 as const,
+          totalSteps: 2 as const,
+          showBack: true,
+          onBack: prevStep,
+          actionLabel: "Reintentar" as const,
+          onAction: reset,
+        };
       default:
-        return null;
+        return {
+          currentStep: 1 as const,
+          totalSteps: 2 as const,
+        };
     }
   };
 
   return (
     <div className="flex h-full flex-col bg-white">
       <HeaderLogo />
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="px-4 py-6">
         {renderStepContent()}
       </div>
 
       <div className="bg-white px-4 py-4">
-        <OnboardingProgress
-          currentStep={currentStep}
-          steps={STEP_LABELS.map((label) => ({ label }))}
-        />
-
-        <div
-          data-testid="wizard-nav"
-          className="mt-4 flex items-center justify-between"
-        >
-          {step !== "plan" ? (
-            <Button
-              variant="outline"
-              onClick={prevStep}
-              className="border-[#114821] text-[#114821] hover:bg-[#114821]/5"
-            >
-              Volver
-            </Button>
-          ) : (
-            <div />
-          )}
-
-          {renderRightButton()}
-        </div>
+        <OnboardingProgress {...getProgressProps()} />
       </div>
     </div>
   );

@@ -2,11 +2,10 @@
 
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
 
 export default function ErrorScreen() {
-  const { error, reset } = useOnboardingStore();
+  const { error } = useOnboardingStore();
 
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-12">
@@ -22,20 +21,12 @@ export default function ErrorScreen() {
           <p className="mt-2 text-[#58606E]">{error}</p>
         )}
       </div>
-      <div className="flex flex-col gap-3">
-        <Button
-          onClick={reset}
-          className="bg-[#CDF545] text-[#114821] hover:bg-[#b8df3e]"
-        >
-          Reintentar
-        </Button>
-        <Link
-          href="https://menually.cl/soporte"
-          className="text-center text-sm text-[#58606E] underline hover:text-[#114821]"
-        >
-          Contactar soporte
-        </Link>
-      </div>
+      <Link
+        href="https://menually.cl/soporte"
+        className="text-center text-sm text-[#58606E] underline hover:text-[#114821]"
+      >
+        Contactar soporte
+      </Link>
     </div>
   );
 }

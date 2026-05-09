@@ -408,36 +408,45 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          amount: number
           billing_cycle: Database["public"]["Enums"]["billing_cycle"]
           created_at: string
           current_period_end: string
           current_period_start: string
           id: string
+          mp_preapproval_id: string | null
           mp_subscription_id: string | null
+          plan_type: Database["public"]["Enums"]["plan_type"]
           status: Database["public"]["Enums"]["subscription_status"]
           trial_ends_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          amount?: number
           billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
           created_at?: string
           current_period_end: string
           current_period_start?: string
           id?: string
+          mp_preapproval_id?: string | null
           mp_subscription_id?: string | null
+          plan_type?: Database["public"]["Enums"]["plan_type"]
           status?: Database["public"]["Enums"]["subscription_status"]
           trial_ends_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          amount?: number
           billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
           created_at?: string
           current_period_end?: string
           current_period_start?: string
           id?: string
+          mp_preapproval_id?: string | null
           mp_subscription_id?: string | null
+          plan_type?: Database["public"]["Enums"]["plan_type"]
           status?: Database["public"]["Enums"]["subscription_status"]
           trial_ends_at?: string | null
           updated_at?: string
