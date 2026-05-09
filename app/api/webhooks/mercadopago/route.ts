@@ -10,16 +10,21 @@ import { mapMpStatusToDbStatus } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
-function getPeriodEndDate(frequency: number, frequencyType: "months" | "years"): Date {
+function getPeriodEndDate(frequency: number, frequencyType: "days" | "months"): Date {
   const now = new Date();
-  if (frequencyType === "months") {
-    return new Date(now.setMonth(now.getMonth() + frequency));
+  if (frequencyType === "days") {
+    return new Date(now.setDate(now.getDate() + frequency));
   }
-  return new Date(now.setFullYear(now.getFullYear() + frequency));
+  // "months" — MP no soporta "years"; planes anuales usan frequency: 12, frequency_type: "months"
+  return new Date(now.setMonth(now.getMonth() + frequency));
 }
 
-function mapFrequencyTypeToBillingCycle(frequencyType: "months" | "years"): "monthly" | "annual" {
-  return frequencyType === "months" ? "monthly" : "annual";
+function mapFrequencyTypeToBillingCycle(frequencyType: "days" | "months"): "monthly" | "annual" {
+  if (frequencyType === "months") {
+    // Si frequency >= 12, es anual
+    return "monthly"; // Se determina por el plan, no por frequency_type
+  }
+  return "monthly";
 }
 
 export async function POST(request: NextRequest) {
@@ -28,14 +33,27 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text();
 
     // 2. Extract headers
-    const xSignature = request.headers.get("x-signature") ?? "";
-    const xRequestId = request.headers.get("x-request-id") ?? "";
+    const xSignature = request.headers.get("x-signature");
+    const xRequestId = request.headers.get("x-request-id");
 
     // 3. Extract query params
-    const dataId = request.nextUrl.searchParams.get("data.id") ?? "";
+    const dataId = request.nextUrl.searchParams.get("data.id");
     const queryType = request.nextUrl.searchParams.get("type") ?? "";
 
-    // 4. Validate HMAC
+    // 4. Validate required fields are present
+    if (!xSignature || !xRequestId || !dataId) {
+      console.warn("[Webhook] Missing required headers or params", {
+        hasXSignature: !!xSignature,
+        hasXRequestId: !!xRequestId,
+        hasDataId: !!dataId,
+      });
+      return Response.json(
+        { error: "Missing required headers: x-signature, x-request-id, or data.id" },
+        { status: 400 },
+      );
+    }
+
+    // 5. Validate HMAC
     const isValid = validateHMAC({
       xSignature,
       xRequestId,

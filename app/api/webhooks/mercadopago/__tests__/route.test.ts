@@ -220,7 +220,7 @@ describe("POST /api/webhooks/mercadopago", () => {
   });
 
   // ─── 4. Missing headers ───
-  it("returns 401 when x-signature is missing", async () => {
+  it("returns 400 when x-signature is missing", async () => {
     const request = createMockNextRequest({
       body: JSON.stringify(validPreapprovalPayload),
       headers: {
@@ -235,8 +235,8 @@ describe("POST /api/webhooks/mercadopago", () => {
     const response = await POST(request);
     const body = await response.json();
 
-    expect(response.status).toBe(401);
-    expect(body.error).toBe("Invalid signature");
+    expect(response.status).toBe(400);
+    expect(body.error).toContain("Missing required headers");
   });
 
   // ─── 5. Malformed payload ───

@@ -6,6 +6,7 @@ interface PlanCardProps {
   name: string;
   description?: string;
   price: number;
+  annualPrice: number;
   currency: string;
   features: string[];
   billingCycle: BillingCycle;
@@ -22,6 +23,7 @@ export default function PlanCard({
   name,
   description,
   price,
+  annualPrice,
   features,
   billingCycle,
   isRecommended,
@@ -29,6 +31,10 @@ export default function PlanCard({
   onSelect,
 }: PlanCardProps) {
   const isAnnual = billingCycle === "annual";
+  const displayPrice = isAnnual ? annualPrice : price;
+  const periodLabel = isAnnual ? "/año" : "/mes";
+  const monthlyEquivalent = isAnnual ? Math.round(annualPrice / 12) : price;
+  const savings = isAnnual ? price * 12 - annualPrice : 0;
 
   return (
     <button
@@ -71,15 +77,22 @@ export default function PlanCard({
       {/* Precio */}
       <div className="mb-1 flex items-baseline gap-1">
         <span className="text-4xl font-extrabold text-[#0F1B3C]">
-          {formatPrice(price)}
+          {formatPrice(displayPrice)}
         </span>
-        <span className="text-base font-medium text-[#58606E]">/mes</span>
+        <span className="text-base font-medium text-[#58606E]">{periodLabel}</span>
       </div>
 
       {/* Nota anual */}
       {isAnnual && (
         <p className="mb-5 text-xs font-medium text-[#3D7A4F]">
           Anual — pagas una vez, usas todo el año
+        </p>
+      )}
+
+      {/* Ahorro anual */}
+      {isAnnual && savings > 0 && (
+        <p className="mb-5 text-xs font-medium text-[#3D7A4F]">
+          Ahorras {Math.round((savings / (price * 12)) * 100)}% (~{formatPrice(savings)} al año)
         </p>
       )}
 

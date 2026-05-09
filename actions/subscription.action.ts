@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { MercadoPagoClient } from "@/lib/mercadopago/client";
-import { getPlanEnvVar } from "@/lib/mercadopago/constants";
 import { calculateTrialEnd, getPlanAmount, isTrialExpired } from "@/lib/subscription";
 import type { PlanId, BillingCycle } from "@/types/onboarding.types";
 
@@ -63,24 +62,21 @@ export async function createSubscription(
       }
     }
 
-    const planEnvVar = getPlanEnvVar(planId, billingCycle);
-    const planIdFromEnv = process.env[planEnvVar];
-
-    if (!planIdFromEnv) {
-      return {
-        success: false,
-        message: "Configuración de plan no encontrada",
-        errors: {},
-      };
-    }
-
     const amount = getPlanAmount(planId, billingCycle);
+
+    const frequency = billingCycle === "annual" ? 12 : 1;
 
     const mpClient = new MercadoPagoClient(process.env.MP_ACCESS_TOKEN!);
     const preapproval = await mpClient.createPreapproval({
-      preapproval_plan_id: planIdFromEnv,
       reason: `Menually ${planId} ${billingCycle}`,
       external_reference: user.id,
+      payer_email: user.email,
+      auto_recurring: {
+        frequency,
+        frequency_type: "months",
+        transaction_amount: amount,
+        currency_id: "CLP",
+      },
       back_url: `${process.env.NEXT_PUBLIC_SITE_URL}/onboarding?status=success&plan=${planId}&cycle=${billingCycle}`,
       status: "pending",
       notification_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/mercadopago`,
@@ -202,6 +198,95 @@ export async function cancelSubscription(): Promise<{
       success: true,
       message: "Suscripción cancelada",
       errors: {},
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error desconocido";
+    return {
+      success: false,
+      message,
+      errors: {},
+    };
+  }
+}
+
+/**
+ * Handles the return from Mercado Pago checkout (back_url callback).
+ * Verifies the preapproval status with MP and optimistically updates the DB.
+ *
+ * Called when the user is redirected back to /onboarding?status=success&preapproval_id=xxx
+ */
+export async function handlePreapprovalCallback(
+  preapprovalId: string,
+): Promise<{
+  success: boolean;
+  message: string;
+  errors: Record<string, string>;
+  status?: string;
+}> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return {
+        success: false,
+        message: "No autenticado",
+        errors: {},
+      };
+    }
+
+    // Verify preapproval status with MP
+    const mpClient = new MercadoPagoClient(process.env.MP_ACCESS_TOKEN!);
+    const preapproval = await mpClient.getPreapproval(preapprovalId);
+
+    // Optimistic update: update subscription status before webhook arrives
+    const mpStatus = preapproval.status;
+
+    if (mpStatus === "authorized") {
+      const { error } = await supabase
+        .from("subscriptions")
+        .update({
+          status: "active",
+          mp_preapproval_id: preapprovalId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id);
+
+      if (error) {
+        return {
+          success: false,
+          message: error.message,
+          errors: {},
+        };
+      }
+
+      return {
+        success: true,
+        message: "Pago confirmado",
+        errors: {},
+        status: "active",
+      };
+    }
+
+    if (mpStatus === "pending") {
+      // Payment still processing — stay on trial
+      return {
+        success: true,
+        message: "Pago en proceso",
+        errors: {},
+        status: "pending",
+      };
+    }
+
+    // Rejected or other
+    return {
+      success: false,
+      message: `Pago no completado (${mpStatus})`,
+      errors: {},
+      status: mpStatus,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error desconocido";

@@ -1,4 +1,4 @@
-export type MpPreapprovalStatus = "authorized" | "cancelled" | "paused";
+export type MpPreapprovalStatus = "pending" | "authorized" | "cancelled" | "paused";
 
 export type WebhookTopic =
   | "subscription_preapproval"
@@ -6,7 +6,7 @@ export type WebhookTopic =
 
 export interface AutoRecurring {
   frequency: number;
-  frequency_type: "months" | "years";
+  frequency_type: "days" | "months"; // MP solo acepta days/months al crear. "years" no es válido, usar months × 12
   transaction_amount: number;
   currency_id: string;
 }
@@ -24,11 +24,11 @@ export interface CreatePreapprovalPlanResponse {
 }
 
 export interface CreatePreapprovalRequest {
-  preapproval_plan_id: string;
+  preapproval_plan_id?: string; // Opcional: si no se usa, se envía auto_recurring inline
   reason: string;
   external_reference: string;
   payer_email?: string;
-  auto_recurring?: AutoRecurring;
+  auto_recurring?: AutoRecurring; // Requerido si no se usa preapproval_plan_id
   back_url: string;
   status: "pending" | "authorized";
   notification_url?: string;

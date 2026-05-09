@@ -26,7 +26,7 @@ describe("OnboardingProgress", () => {
     expect(screen.getByText("Paso 2 de 2")).toBeInTheDocument();
   });
 
-  it("shows Siguiente button when showNext and onNext are provided", () => {
+  it("shows Continuar button when showNext and onNext are provided", () => {
     render(
       <OnboardingProgress
         currentStep={1}
@@ -36,21 +36,21 @@ describe("OnboardingProgress", () => {
       />,
     );
     expect(
-      screen.getByRole("button", { name: "Siguiente" }),
+      screen.getByRole("button", { name: "Continuar" }),
     ).toBeInTheDocument();
   });
 
-  it("hides Siguiente button when showNext is false", () => {
+  it("hides Continuar button when showNext is false", () => {
     render(<OnboardingProgress currentStep={1} totalSteps={2} />);
     expect(
-      screen.queryByRole("button", { name: "Siguiente" }),
+      screen.queryByRole("button", { name: "Continuar" }),
     ).not.toBeInTheDocument();
   });
 
-  it("hides Siguiente button when onNext is not provided", () => {
+  it("hides Continuar button when onNext is not provided", () => {
     render(<OnboardingProgress currentStep={1} totalSteps={2} showNext />);
     expect(
-      screen.queryByRole("button", { name: "Siguiente" }),
+      screen.queryByRole("button", { name: "Continuar" }),
     ).not.toBeInTheDocument();
   });
 
@@ -82,7 +82,7 @@ describe("OnboardingProgress", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("disables Siguiente button when nextDisabled is true", () => {
+  it("disables Continuar button when nextDisabled is true", () => {
     render(
       <OnboardingProgress
         currentStep={1}
@@ -92,7 +92,7 @@ describe("OnboardingProgress", () => {
         nextDisabled
       />,
     );
-    expect(screen.getByRole("button", { name: "Siguiente" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Continuar" })).toBeDisabled();
   });
 
   it("renders action button as link when actionHref is provided", () => {
@@ -132,7 +132,7 @@ describe("OnboardingProgress", () => {
     expect(progressbar).toHaveAttribute("aria-valuemax", "2");
   });
 
-  it("fires onNext when Siguiente is clicked", async () => {
+  it("fires onNext when Continuar is clicked", async () => {
     const user = userEvent.setup();
     const onNext = vi.fn();
     render(
@@ -143,7 +143,7 @@ describe("OnboardingProgress", () => {
         onNext={onNext}
       />,
     );
-    await user.click(screen.getByRole("button", { name: "Siguiente" }));
+    await user.click(screen.getByRole("button", { name: "Continuar" }));
     expect(onNext).toHaveBeenCalledTimes(1);
   });
 

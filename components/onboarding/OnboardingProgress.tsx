@@ -12,6 +12,7 @@ interface OnboardingProgressProps {
   actionLabel?: string;
   onAction?: () => void;
   actionHref?: string;
+  nextLabel?: string;
 }
 
 export default function OnboardingProgress({
@@ -25,6 +26,7 @@ export default function OnboardingProgress({
   actionLabel,
   onAction,
   actionHref,
+  nextLabel,
 }: OnboardingProgressProps) {
   const progressPercent = currentStep === 1 ? "25%" : "100%";
 
@@ -66,7 +68,7 @@ export default function OnboardingProgress({
               disabled={nextDisabled}
               className="bg-[#CDF545] text-[#114821] hover:bg-[#b8df3e] disabled:opacity-50 text-base font-semibold py-2 px-4 h-10"
             >
-              Continuar
+              {nextLabel || "Continuar"}
             </Button>
           )}
 

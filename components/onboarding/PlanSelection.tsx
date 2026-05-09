@@ -60,6 +60,7 @@ export default function PlanSelection() {
           name={PLANS.basic.name}
           description={PLANS.basic.description}
           price={PLANS.basic.monthlyPrice}
+          annualPrice={PLANS.basic.annualPrice}
           currency={PLANS.basic.currency}
           features={PLANS.basic.features}
           billingCycle={billingCycle}
@@ -71,6 +72,7 @@ export default function PlanSelection() {
           name={PLANS.pro.name}
           description={PLANS.pro.description}
           price={PLANS.pro.monthlyPrice}
+          annualPrice={PLANS.pro.annualPrice}
           currency={PLANS.pro.currency}
           features={PLANS.pro.features}
           billingCycle={billingCycle}

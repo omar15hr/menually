@@ -37,23 +37,13 @@ vi.mock("@/lib/mercadopago/client", () => {
   return { MercadoPagoClient: MockMercadoPagoClient };
 });
 
-vi.mock("@/lib/mercadopago/constants", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@/lib/mercadopago/constants")>();
-  return {
-    ...original,
-    getPlanEnvVar: vi.fn((planId: string, billingCycle: string) => {
-      return `MP_PLAN_${planId.toUpperCase()}_${billingCycle.toUpperCase()}_ID`;
-    }),
-  };
-});
-
 vi.mock("@/lib/subscription", () => ({
   calculateTrialEnd: vi.fn(() => new Date("2025-07-08T00:00:00.000Z")),
   getPlanAmount: vi.fn((planId: string, billingCycle: string) => {
     if (planId === "basic" && billingCycle === "monthly") return 24990;
-    if (planId === "basic" && billingCycle === "annual") return 239990;
-    if (planId === "pro" && billingCycle === "monthly") return 49990;
-    if (planId === "pro" && billingCycle === "annual") return 479990;
+    if (planId === "basic" && billingCycle === "annual") return 254990;
+    if (planId === "pro" && billingCycle === "monthly") return 29990;
+    if (planId === "pro" && billingCycle === "annual") return 305990;
     return 0;
   }),
   isTrialExpired: vi.fn((sub: { status: string; trial_ends_at: string | null }) => {

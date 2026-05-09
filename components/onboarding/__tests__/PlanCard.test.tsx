@@ -5,8 +5,9 @@ import PlanCard from "@/components/onboarding/PlanCard";
 
 describe("PlanCard", () => {
   const defaultProps = {
-    name: "Basic",
+    name: "Plan Básico",
     price: 24990,
+    annualPrice: 254990,
     currency: "CLP",
     features: ["1 menú digital", "QR personalizado"],
     billingCycle: "monthly" as const,
@@ -17,18 +18,18 @@ describe("PlanCard", () => {
 
   it("renders plan name", () => {
     render(<PlanCard {...defaultProps} />);
-    expect(screen.getByText("Basic")).toBeInTheDocument();
+    expect(screen.getByText("Plan Básico")).toBeInTheDocument();
   });
 
   it("renders monthly price correctly", () => {
     render(<PlanCard {...defaultProps} />);
-    expect(screen.getByText(/24\.990/)).toBeInTheDocument();
+    expect(screen.getByText("$24.990")).toBeInTheDocument();
     expect(screen.getByText("/mes")).toBeInTheDocument();
   });
 
   it("renders annual price correctly", () => {
     render(<PlanCard {...defaultProps} billingCycle="annual" />);
-    expect(screen.getByText(/299\.880/)).toBeInTheDocument();
+    expect(screen.getByText("$254.990")).toBeInTheDocument();
     expect(screen.getByText("/año")).toBeInTheDocument();
   });
 
@@ -36,11 +37,6 @@ describe("PlanCard", () => {
     render(<PlanCard {...defaultProps} />);
     expect(screen.getByText("1 menú digital")).toBeInTheDocument();
     expect(screen.getByText("QR personalizado")).toBeInTheDocument();
-  });
-
-  it("renders trial badge", () => {
-    render(<PlanCard {...defaultProps} />);
-    expect(screen.getByText("Prueba gratis")).toBeInTheDocument();
   });
 
   it("renders recommended badge when isRecommended is true", () => {
@@ -72,5 +68,15 @@ describe("PlanCard", () => {
     render(<PlanCard {...defaultProps} />);
     const card = screen.getByRole("button");
     expect(card).toHaveAttribute("data-selected", "false");
+  });
+
+  it("renders annual savings text when billingCycle is annual", () => {
+    render(<PlanCard {...defaultProps} billingCycle="annual" />);
+    expect(screen.getByText(/Ahorras 15%/)).toBeInTheDocument();
+  });
+
+  it("does not render annual savings text when billingCycle is monthly", () => {
+    render(<PlanCard {...defaultProps} billingCycle="monthly" />);
+    expect(screen.queryByText(/Ahorras 15%/)).not.toBeInTheDocument();
   });
 });

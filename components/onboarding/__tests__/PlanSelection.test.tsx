@@ -11,8 +11,8 @@ describe("PlanSelection", () => {
 
   it("renders both plan cards", () => {
     render(<PlanSelection />);
-    expect(screen.getByText("Basic")).toBeInTheDocument();
-    expect(screen.getByText("Pro")).toBeInTheDocument();
+    expect(screen.getByText("Plan Básico")).toBeInTheDocument();
+    expect(screen.getByText("Plan Pro")).toBeInTheDocument();
   });
 
   it("renders billing cycle toggle", () => {
@@ -26,31 +26,6 @@ describe("PlanSelection", () => {
     expect(screen.getByText(/30 días de prueba gratis/)).toBeInTheDocument();
   });
 
-  it("renders Siguiente button disabled when no plan selected", () => {
-    render(<PlanSelection />);
-    const button = screen.getByRole("button", { name: "Siguiente" });
-    expect(button).toBeDisabled();
-  });
-
-  it("enables Siguiente button when a plan is selected", async () => {
-    const user = userEvent.setup();
-    render(<PlanSelection />);
-    const proCard = screen.getByRole("button", { name: /Pro/ });
-    await user.click(proCard);
-    const nextButton = screen.getByRole("button", { name: "Siguiente" });
-    expect(nextButton).not.toBeDisabled();
-  });
-
-  it("calls nextStep when Siguiente is clicked after selecting a plan", async () => {
-    const user = userEvent.setup();
-    render(<PlanSelection />);
-    const proCard = screen.getByRole("button", { name: /Pro/ });
-    await user.click(proCard);
-    const nextButton = screen.getByRole("button", { name: "Siguiente" });
-    await user.click(nextButton);
-    expect(useOnboardingStore.getState().step).toBe("redirecting");
-  });
-
   it("toggles billing cycle to annual", async () => {
     const user = userEvent.setup();
     render(<PlanSelection />);
@@ -62,8 +37,38 @@ describe("PlanSelection", () => {
   it("updates selected plan in store when card is clicked", async () => {
     const user = userEvent.setup();
     render(<PlanSelection />);
-    const basicCard = screen.getByRole("button", { name: /Basic/ });
-    await user.click(basicCard);
+    const basicHeading = screen.getByText("Plan Básico");
+    const basicCard = basicHeading.closest("button");
+    expect(basicCard).not.toBeNull();
+    await user.click(basicCard!);
     expect(useOnboardingStore.getState().selectedPlan).toBe("basic");
+  });
+
+  it("shows monthly prices by default", () => {
+    render(<PlanSelection />);
+    expect(screen.getByText("$24.990")).toBeInTheDocument();
+    expect(screen.getByText("$29.990")).toBeInTheDocument();
+    expect(screen.getAllByText("/mes").length).toBe(2);
+  });
+
+  it("shows annual prices when billing cycle is annual", async () => {
+    const user = userEvent.setup();
+    render(<PlanSelection />);
+    const annualToggle = screen.getByRole("button", { name: /Anual/ });
+    await user.click(annualToggle);
+
+    expect(screen.getByText("$254.990")).toBeInTheDocument();
+    expect(screen.getByText("$305.990")).toBeInTheDocument();
+    expect(screen.getAllByText("/año").length).toBe(2);
+  });
+
+  it("shows annual savings text when billing cycle is annual", async () => {
+    const user = userEvent.setup();
+    render(<PlanSelection />);
+    const annualToggle = screen.getByRole("button", { name: /Anual/ });
+    await user.click(annualToggle);
+
+    const savingsTexts = screen.getAllByText(/Ahorras 15%/);
+    expect(savingsTexts.length).toBe(2);
   });
 });

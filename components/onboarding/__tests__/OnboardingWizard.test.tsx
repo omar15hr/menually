@@ -1,12 +1,27 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
 
+const mockCreateSubscription = vi.fn();
+const mockHandlePreapprovalCallback = vi.fn();
+
+vi.mock("@/actions/subscription.action", () => ({
+  createSubscription: (...args: unknown[]) => mockCreateSubscription(...args),
+  handlePreapprovalCallback: (...args: unknown[]) => mockHandlePreapprovalCallback(...args),
+}));
+
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 describe("OnboardingWizard", () => {
   beforeEach(() => {
     useOnboardingStore.getState().reset();
+    mockCreateSubscription.mockClear();
+    mockHandlePreapprovalCallback.mockClear();
+    vi.stubGlobal("location", { href: "" });
   });
 
   it("renders PlanSelection when step is plan", () => {
@@ -20,7 +35,7 @@ describe("OnboardingWizard", () => {
     useOnboardingStore.getState().nextStep();
     render(<OnboardingWizard />);
     expect(
-      screen.getByText("Redirigiendo a Mercado Pago..."),
+      screen.getByText("Serás redirigido en un momento..."),
     ).toBeInTheDocument();
   });
 
@@ -63,26 +78,27 @@ describe("OnboardingWizard", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows Siguiente button on plan step", () => {
+  it("shows Continuar button on plan step", () => {
     render(<OnboardingWizard />);
     expect(
-      screen.getByRole("button", { name: "Siguiente" }),
+      screen.getByRole("button", { name: "Continuar" }),
     ).toBeInTheDocument();
   });
 
-  it("shows no action buttons on redirecting step", () => {
+  it("shows Reintentar button on redirecting step when no checkoutUrl", () => {
     useOnboardingStore.getState().setSelectedPlan("pro");
     useOnboardingStore.getState().nextStep();
     render(<OnboardingWizard />);
     expect(
-      screen.queryByRole("button", { name: "Siguiente" }),
+      screen.queryByRole("button", { name: "Continuar" }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Ir al dashboard" }),
     ).not.toBeInTheDocument();
+    // Reintentar button appears because no checkoutUrl (redirect failed or not yet started)
     expect(
-      screen.queryByRole("button", { name: "Reintentar" }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("button", { name: "Reintentar" }),
+    ).toBeInTheDocument();
   });
 
   it("shows Ir al dashboard link on success step", () => {
@@ -112,5 +128,93 @@ describe("OnboardingWizard", () => {
     const backButton = screen.getByRole("button", { name: "Volver" });
     await user.click(backButton);
     expect(useOnboardingStore.getState().step).toBe("plan");
+  });
+
+  it("calls createSubscription when Continuar is clicked with a plan selected", async () => {
+    const user = userEvent.setup();
+    mockCreateSubscription.mockResolvedValue({
+      success: true,
+      message: "Suscripción creada",
+      errors: {},
+      checkoutUrl: "https://mp.com/checkout",
+    });
+
+    render(<OnboardingWizard />);
+    const proCard = screen.getByRole("button", { name: /Plan Pro/ });
+    await user.click(proCard);
+
+    const nextButton = screen.getByRole("button", { name: "Continuar" });
+    await user.click(nextButton);
+
+    await waitFor(() => {
+      expect(mockCreateSubscription).toHaveBeenCalledTimes(1);
+    });
+    expect(mockCreateSubscription).toHaveBeenCalledWith("pro", "monthly");
+  });
+
+  it("redirects to checkoutUrl on successful subscription creation", async () => {
+    const user = userEvent.setup();
+    mockCreateSubscription.mockResolvedValue({
+      success: true,
+      message: "Suscripción creada",
+      errors: {},
+      checkoutUrl: "https://mp.com/checkout",
+    });
+
+    render(<OnboardingWizard />);
+    const proCard = screen.getByRole("button", { name: /Plan Pro/ });
+    await user.click(proCard);
+
+    const nextButton = screen.getByRole("button", { name: "Continuar" });
+    await user.click(nextButton);
+
+    await waitFor(() => {
+      expect(window.location.href).toBe("https://mp.com/checkout");
+    });
+  });
+
+  it("shows error step when subscription creation fails", async () => {
+    const user = userEvent.setup();
+    mockCreateSubscription.mockResolvedValue({
+      success: false,
+      message: "Error al crear suscripción",
+      errors: {},
+    });
+
+    render(<OnboardingWizard />);
+    const proCard = screen.getByRole("button", { name: /Plan Pro/ });
+    await user.click(proCard);
+
+    const nextButton = screen.getByRole("button", { name: "Continuar" });
+    await user.click(nextButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Error al crear suscripción")).toBeInTheDocument();
+    });
+  });
+
+  it("disables Continuar button while subscription is pending", async () => {
+    const user = userEvent.setup();
+    let resolveSubscription: (value: unknown) => void;
+    const subscriptionPromise = new Promise((resolve) => {
+      resolveSubscription = resolve;
+    });
+    mockCreateSubscription.mockReturnValue(subscriptionPromise);
+
+    render(<OnboardingWizard />);
+    const proCard = screen.getByRole("button", { name: /Plan Pro/ });
+    await user.click(proCard);
+
+    const nextButton = screen.getByRole("button", { name: "Continuar" });
+    await user.click(nextButton);
+
+    expect(nextButton).toBeDisabled();
+
+    resolveSubscription!({
+      success: true,
+      message: "Suscripción creada",
+      errors: {},
+      checkoutUrl: "https://mp.com/checkout",
+    });
   });
 });
