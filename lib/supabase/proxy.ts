@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database.types";
 
 // Rutas protegidas que requieren autenticación
 const protectedRoutes = [
@@ -11,6 +13,91 @@ const protectedRoutes = [
 
 // Rutas de autenticación (usuarios autenticados no pueden acceder)
 const authRoutes = ["/auth/signin", "/auth/signup", "/auth/reset-password"];
+
+// Rutas exentas de verificación de suscripción
+const subscriptionExemptRoutes = [
+  "/onboarding",
+  "/api/webhooks",
+  "/auth",
+  "/menu",
+];
+
+type SubscriptionRow = Database["public"]["Tables"]["subscriptions"]["Row"];
+
+export function isSubscriptionExempt(pathname: string): boolean {
+  return subscriptionExemptRoutes.some((route) => pathname.startsWith(route));
+}
+
+export function resolveSubscriptionAccess(
+  subscription: SubscriptionRow | null,
+): { isAllowed: boolean; redirectTo?: string } {
+  if (!subscription) {
+    return { isAllowed: true };
+  }
+
+  if (subscription.status === "active") {
+    return { isAllowed: true };
+  }
+
+  if (subscription.status === "trial") {
+    if (!subscription.trial_ends_at) {
+      return { isAllowed: false, redirectTo: "/onboarding" };
+    }
+    const isExpired = new Date(subscription.trial_ends_at) <= new Date();
+    if (isExpired) {
+      return { isAllowed: false, redirectTo: "/onboarding" };
+    }
+    return { isAllowed: true };
+  }
+
+  if (subscription.status === "cancelled" || subscription.status === "past_due") {
+    return { isAllowed: false, redirectTo: "/settings/subscription" };
+  }
+
+  return { isAllowed: false, redirectTo: "/onboarding" };
+}
+
+export async function checkSubscriptionStatus(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<{
+  isAllowed: boolean;
+  redirectTo?: string;
+  subscription?: SubscriptionRow | null;
+}> {
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!subscription) {
+    // Auto-create trial subscription
+    const trialEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const now = new Date().toISOString();
+    const trialEndIso = trialEnd.toISOString();
+
+    const { data: inserted } = await supabase
+      .from("subscriptions")
+      .insert({
+        user_id: userId,
+        status: "trial",
+        trial_ends_at: trialEndIso,
+        plan_type: "basic",
+        billing_cycle: "monthly",
+        amount: 0,
+        current_period_start: now,
+        current_period_end: trialEndIso,
+      })
+      .select()
+      .single();
+
+    return { isAllowed: true, subscription: inserted };
+  }
+
+  const access = resolveSubscriptionAccess(subscription);
+  return { ...access, subscription };
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -69,6 +156,20 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
+  }
+
+  // Verificación de suscripción para usuarios autenticados
+  if (user && !isSubscriptionExempt(pathname)) {
+    const { isAllowed, redirectTo } = await checkSubscriptionStatus(
+      supabase,
+      user.id,
+    );
+
+    if (!isAllowed && redirectTo) {
+      const url = request.nextUrl.clone();
+      url.pathname = redirectTo;
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;
