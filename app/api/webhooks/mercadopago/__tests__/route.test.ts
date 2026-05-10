@@ -12,9 +12,10 @@ import {
 const mockSupabaseFrom = vi.fn();
 const mockSupabaseSelect = vi.fn();
 const mockSupabaseInsert = vi.fn();
-const mockSupabaseUpsert = vi.fn();
-const mockSupabaseEq = vi.fn();
-const mockSupabaseSingle = vi.fn();
+  const mockSupabaseUpsert = vi.fn();
+  const mockSupabaseUpdate = vi.fn();
+  const mockSupabaseEq = vi.fn();
+  const mockSupabaseSingle = vi.fn();
 
 const mockSupabaseClient = {
   from: mockSupabaseFrom,
@@ -146,6 +147,9 @@ describe("POST /api/webhooks/mercadopago", () => {
             }),
           }),
           upsert: mockSupabaseUpsert,
+          update: mockSupabaseUpdate.mockReturnValue({
+            eq: vi.fn().mockReturnValue(Promise.resolve({ data: null, error: null })),
+          }),
         };
       }
       return {};
@@ -973,5 +977,137 @@ describe("POST /api/webhooks/mercadopago", () => {
     const response = await POST(request);
     expect(response.status).toBe(200);
     expect(logWebhookError).toHaveBeenCalled();
+  });
+
+  // ─── Phase 4: Chargeback & Refund ───
+
+  it("handles chargeback webhook: updates subscription status to chargeback", async () => {
+    const chargebackDataId = "preapproval-chargeback-123";
+    const chargebackManifest = buildManifest(chargebackDataId, TEST_X_REQUEST_ID, TEST_TS);
+    const chargebackV1 = computeHMAC(TEST_SECRET, chargebackManifest);
+    const chargebackXSignature = buildXSignature(TEST_TS, chargebackV1);
+
+    const chargebackPayload = {
+      data: { id: chargebackDataId },
+      type: "chargeback" as const,
+      date_created: "2024-01-01T00:00:00.000Z",
+      user_id: "12345",
+      api_version: "v1",
+      action: "created",
+    };
+
+    existingSubResult = {
+      data: {
+        id: "sub-123",
+        user_id: "user-abc-123",
+        mp_preapproval_id: chargebackDataId,
+        status: "active",
+        plan_type: "basic",
+      },
+      error: null,
+    };
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(chargebackPayload),
+      headers: {
+        "x-signature": chargebackXSignature,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": chargebackDataId,
+        type: "chargeback",
+      },
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "chargeback",
+        updated_at: expect.any(String),
+      }),
+    );
+  });
+
+  it("handles refund webhook: updates subscription status to refunded", async () => {
+    const refundDataId = "preapproval-refund-123";
+    const refundManifest = buildManifest(refundDataId, TEST_X_REQUEST_ID, TEST_TS);
+    const refundV1 = computeHMAC(TEST_SECRET, refundManifest);
+    const refundXSignature = buildXSignature(TEST_TS, refundV1);
+
+    const refundPayload = {
+      data: { id: refundDataId },
+      type: "refund" as const,
+      date_created: "2024-01-01T00:00:00.000Z",
+      user_id: "12345",
+      api_version: "v1",
+      action: "created",
+    };
+
+    existingSubResult = {
+      data: {
+        id: "sub-123",
+        user_id: "user-abc-123",
+        mp_preapproval_id: refundDataId,
+        status: "pending_refund",
+        plan_type: "basic",
+      },
+      error: null,
+    };
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(refundPayload),
+      headers: {
+        "x-signature": refundXSignature,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": refundDataId,
+        type: "refund",
+      },
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "refunded",
+        updated_at: expect.any(String),
+      }),
+    );
+  });
+
+  it("returns 200 for chargeback when subscription not found (no DB write)", async () => {
+    const chargebackDataId = "preapproval-chargeback-456";
+    const chargebackManifest = buildManifest(chargebackDataId, TEST_X_REQUEST_ID, TEST_TS);
+    const chargebackV1 = computeHMAC(TEST_SECRET, chargebackManifest);
+    const chargebackXSignature = buildXSignature(TEST_TS, chargebackV1);
+
+    const chargebackPayload = {
+      data: { id: chargebackDataId },
+      type: "chargeback" as const,
+      date_created: "2024-01-01T00:00:00.000Z",
+      user_id: "12345",
+      api_version: "v1",
+      action: "created",
+    };
+
+    existingSubResult = { data: null, error: null };
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(chargebackPayload),
+      headers: {
+        "x-signature": chargebackXSignature,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": chargebackDataId,
+        type: "chargeback",
+      },
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpdate).not.toHaveBeenCalled();
   });
 });

@@ -8,6 +8,11 @@ import type {
   GetPreapprovalResponse,
 } from "@/lib/mercadopago/types";
 
+/**
+ * @deprecated This fetch-based client is legacy. Use `createMPClient()` from factory.ts
+ * which returns either this client or the SDK-based `MercadoPagoAdapter`.
+ * This file will be removed in Phase 5.
+ */
 export class MercadoPagoError extends Error {
   statusCode: number;
 

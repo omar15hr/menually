@@ -318,3 +318,220 @@ export async function handlePreapprovalCallback(
     };
   }
 }
+
+export async function upgradePlan(
+  newPlanId: PlanId,
+  newBillingCycle: BillingCycle,
+): Promise<{
+  success: boolean;
+  message: string;
+  errors: Record<string, string>;
+  checkoutUrl?: string;
+}> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return {
+        success: false,
+        message: "No autenticado",
+        errors: {},
+      };
+    }
+
+    const { data: existingSub, error: queryError } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+
+    if (queryError || !existingSub) {
+      return {
+        success: false,
+        message: "No tienes una suscripción activa",
+        errors: {},
+      };
+    }
+
+    if (existingSub.status !== "active") {
+      return {
+        success: false,
+        message: "No tienes una suscripción activa para cambiar",
+        errors: {},
+      };
+    }
+
+    if (!existingSub.mp_preapproval_id) {
+      return {
+        success: false,
+        message: "No tienes una suscripción activa para cambiar",
+        errors: {},
+      };
+    }
+
+    if (existingSub.plan_type === newPlanId && existingSub.billing_cycle === newBillingCycle) {
+      return {
+        success: false,
+        message: "Ya estás en este plan",
+        errors: {},
+      };
+    }
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (!siteUrl) {
+      return {
+        success: false,
+        message: "Configuración del servidor incompleta",
+        errors: {},
+      };
+    }
+
+    // Cancel old preapproval (best effort)
+    try {
+      const mpClient = new MercadoPagoClient(process.env.MP_ACCESS_TOKEN!);
+      await mpClient.cancelPreapproval(existingSub.mp_preapproval_id);
+    } catch (mpError) {
+      console.error("MP cancel failed:", mpError);
+    }
+
+    const amount = getPlanAmount(newPlanId, newBillingCycle);
+    const frequency = newBillingCycle === "annual" ? 12 : 1;
+
+    const mpClient = new MercadoPagoClient(process.env.MP_ACCESS_TOKEN!);
+    const preapproval = await mpClient.createPreapproval({
+      reason: `Menually ${newPlanId} ${newBillingCycle}`,
+      external_reference: user.id,
+      payer_email: user.email,
+      auto_recurring: {
+        frequency,
+        frequency_type: "months",
+        transaction_amount: amount,
+        currency_id: "CLP",
+      },
+      back_url: `${siteUrl}/dashboard?status=success&plan=${newPlanId}&cycle=${newBillingCycle}`,
+      status: "pending",
+      notification_url: `${siteUrl}/api/webhooks/mercadopago`,
+    });
+
+    const { current_period_start, current_period_end, next_billing_date } = calculatePeriodDates(newBillingCycle);
+
+    const { error: upsertError } = await supabase
+      .from("subscriptions")
+      .upsert(
+        {
+          user_id: user.id,
+          mp_preapproval_id: preapproval.id,
+          status: "trial",
+          plan_type: newPlanId,
+          billing_cycle: newBillingCycle,
+          trial_ends_at: null,
+          amount,
+          current_period_start: current_period_start.toISOString(),
+          current_period_end: current_period_end.toISOString(),
+          next_billing_date: next_billing_date.toISOString(),
+        },
+        { onConflict: "user_id" },
+      )
+      .select()
+      .single();
+
+    if (upsertError) {
+      return {
+        success: false,
+        message: upsertError.message,
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      message: "Plan actualizado",
+      errors: {},
+      checkoutUrl: preapproval.init_point,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error desconocido";
+    return {
+      success: false,
+      message,
+      errors: {},
+    };
+  }
+}
+
+export async function initiateRefund(): Promise<{
+  success: boolean;
+  message: string;
+  errors: Record<string, string>;
+}> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return {
+        success: false,
+        message: "No autenticado",
+        errors: {},
+      };
+    }
+
+    const { data: existingSub, error: queryError } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+
+    if (queryError || !existingSub) {
+      return {
+        success: false,
+        message: "No tienes una suscripción activa",
+        errors: {},
+      };
+    }
+
+    if (existingSub.status !== "active") {
+      return {
+        success: false,
+        message: "No tienes una suscripción activa",
+        errors: {},
+      };
+    }
+
+    const { error: updateError } = await supabase
+      .from("subscriptions")
+      .update({
+        status: "pending_refund",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", user.id);
+
+    if (updateError) {
+      return {
+        success: false,
+        message: updateError.message,
+        errors: {},
+      };
+    }
+
+    return {
+      success: true,
+      message: "Reembolso iniciado",
+      errors: {},
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error desconocido";
+    return {
+      success: false,
+      message,
+      errors: {},
+    };
+  }
+}

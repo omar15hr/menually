@@ -88,4 +88,19 @@ describe("PlanSelection", () => {
     expect(screen.getByAltText("Mastercard")).toBeInTheDocument();
     expect(screen.getByAltText("American Express")).toBeInTheDocument();
   });
+
+  it("shows 'Plan actual' badge when currentPlan is basic", () => {
+    render(<PlanSelection currentPlan="basic" />);
+    expect(screen.getByText("Plan actual")).toBeInTheDocument();
+  });
+
+  it("shows 'Plan actual' badge when currentPlan is pro", () => {
+    render(<PlanSelection currentPlan="pro" />);
+    expect(screen.getByText("Plan actual")).toBeInTheDocument();
+  });
+
+  it("does not show 'Plan actual' badge when no currentPlan", () => {
+    render(<PlanSelection />);
+    expect(screen.queryByText("Plan actual")).not.toBeInTheDocument();
+  });
 });

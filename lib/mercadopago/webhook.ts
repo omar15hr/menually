@@ -95,6 +95,8 @@ export function parseWebhookPayload(body: unknown): WebhookPayload {
   const validTopics: WebhookTopic[] = [
     "subscription_preapproval",
     "subscription_authorized_payment",
+    "chargeback",
+    "refund",
   ];
 
   if (!validTopics.includes(payload.type as WebhookTopic)) {

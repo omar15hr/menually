@@ -89,6 +89,14 @@ export async function POST(request: NextRequest) {
       return await handleSubscriptionAuthorizedPayment(payload, client, supabase);
     }
 
+    if (topic === "chargeback") {
+      return await handleChargeback(payload, supabase);
+    }
+
+    if (topic === "refund") {
+      return await handleRefund(payload, supabase);
+    }
+
     // Unknown topic — return 200 so MP doesn't retry
     logWebhookIgnored(topic, payload.data.id, `Unknown topic: ${topic}`);
     return new Response("OK", { status: 200 });
@@ -261,6 +269,86 @@ async function handleSubscriptionAuthorizedPayment(
     }
 
     logWebhookSuccess(payload.type, preapprovalId, payload.action, "active");
+    return new Response("OK", { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logWebhookError(payload.type, payload.data.id, payload.action, `Unhandled error: ${message}`);
+    return new Response("OK", { status: 200 });
+  }
+}
+
+async function handleChargeback(
+  payload: ReturnType<typeof parseWebhookPayload>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+) {
+  try {
+    const preapprovalId = payload.data.id;
+
+    const { data: existingSub } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("mp_preapproval_id", preapprovalId)
+      .maybeSingle();
+
+    if (!existingSub) {
+      logWebhookIgnored(payload.type, preapprovalId, `Subscription not found for mp_preapproval_id: ${preapprovalId}`);
+      return new Response("OK", { status: 200 });
+    }
+
+    const { error } = await supabase
+      .from("subscriptions")
+      .update({
+        status: "chargeback",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("mp_preapproval_id", preapprovalId);
+
+    if (error) {
+      logWebhookError(payload.type, preapprovalId, payload.action, `DB update failed: ${error.message}`);
+      return new Response("OK", { status: 200 });
+    }
+
+    logWebhookSuccess(payload.type, preapprovalId, payload.action, "chargeback");
+    return new Response("OK", { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logWebhookError(payload.type, payload.data.id, payload.action, `Unhandled error: ${message}`);
+    return new Response("OK", { status: 200 });
+  }
+}
+
+async function handleRefund(
+  payload: ReturnType<typeof parseWebhookPayload>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+) {
+  try {
+    const preapprovalId = payload.data.id;
+
+    const { data: existingSub } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("mp_preapproval_id", preapprovalId)
+      .maybeSingle();
+
+    if (!existingSub) {
+      logWebhookIgnored(payload.type, preapprovalId, `Subscription not found for mp_preapproval_id: ${preapprovalId}`);
+      return new Response("OK", { status: 200 });
+    }
+
+    const { error } = await supabase
+      .from("subscriptions")
+      .update({
+        status: "refunded",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("mp_preapproval_id", preapprovalId);
+
+    if (error) {
+      logWebhookError(payload.type, preapprovalId, payload.action, `DB update failed: ${error.message}`);
+      return new Response("OK", { status: 200 });
+    }
+
+    logWebhookSuccess(payload.type, preapprovalId, payload.action, "refunded");
     return new Response("OK", { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

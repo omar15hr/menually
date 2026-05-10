@@ -2,7 +2,9 @@ export type MpPreapprovalStatus = "pending" | "authorized" | "cancelled" | "paus
 
 export type WebhookTopic =
   | "subscription_preapproval"
-  | "subscription_authorized_payment";
+  | "subscription_authorized_payment"
+  | "chargeback"
+  | "refund";
 
 export interface AutoRecurring {
   frequency: number;

@@ -1,10 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import AlertIcon from "@/components/icons/AlertIcon";
 import { Button } from "@/components/ui/button";
-import { cancelSubscription } from "@/actions/subscription.action";
+import {
+  cancelSubscription,
+  upgradePlan,
+  initiateRefund,
+} from "@/actions/subscription.action";
 import {
   formatAmount,
   getPlanDescription,
@@ -12,6 +16,7 @@ import {
   isTrialExpired,
 } from "@/lib/subscription";
 import type { Database } from "@/types/database.types";
+import type { PlanId, BillingCycle } from "@/types/onboarding.types";
 
 type SubscriptionRow = Database["public"]["Tables"]["subscriptions"]["Row"];
 
@@ -29,16 +34,45 @@ function getStatusBadge(status: string) {
       return { label: "Vencida", className: "bg-red-100 text-red-700" };
     case "cancelled":
       return { label: "Cancelada", className: "bg-gray-100 text-gray-600" };
+    case "pending_refund":
+      return { label: "Reembolso en progreso", className: "bg-orange-100 text-orange-700" };
+    case "refunded":
+      return { label: "Reembolsado", className: "bg-blue-100 text-blue-700" };
+    case "chargeback":
+      return { label: "Contracargo", className: "bg-red-100 text-red-800" };
     default:
       return { label: status, className: "bg-gray-100 text-gray-600" };
   }
 }
 
+async function handleUpgradeFormAction(
+  _state: { success: boolean; message: string; errors: Record<string, string>; checkoutUrl?: string } | null,
+  formData: FormData,
+) {
+  const newPlanId = formData.get("newPlanId") as PlanId;
+  const newBillingCycle = formData.get("newBillingCycle") as BillingCycle;
+  return upgradePlan(newPlanId, newBillingCycle);
+}
+
+async function handleRefundFormAction(
+  _state: { success: boolean; message: string; errors: Record<string, string> } | null,
+) {
+  return initiateRefund();
+}
+
 export default function SubscriptionSettings({
   subscription,
 }: SubscriptionSettingsProps) {
-  const [cancelState, cancelAction, isPending] = useActionState(
+  const [cancelState, cancelAction, isCancelPending] = useActionState(
     cancelSubscription,
+    null,
+  );
+  const [upgradeState, upgradeAction, isUpgradePending] = useActionState(
+    handleUpgradeFormAction,
+    null,
+  );
+  const [refundState, refundAction, isRefundPending] = useActionState(
+    handleRefundFormAction,
     null,
   );
 
@@ -53,9 +87,42 @@ export default function SubscriptionSettings({
   const trialExpired = isTrial && isTrialExpired(subscription);
   const badge = getStatusBadge(status);
 
-  const handleCancel = () => {
-    // useActionState handles the form submission
+  useEffect(() => {
+    if (upgradeState?.success && upgradeState.checkoutUrl) {
+      window.location.href = upgradeState.checkoutUrl;
+    } else if (upgradeState?.success === false) {
+      toast.error(upgradeState.message);
+    }
+  }, [upgradeState]);
+
+  useEffect(() => {
+    if (refundState?.success) {
+      toast.success(refundState.message);
+    } else if (refundState?.success === false) {
+      toast.error(refundState.message);
+    }
+  }, [refundState]);
+
+  const handleUpgrade = () => {
+    const targetPlan = planType === "basic" ? "pro" : "basic";
+    const actionLabel = planType === "basic" ? "upgrade a Pro" : "downgrade a Basic";
+    if (window.confirm(`¿Confirmás que querés ${actionLabel}?`)) {
+      const formData = new FormData();
+      formData.append("newPlanId", targetPlan);
+      formData.append("newBillingCycle", billingCycle);
+      upgradeAction(formData);
+    }
   };
+
+  const handleRefund = () => {
+    if (window.confirm("¿Confirmás que querés solicitar un reembolso?")) {
+      refundAction();
+    }
+  };
+
+  const isActive = status === "active";
+  const canUpgrade = isActive;
+  const canRefund = isActive;
 
   return (
     <div className="w-full max-w-3xl space-y-6 p-6 md:p-10">
@@ -89,6 +156,22 @@ export default function SubscriptionSettings({
             <div className="text-sm">
               <p className="font-semibold">Tu período de prueba ha vencido.</p>
               <p>Actualizá tu suscripción para seguir usando todas las funciones.</p>
+            </div>
+          </div>
+        )}
+
+        {status === "chargeback" && (
+          <div className="bg-red-50 text-red-800 p-4 rounded-lg flex items-start gap-3 mb-6">
+            <AlertIcon />
+            <div className="text-sm">
+              <p className="font-semibold">Se detectó un contracargo en tu cuenta.</p>
+              <p>
+                Contactá a{" "}
+                <a href="mailto:soporte@menually.app" className="underline font-medium">
+                  soporte@menually.app
+                </a>{" "}
+                para resolverlo.
+              </p>
             </div>
           </div>
         )}
@@ -139,10 +222,52 @@ export default function SubscriptionSettings({
             })}
           </p>
         )}
+
+        {canUpgrade && (
+          <div className="flex gap-3 mt-2">
+            <Button
+              onClick={handleUpgrade}
+              disabled={isUpgradePending}
+              className="bg-[#114821] text-white font-medium px-5 py-2.5 rounded-lg text-sm whitespace-nowrap transition-colors hover:bg-[#0d3a1a] disabled:opacity-50"
+            >
+              {isUpgradePending
+                ? "Procesando..."
+                : planType === "basic"
+                  ? "Upgrade a Pro"
+                  : "Downgrade a Basic"}
+            </Button>
+          </div>
+        )}
       </div>
 
+      {/* Tarjeta: Reembolso */}
+      {canRefund && (
+        <div className="bg-white border border-[#E4E4E6] rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="max-w-xl">
+            <h2 className="text-2xl font-bold mb-4">Solicitar reembolso</h2>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Si solicitás un reembolso, procesaremos la devolución de tu último
+              pago. Tu menú seguirá activo hasta el final del período pagado.
+            </p>
+          </div>
+          <form action={refundAction}>
+            <Button
+              type="submit"
+              disabled={isRefundPending}
+              onClick={(e) => {
+                e.preventDefault();
+                handleRefund();
+              }}
+              className="bg-[#B60000] text-white font-medium px-5 py-2.5 rounded-lg text-sm whitespace-nowrap transition-colors hover:bg-[#990000] disabled:opacity-50"
+            >
+              {isRefundPending ? "Procesando..." : "Solicitar reembolso"}
+            </Button>
+          </form>
+        </div>
+      )}
+
       {/* Tarjeta: Cancelar suscripción */}
-      {status !== "cancelled" && (
+      {status !== "cancelled" && status !== "chargeback" && status !== "refunded" && (
         <div className="bg-white border border-[#E4E4E6] rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="max-w-xl">
             <h2 className="text-2xl font-bold mb-4">Cancelar suscripción</h2>
@@ -172,10 +297,10 @@ export default function SubscriptionSettings({
           <form action={cancelAction}>
             <Button
               type="submit"
-              disabled={isPending}
+              disabled={isCancelPending}
               className="bg-[#B60000] text-white font-medium px-5 py-2.5 rounded-lg text-sm whitespace-nowrap transition-colors hover:bg-[#990000] disabled:opacity-50"
             >
-              {isPending ? "Cancelando..." : "Cancelar suscripción"}
+              {isCancelPending ? "Cancelando..." : "Cancelar suscripción"}
             </Button>
           </form>
           {cancelState?.success === false && (

@@ -67,6 +67,8 @@ vi.mock("@/lib/subscription", () => ({
 import {
   createSubscription,
   cancelSubscription,
+  upgradePlan,
+  initiateRefund,
 } from "@/actions/subscription.action";
 
 describe("subscription.action", () => {
@@ -353,6 +355,291 @@ describe("subscription.action", () => {
           updated_at: expect.any(String),
         }),
       );
+    });
+  });
+
+  // ─── upgradePlan ───
+
+  describe("upgradePlan", () => {
+    it("happy path: upgrades basic to pro, cancels old preapproval, creates new one", async () => {
+      mockSupabaseSingle.mockReturnValue(
+        Promise.resolve({
+          data: {
+            id: "sub-123",
+            user_id: TEST_USER.id,
+            status: "active",
+            plan_type: "basic",
+            billing_cycle: "monthly",
+            mp_preapproval_id: "old-preapproval-123",
+            amount: 24990,
+          },
+          error: null,
+        }),
+      );
+
+      mockCancelPreapproval.mockResolvedValue(undefined);
+
+      const mockNewPreapproval = {
+        id: "new-preapproval-456",
+        status: "pending",
+        init_point: "https://www.mercadopago.com/new-checkout",
+        payer_email: "test@example.com",
+        external_reference: TEST_USER.id,
+      };
+      mockCreatePreapproval.mockResolvedValue(mockNewPreapproval);
+
+      const result = await upgradePlan("pro", "monthly");
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe("Plan actualizado");
+      expect(result.checkoutUrl).toBe("https://www.mercadopago.com/new-checkout");
+      expect(mockCancelPreapproval).toHaveBeenCalledWith("old-preapproval-123");
+      expect(mockCreatePreapproval).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reason: "Menually pro monthly",
+          external_reference: TEST_USER.id,
+          payer_email: TEST_USER.email,
+          auto_recurring: {
+            frequency: 1,
+            frequency_type: "months",
+            transaction_amount: 29990,
+            currency_id: "CLP",
+          },
+          status: "pending",
+        }),
+      );
+
+      expect(mockSupabaseUpsert).toHaveBeenCalled();
+      const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
+      expect(upsertCall.plan_type).toBe("pro");
+      expect(upsertCall.amount).toBe(29990);
+      expect(upsertCall.mp_preapproval_id).toBe("new-preapproval-456");
+    });
+
+    it("downgrades pro to basic", async () => {
+      mockSupabaseSingle.mockReturnValue(
+        Promise.resolve({
+          data: {
+            id: "sub-123",
+            user_id: TEST_USER.id,
+            status: "active",
+            plan_type: "pro",
+            billing_cycle: "monthly",
+            mp_preapproval_id: "old-preapproval-123",
+            amount: 29990,
+          },
+          error: null,
+        }),
+      );
+
+      mockCancelPreapproval.mockResolvedValue(undefined);
+
+      const mockNewPreapproval = {
+        id: "new-preapproval-789",
+        status: "pending",
+        init_point: "https://www.mercadopago.com/new-checkout",
+        payer_email: "test@example.com",
+        external_reference: TEST_USER.id,
+      };
+      mockCreatePreapproval.mockResolvedValue(mockNewPreapproval);
+
+      const result = await upgradePlan("basic", "monthly");
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe("Plan actualizado");
+      expect(result.checkoutUrl).toBe("https://www.mercadopago.com/new-checkout");
+      expect(mockCancelPreapproval).toHaveBeenCalledWith("old-preapproval-123");
+      expect(mockCreatePreapproval).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reason: "Menually basic monthly",
+          auto_recurring: expect.objectContaining({
+            transaction_amount: 24990,
+          }),
+        }),
+      );
+    });
+
+    it("returns error when user is not authenticated", async () => {
+      mockSupabaseAuthGetUser.mockResolvedValue({
+        data: { user: null },
+        error: new Error("Not authenticated"),
+      });
+
+      const result = await upgradePlan("pro", "monthly");
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("No autenticado");
+    });
+
+    it("returns error when no active subscription", async () => {
+      mockSupabaseSingle.mockReturnValue(
+        Promise.resolve({
+          data: {
+            id: "sub-123",
+            user_id: TEST_USER.id,
+            status: "cancelled",
+            plan_type: "basic",
+            billing_cycle: "monthly",
+            mp_preapproval_id: null,
+            amount: 24990,
+          },
+          error: null,
+        }),
+      );
+
+      const result = await upgradePlan("pro", "monthly");
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("No tienes una suscripción activa para cambiar");
+    });
+
+    it("returns error when subscription has no mp_preapproval_id", async () => {
+      mockSupabaseSingle.mockReturnValue(
+        Promise.resolve({
+          data: {
+            id: "sub-123",
+            user_id: TEST_USER.id,
+            status: "active",
+            plan_type: "basic",
+            billing_cycle: "monthly",
+            mp_preapproval_id: null,
+            amount: 24990,
+          },
+          error: null,
+        }),
+      );
+
+      const result = await upgradePlan("pro", "monthly");
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("No tienes una suscripción activa para cambiar");
+    });
+
+    it("returns error when selecting same plan", async () => {
+      mockSupabaseSingle.mockReturnValue(
+        Promise.resolve({
+          data: {
+            id: "sub-123",
+            user_id: TEST_USER.id,
+            status: "active",
+            plan_type: "basic",
+            billing_cycle: "monthly",
+            mp_preapproval_id: "old-preapproval-123",
+            amount: 24990,
+          },
+          error: null,
+        }),
+      );
+
+      const result = await upgradePlan("basic", "monthly");
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("Ya estás en este plan");
+      expect(mockCancelPreapproval).not.toHaveBeenCalled();
+      expect(mockCreatePreapproval).not.toHaveBeenCalled();
+    });
+
+    it("returns error when MP API fails", async () => {
+      mockSupabaseSingle.mockReturnValue(
+        Promise.resolve({
+          data: {
+            id: "sub-123",
+            user_id: TEST_USER.id,
+            status: "active",
+            plan_type: "basic",
+            billing_cycle: "monthly",
+            mp_preapproval_id: "old-preapproval-123",
+            amount: 24990,
+          },
+          error: null,
+        }),
+      );
+
+      mockCancelPreapproval.mockResolvedValue(undefined);
+      mockCreatePreapproval.mockRejectedValue(new Error("MP API error"));
+
+      const result = await upgradePlan("pro", "monthly");
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain("MP API error");
+    });
+  });
+
+  // ─── initiateRefund ───
+
+  describe("initiateRefund", () => {
+    it("sets subscription status to pending_refund", async () => {
+      mockSupabaseSingle.mockReturnValue(
+        Promise.resolve({
+          data: {
+            id: "sub-123",
+            user_id: TEST_USER.id,
+            status: "active",
+            plan_type: "basic",
+            billing_cycle: "monthly",
+            mp_preapproval_id: "preapproval-123",
+            amount: 24990,
+          },
+          error: null,
+        }),
+      );
+
+      const result = await initiateRefund();
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe("Reembolso iniciado");
+      expect(mockSupabaseUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: "pending_refund",
+          updated_at: expect.any(String),
+        }),
+      );
+      expect(mockSupabaseEqForUpdate).toHaveBeenCalledWith("user_id", TEST_USER.id);
+    });
+
+    it("returns error when user is not authenticated", async () => {
+      mockSupabaseAuthGetUser.mockResolvedValue({
+        data: { user: null },
+        error: new Error("Not authenticated"),
+      });
+
+      const result = await initiateRefund();
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("No autenticado");
+    });
+
+    it("returns error when no subscription found", async () => {
+      mockSupabaseSingle.mockReturnValue(
+        Promise.resolve({ data: null, error: null }),
+      );
+
+      const result = await initiateRefund();
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("No tienes una suscripción activa");
+    });
+
+    it("returns error when subscription is not active", async () => {
+      mockSupabaseSingle.mockReturnValue(
+        Promise.resolve({
+          data: {
+            id: "sub-123",
+            user_id: TEST_USER.id,
+            status: "cancelled",
+            plan_type: "basic",
+            billing_cycle: "monthly",
+            mp_preapproval_id: "preapproval-123",
+            amount: 24990,
+          },
+          error: null,
+        }),
+      );
+
+      const result = await initiateRefund();
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe("No tienes una suscripción activa");
     });
   });
 });

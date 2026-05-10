@@ -12,6 +12,7 @@ interface PlanCardProps {
   billingCycle: BillingCycle;
   isRecommended: boolean;
   isSelected: boolean;
+  isCurrentPlan?: boolean;
   onSelect: () => void;
 }
 
@@ -28,6 +29,7 @@ export default function PlanCard({
   billingCycle,
   isRecommended,
   isSelected,
+  isCurrentPlan,
   onSelect,
 }: PlanCardProps) {
   const isAnnual = billingCycle === "annual";
@@ -49,9 +51,16 @@ export default function PlanCard({
       )}
     >
       {/* Badge RECOMENDADO — centrado en el borde superior */}
-      {isRecommended && (
+      {isRecommended && !isCurrentPlan && (
         <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#3D7A4F] px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-white whitespace-nowrap">
           Recomendado
+        </span>
+      )}
+
+      {/* Badge PLAN ACTUAL */}
+      {isCurrentPlan && (
+        <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#114821] px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-white whitespace-nowrap">
+          Plan actual
         </span>
       )}
 

@@ -6,7 +6,11 @@ import PlanCard from "./PlanCard";
 import { PLANS } from "@/lib/plans";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
 
-export default function PlanSelection() {
+interface PlanSelectionProps {
+  currentPlan?: "basic" | "pro";
+}
+
+export default function PlanSelection({ currentPlan }: PlanSelectionProps = {}) {
   const { selectedPlan, billingCycle, setSelectedPlan, setBillingCycle } =
     useOnboardingStore();
 
@@ -67,6 +71,7 @@ export default function PlanSelection() {
           billingCycle={billingCycle}
           isRecommended={PLANS.basic.isRecommended}
           isSelected={selectedPlan === "basic"}
+          isCurrentPlan={currentPlan === "basic"}
           onSelect={() => handleSelect("basic")}
         />
         <PlanCard
@@ -79,6 +84,7 @@ export default function PlanSelection() {
           billingCycle={billingCycle}
           isRecommended={PLANS.pro.isRecommended}
           isSelected={selectedPlan === "pro"}
+          isCurrentPlan={currentPlan === "pro"}
           onSelect={() => handleSelect("pro")}
         />
       </div>
