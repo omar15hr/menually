@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import type { Database } from "@/types/database.types";
 import {
   isSubscriptionActive,
@@ -8,6 +8,8 @@ import {
   getPlanDescription,
   calculateTrialEnd,
   getPlanAmount,
+  calculatePeriodDates,
+  calculatePeriodEndFromFrequency,
 } from "@/lib/subscription";
 
 type SubscriptionRow = Database["public"]["Tables"]["subscriptions"]["Row"];
@@ -31,6 +33,8 @@ function makeSubscription(
     trial_ends_at: future,
     current_period_start: now,
     current_period_end: future,
+    last_payment_date: null,
+    next_billing_date: null,
     created_at: now,
     updated_at: now,
     ...overrides,
@@ -106,8 +110,22 @@ describe("mapMpStatusToDbStatus", () => {
     expect(mapMpStatusToDbStatus("paused")).toBe("past_due");
   });
 
-  it("throws for unknown status", () => {
-    expect(() => mapMpStatusToDbStatus("unknown")).toThrow();
+  it('returns "past_due" for unknown status with warning log', () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(mapMpStatusToDbStatus("unknown")).toBe("past_due");
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Unknown Mercado Pago status"),
+    );
+    warnSpy.mockRestore();
+  });
+
+  it('returns "past_due" for "error" status with warning log', () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(mapMpStatusToDbStatus("error")).toBe("past_due");
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Unknown Mercado Pago status"),
+    );
+    warnSpy.mockRestore();
   });
 });
 
@@ -150,5 +168,70 @@ describe("getPlanAmount", () => {
 
   it("returns 305990 for pro annual", () => {
     expect(getPlanAmount("pro", "annual")).toBe(305990);
+  });
+});
+
+describe("calculatePeriodDates", () => {
+  it("returns correct dates for monthly billing", () => {
+    const ref = new Date("2024-01-15T00:00:00.000Z");
+    const result = calculatePeriodDates("monthly", ref);
+    expect(result.current_period_start).toEqual(ref);
+    expect(result.current_period_end).toEqual(new Date("2024-02-15T00:00:00.000Z"));
+    expect(result.next_billing_date).toEqual(new Date("2024-02-15T00:00:00.000Z"));
+  });
+
+  it("returns correct dates for annual billing", () => {
+    const ref = new Date("2024-01-15T00:00:00.000Z");
+    const result = calculatePeriodDates("annual", ref);
+    expect(result.current_period_start).toEqual(ref);
+    expect(result.current_period_end).toEqual(new Date("2025-01-15T00:00:00.000Z"));
+    expect(result.next_billing_date).toEqual(new Date("2025-01-15T00:00:00.000Z"));
+  });
+
+  it("does not mutate the reference date", () => {
+    const ref = new Date("2024-01-15T00:00:00.000Z");
+    const refCopy = new Date(ref.getTime());
+    calculatePeriodDates("monthly", ref);
+    expect(ref.getTime()).toBe(refCopy.getTime());
+  });
+
+  it("defaults reference date to now when omitted", () => {
+    const before = Date.now();
+    const result = calculatePeriodDates("monthly");
+    const after = Date.now();
+    expect(result.current_period_start.getTime()).toBeGreaterThanOrEqual(before - 1000);
+    expect(result.current_period_start.getTime()).toBeLessThanOrEqual(after + 1000);
+  });
+});
+
+describe("calculatePeriodEndFromFrequency", () => {
+  it("adds days correctly without mutating input", () => {
+    const ref = new Date("2024-01-15T00:00:00.000Z");
+    const refCopy = new Date(ref.getTime());
+    const result = calculatePeriodEndFromFrequency(30, "days", ref);
+    expect(result).toEqual(new Date("2024-02-14T00:00:00.000Z"));
+    expect(ref.getTime()).toBe(refCopy.getTime());
+  });
+
+  it("adds months correctly without mutating input", () => {
+    const ref = new Date("2024-01-15T00:00:00.000Z");
+    const refCopy = new Date(ref.getTime());
+    const result = calculatePeriodEndFromFrequency(1, "months", ref);
+    expect(result).toEqual(new Date("2024-02-15T00:00:00.000Z"));
+    expect(ref.getTime()).toBe(refCopy.getTime());
+  });
+
+  it("adds 12 months for annual frequency", () => {
+    const ref = new Date("2024-01-15T00:00:00.000Z");
+    const result = calculatePeriodEndFromFrequency(12, "months", ref);
+    expect(result).toEqual(new Date("2025-01-15T00:00:00.000Z"));
+  });
+
+  it("defaults reference date to now when omitted", () => {
+    const before = Date.now();
+    const result = calculatePeriodEndFromFrequency(1, "months");
+    const after = Date.now();
+    expect(result.getTime()).toBeGreaterThanOrEqual(before - 1000 + 30 * 24 * 60 * 60 * 1000);
+    expect(result.getTime()).toBeLessThanOrEqual(after + 1000 + 31 * 24 * 60 * 60 * 1000);
   });
 });

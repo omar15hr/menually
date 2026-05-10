@@ -25,6 +25,8 @@ function makeSubscription(
     trial_ends_at: future,
     current_period_start: now,
     current_period_end: future,
+    last_payment_date: null,
+    next_billing_date: null,
     created_at: now,
     updated_at: now,
     ...overrides,

@@ -20,7 +20,7 @@ export function isTrialExpired(subscription: SubscriptionRow | null): boolean {
   return new Date(subscription.trial_ends_at) <= new Date();
 }
 
-export function mapMpStatusToDbStatus(mpStatus: string): "active" | "cancelled" | "past_due" {
+export function mapMpStatusToDbStatus(mpStatus: string): Database["public"]["Enums"]["subscription_status"] {
   switch (mpStatus) {
     case "authorized":
       return "active";
@@ -29,7 +29,8 @@ export function mapMpStatusToDbStatus(mpStatus: string): "active" | "cancelled" 
     case "paused":
       return "past_due";
     default:
-      throw new Error(`Unknown Mercado Pago status: ${mpStatus}`);
+      console.warn(`Unknown Mercado Pago status: ${mpStatus}, defaulting to past_due`);
+      return "past_due";
   }
 }
 
@@ -55,4 +56,44 @@ export function getPlanAmount(planType: string, billingCycle: string): number {
   const plan = PLANS[planType as keyof typeof PLANS];
   if (!plan) return 0;
   return billingCycle === "monthly" ? plan.monthlyPrice : plan.annualPrice;
+}
+
+export function calculatePeriodDates(
+  billingCycle: "monthly" | "annual",
+  referenceDate: Date = new Date(),
+): {
+  current_period_start: Date;
+  current_period_end: Date;
+  next_billing_date: Date;
+} {
+  const start = new Date(referenceDate.getTime());
+  const end = new Date(referenceDate.getTime());
+
+  if (billingCycle === "annual") {
+    end.setMonth(end.getMonth() + 12);
+  } else {
+    end.setMonth(end.getMonth() + 1);
+  }
+
+  return {
+    current_period_start: start,
+    current_period_end: end,
+    next_billing_date: new Date(end.getTime()),
+  };
+}
+
+export function calculatePeriodEndFromFrequency(
+  frequency: number,
+  frequencyType: "days" | "months",
+  referenceDate: Date = new Date(),
+): Date {
+  const end = new Date(referenceDate.getTime());
+
+  if (frequencyType === "days") {
+    end.setDate(end.getDate() + frequency);
+  } else {
+    end.setMonth(end.getMonth() + frequency);
+  }
+
+  return end;
 }

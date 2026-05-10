@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { MercadoPagoClient } from "@/lib/mercadopago/client";
-import { calculateTrialEnd, getPlanAmount, isTrialExpired } from "@/lib/subscription";
+import { calculateTrialEnd, getPlanAmount, isTrialExpired, calculatePeriodDates } from "@/lib/subscription";
 import type { PlanId, BillingCycle } from "@/types/onboarding.types";
 
 export async function createSubscription(
@@ -13,7 +13,15 @@ export async function createSubscription(
   message: string;
   errors: Record<string, string>;
   checkoutUrl?: string;
-  subscription?: { id: string; planId: PlanId; billingCycle: BillingCycle; amount: number };
+  subscription?: {
+    id: string;
+    planId: PlanId;
+    billingCycle: BillingCycle;
+    amount: number;
+    current_period_start: string;
+    current_period_end: string;
+    next_billing_date: string;
+  };
 }> {
   try {
     const supabase = await createClient();
@@ -92,7 +100,7 @@ export async function createSubscription(
     });
 
     const trialEndsAt = calculateTrialEnd();
-    const now = new Date().toISOString();
+    const { current_period_start, current_period_end, next_billing_date } = calculatePeriodDates(billingCycle);
 
     const { error: upsertError } = await supabase
       .from("subscriptions")
@@ -105,8 +113,9 @@ export async function createSubscription(
           billing_cycle: billingCycle,
           trial_ends_at: existingSub?.status === "trial" ? existingSub.trial_ends_at : trialEndsAt.toISOString(),
           amount,
-          current_period_start: now,
-          current_period_end: now,
+          current_period_start: current_period_start.toISOString(),
+          current_period_end: current_period_end.toISOString(),
+          next_billing_date: next_billing_date.toISOString(),
         },
         { onConflict: "user_id" },
       )
@@ -131,6 +140,9 @@ export async function createSubscription(
         planId,
         billingCycle,
         amount,
+        current_period_start: current_period_start.toISOString(),
+        current_period_end: current_period_end.toISOString(),
+        next_billing_date: next_billing_date.toISOString(),
       },
     };
   } catch (error) {

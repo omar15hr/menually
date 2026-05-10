@@ -51,6 +51,17 @@ vi.mock("@/lib/subscription", () => ({
     if (!sub.trial_ends_at) return true;
     return new Date(sub.trial_ends_at) <= new Date();
   }),
+  calculatePeriodDates: vi.fn((billingCycle: string) => {
+    const start = new Date("2024-06-01T00:00:00.000Z");
+    const end = billingCycle === "annual"
+      ? new Date("2025-06-01T00:00:00.000Z")
+      : new Date("2024-07-01T00:00:00.000Z");
+    return {
+      current_period_start: start,
+      current_period_end: end,
+      next_billing_date: end,
+    };
+  }),
 }));
 
 import {
@@ -123,7 +134,7 @@ describe("subscription.action", () => {
       }
     });
 
-    it("happy path: creates subscription, returns checkoutUrl", async () => {
+    it("happy path: creates subscription, returns checkoutUrl and period fields", async () => {
       const mockPreapproval = {
         id: "preapproval-123",
         status: "pending",
@@ -144,6 +155,9 @@ describe("subscription.action", () => {
         planId: "basic",
         billingCycle: "monthly",
         amount: 24990,
+        current_period_start: "2024-06-01T00:00:00.000Z",
+        current_period_end: "2024-07-01T00:00:00.000Z",
+        next_billing_date: "2024-07-01T00:00:00.000Z",
       });
 
       expect(mockCreatePreapproval).toHaveBeenCalledWith(
@@ -170,6 +184,9 @@ describe("subscription.action", () => {
       expect(upsertCall.plan_type).toBe("basic");
       expect(upsertCall.billing_cycle).toBe("monthly");
       expect(upsertCall.amount).toBe(24990);
+      expect(upsertCall.current_period_start).toBe("2024-06-01T00:00:00.000Z");
+      expect(upsertCall.current_period_end).toBe("2024-07-01T00:00:00.000Z");
+      expect(upsertCall.next_billing_date).toBe("2024-07-01T00:00:00.000Z");
     });
 
     it("returns error when user is not authenticated", async () => {

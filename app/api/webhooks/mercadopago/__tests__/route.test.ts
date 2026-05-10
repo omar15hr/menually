@@ -483,6 +483,146 @@ describe("POST /api/webhooks/mercadopago", () => {
     expect(mockSupabaseUpsert).toHaveBeenCalledTimes(2);
   });
 
+  // ─── Phase 3: Data Integrity ───
+
+  it("does NOT default plan_type to basic when existingSub is null", async () => {
+    const userId = "user-abc-123";
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: userId,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months" as const,
+        transaction_amount: 24990,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+    existingSubResult = { data: null, error: null };
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPreapprovalPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_preapproval",
+      },
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpsert).toHaveBeenCalled();
+
+    const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
+    expect(upsertCall.plan_type).not.toBe("basic");
+    expect(upsertCall.plan_type).toBeUndefined();
+  });
+
+  it("sets current_period_start, current_period_end, and next_billing_date on preapproval webhook", async () => {
+    const userId = "user-abc-123";
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: userId,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months" as const,
+        transaction_amount: 24990,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPreapprovalPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_preapproval",
+      },
+    });
+
+    const before = Date.now();
+    const response = await POST(request);
+    const after = Date.now();
+
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpsert).toHaveBeenCalled();
+
+    const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
+    expect(upsertCall.current_period_start).toBeDefined();
+    expect(upsertCall.current_period_end).toBeDefined();
+    expect(upsertCall.next_billing_date).toBeDefined();
+
+    const periodStart = new Date(upsertCall.current_period_start).getTime();
+    const periodEnd = new Date(upsertCall.current_period_end).getTime();
+    const nextBilling = new Date(upsertCall.next_billing_date).getTime();
+
+    expect(periodStart).toBeGreaterThanOrEqual(before - 5000);
+    expect(periodStart).toBeLessThanOrEqual(after + 5000);
+    // periodEnd should be ~1 month after periodStart (28-31 days)
+    expect(periodEnd - periodStart).toBeGreaterThanOrEqual(28 * 24 * 60 * 60 * 1000);
+    expect(periodEnd - periodStart).toBeLessThanOrEqual(31 * 24 * 60 * 60 * 1000);
+    expect(nextBilling).toBe(periodEnd);
+  });
+
+  it("sets last_payment_date and next_billing_date on authorized_payment webhook", async () => {
+    const userId = "user-abc-123";
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: userId,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months" as const,
+        transaction_amount: 24990,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPaymentPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_authorized_payment",
+      },
+    });
+
+    const before = Date.now();
+    const response = await POST(request);
+    const after = Date.now();
+
+    expect(response.status).toBe(200);
+    expect(mockSupabaseUpsert).toHaveBeenCalled();
+
+    const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
+    expect(upsertCall.last_payment_date).toBeDefined();
+    expect(upsertCall.next_billing_date).toBeDefined();
+
+    const lastPayment = new Date(upsertCall.last_payment_date).getTime();
+    expect(lastPayment).toBeGreaterThanOrEqual(before - 5000);
+    expect(lastPayment).toBeLessThanOrEqual(after + 5000);
+  });
+
   // ─── NEW TESTS for fix-mp-upsert-constraints ───
 
   // ─── 11. Annual billing cycle (frequency 12) ───

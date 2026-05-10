@@ -11,18 +11,9 @@ import {
   logWebhookError,
 } from "@/lib/mercadopago/webhook-logger";
 import { MercadoPagoClient } from "@/lib/mercadopago/client";
-import { mapMpStatusToDbStatus } from "@/lib/subscription";
+import { mapMpStatusToDbStatus, calculatePeriodEndFromFrequency } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
-
-function getPeriodEndDate(frequency: number, frequencyType: "days" | "months"): Date {
-  const now = new Date();
-  if (frequencyType === "days") {
-    return new Date(now.setDate(now.getDate() + frequency));
-  }
-  // "months" — MP no soporta "years"; planes anuales usan frequency: 12, frequency_type: "months"
-  return new Date(now.setMonth(now.getMonth() + frequency));
-}
 
 function mapFrequencyTypeToBillingCycle(
   frequencyType: "days" | "months",
@@ -152,9 +143,11 @@ async function handleSubscriptionPreapproval(
       preapproval.auto_recurring.frequency_type,
       preapproval.auto_recurring.frequency,
     );
-    const periodEnd = getPeriodEndDate(
+    const now = new Date();
+    const periodEnd = calculatePeriodEndFromFrequency(
       preapproval.auto_recurring.frequency,
       preapproval.auto_recurring.frequency_type,
+      now,
     );
 
     // UPSERT into subscriptions table
@@ -165,12 +158,15 @@ async function handleSubscriptionPreapproval(
           user_id: userId,
           mp_preapproval_id: preapproval.id,
           status: dbStatus,
-          plan_type: existingSub?.plan_type ?? "basic",
+          plan_type: existingSub?.plan_type,
           billing_cycle: billingCycle,
+          current_period_start: now.toISOString(),
           current_period_end: periodEnd.toISOString(),
+          next_billing_date: periodEnd.toISOString(),
+          last_payment_date: now.toISOString(),
           amount: preapproval.auto_recurring.transaction_amount,
           trial_ends_at: existingSub?.trial_ends_at ?? undefined,
-          updated_at: new Date().toISOString(),
+          updated_at: now.toISOString(),
         },
         { onConflict: "mp_preapproval_id" },
       );
@@ -231,9 +227,11 @@ async function handleSubscriptionAuthorizedPayment(
       preapproval.auto_recurring.frequency_type,
       preapproval.auto_recurring.frequency,
     );
-    const periodEnd = getPeriodEndDate(
+    const now = new Date();
+    const periodEnd = calculatePeriodEndFromFrequency(
       preapproval.auto_recurring.frequency,
       preapproval.auto_recurring.frequency_type,
+      now,
     );
 
     // UPSERT into subscriptions table
@@ -244,12 +242,15 @@ async function handleSubscriptionAuthorizedPayment(
           user_id: userId,
           mp_preapproval_id: preapproval.id,
           status: "active",
-          plan_type: existingSub?.plan_type ?? "basic",
+          plan_type: existingSub?.plan_type,
           billing_cycle: billingCycle,
+          current_period_start: now.toISOString(),
           current_period_end: periodEnd.toISOString(),
+          next_billing_date: periodEnd.toISOString(),
+          last_payment_date: now.toISOString(),
           amount: preapproval.auto_recurring.transaction_amount,
           trial_ends_at: existingSub?.trial_ends_at ?? undefined,
-          updated_at: new Date().toISOString(),
+          updated_at: now.toISOString(),
         },
         { onConflict: "mp_preapproval_id" },
       );
