@@ -127,14 +127,39 @@ describe("validateHMAC", () => {
     expect(result).toBe(false);
   });
 
-  it("returns false when timestamp is outside 5-minute window (replay protection)", () => {
-    const oldTs = String(Math.floor(Date.now() / 1000) - 3600); // 1 hour ago
+  it("returns false when timestamp is outside 10-minute window (replay protection)", () => {
+    const oldTs = String(Math.floor(Date.now() / 1000) - 720); // 12 minutes ago
     const oldManifest = buildManifest(TEST_DATA_ID, TEST_X_REQUEST_ID, oldTs);
     const oldV1 = computeHMAC(TEST_SECRET, oldManifest);
     const oldXSignature = buildXSignature(oldTs, oldV1);
 
     const result = validateHMAC({
       xSignature: oldXSignature,
+      xRequestId: TEST_X_REQUEST_ID,
+      dataId: TEST_DATA_ID,
+      secret: TEST_SECRET,
+    });
+    expect(result).toBe(false);
+  });
+
+  it("returns true when timestamp is within 10-minute window", () => {
+    const recentTs = String(Math.floor(Date.now() / 1000) - 540); // 9 minutes ago
+    const recentManifest = buildManifest(TEST_DATA_ID, TEST_X_REQUEST_ID, recentTs);
+    const recentV1 = computeHMAC(TEST_SECRET, recentManifest);
+    const recentXSignature = buildXSignature(recentTs, recentV1);
+
+    const result = validateHMAC({
+      xSignature: recentXSignature,
+      xRequestId: TEST_X_REQUEST_ID,
+      dataId: TEST_DATA_ID,
+      secret: TEST_SECRET,
+    });
+    expect(result).toBe(true);
+  });
+
+  it("returns false when v1 signature has different length (timing-safe equal edge case)", () => {
+    const result = validateHMAC({
+      xSignature: `ts=${TEST_TS},v1=short`,
       xRequestId: TEST_X_REQUEST_ID,
       dataId: TEST_DATA_ID,
       secret: TEST_SECRET,

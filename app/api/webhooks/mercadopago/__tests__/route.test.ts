@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 import { NextRequest } from "next/server";
 import crypto from "crypto";
 import { POST } from "@/app/api/webhooks/mercadopago/route";
+import {
+  logWebhookSuccess,
+  logWebhookIgnored,
+  logWebhookError,
+} from "@/lib/mercadopago/webhook-logger";
 
 // ─── Mock Dependencies ───
 const mockSupabaseFrom = vi.fn();
@@ -27,6 +32,12 @@ vi.mock("@/lib/mercadopago/client", () => {
   }
   return { MercadoPagoClient: MockMercadoPagoClient };
 });
+
+vi.mock("@/lib/mercadopago/webhook-logger", () => ({
+  logWebhookSuccess: vi.fn(),
+  logWebhookIgnored: vi.fn(),
+  logWebhookError: vi.fn(),
+}));
 
 // ─── HMAC Helpers ───
 const TEST_SECRET = "test-webhook-secret";
@@ -716,5 +727,111 @@ describe("POST /api/webhooks/mercadopago", () => {
 
     const upsertCall = mockSupabaseUpsert.mock.calls[0][0];
     expect(upsertCall.billing_cycle).toBe("annual");
+  });
+
+  // ─── Webhook Logger Integration ───
+  it("calls logWebhookSuccess on successful preapproval webhook", async () => {
+    const userId = "user-abc-123";
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: userId,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months" as const,
+        transaction_amount: 24990,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPreapprovalPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_preapproval",
+      },
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(logWebhookSuccess).toHaveBeenCalled();
+  });
+
+  it("calls logWebhookIgnored when user is not found in profiles", async () => {
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: "nonexistent-user",
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months" as const,
+        transaction_amount: 24990,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+    profileResult = { data: null, error: null };
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPreapprovalPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_preapproval",
+      },
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(logWebhookIgnored).toHaveBeenCalled();
+  });
+
+  it("calls logWebhookError when DB upsert fails", async () => {
+    const userId = "user-abc-123";
+    const mockPreapproval = {
+      id: TEST_DATA_ID,
+      status: "authorized" as const,
+      payer_email: "test@example.com",
+      external_reference: userId,
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months" as const,
+        transaction_amount: 24990,
+        currency_id: "CLP",
+      },
+    };
+
+    mockGetPreapproval.mockResolvedValue(mockPreapproval);
+
+    // upsert returns { error } directly (no .select().single() chain in route)
+    mockSupabaseUpsert.mockReturnValue(Promise.resolve({ error: new Error("DB error") }));
+
+    const request = createMockNextRequest({
+      body: JSON.stringify(validPreapprovalPayload),
+      headers: {
+        "x-signature": VALID_X_SIGNATURE,
+        "x-request-id": TEST_X_REQUEST_ID,
+      },
+      searchParams: {
+        "data.id": TEST_DATA_ID,
+        type: "subscription_preapproval",
+      },
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(logWebhookError).toHaveBeenCalled();
   });
 });

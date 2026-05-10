@@ -5,6 +5,11 @@ import {
   parseWebhookPayload,
   extractWebhookTopic,
 } from "@/lib/mercadopago/webhook";
+import {
+  logWebhookSuccess,
+  logWebhookIgnored,
+  logWebhookError,
+} from "@/lib/mercadopago/webhook-logger";
 import { MercadoPagoClient } from "@/lib/mercadopago/client";
 import { mapMpStatusToDbStatus } from "@/lib/subscription";
 
@@ -94,7 +99,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Unknown topic — return 200 so MP doesn't retry
-    console.warn("[Webhook] Unknown topic", { topic, dataId: payload.data.id });
+    logWebhookIgnored(topic, payload.data.id, `Unknown topic: ${topic}`);
     return new Response("OK", { status: 200 });
   } catch (error) {
     console.error("[Webhook] Unhandled error", { error });
@@ -116,7 +121,7 @@ async function handleSubscriptionPreapproval(
     // Extract user_id from external_reference
     const userId = preapproval.external_reference;
     if (!userId) {
-      console.error("[Webhook] Missing external_reference in preapproval", { preapprovalId });
+      logWebhookIgnored(payload.type, preapprovalId, "Missing external_reference in preapproval");
       return new Response("OK", { status: 200 });
     }
 
@@ -128,7 +133,7 @@ async function handleSubscriptionPreapproval(
       .maybeSingle();
 
     if (profileError || !profile) {
-      console.warn("[Webhook] User not found in profiles", { userId, preapprovalId });
+      logWebhookIgnored(payload.type, preapprovalId, `User not found in profiles: ${userId}`);
       return new Response("OK", { status: 200 });
     }
 
@@ -171,13 +176,15 @@ async function handleSubscriptionPreapproval(
       );
 
     if (error) {
-      console.error("[Webhook] Failed to upsert subscription", { error, preapprovalId });
+      logWebhookError(payload.type, preapprovalId, payload.action, `DB upsert failed: ${error.message}`);
       return new Response("OK", { status: 200 });
     }
 
+    logWebhookSuccess(payload.type, preapprovalId, payload.action, dbStatus);
     return new Response("OK", { status: 200 });
   } catch (error) {
-    console.error("[Webhook] Error handling subscription_preapproval", { error, payload });
+    const message = error instanceof Error ? error.message : String(error);
+    logWebhookError(payload.type, payload.data.id, payload.action, `Unhandled error: ${message}`);
     return new Response("OK", { status: 200 });
   }
 }
@@ -196,7 +203,7 @@ async function handleSubscriptionAuthorizedPayment(
     // Extract user_id from external_reference
     const userId = preapproval.external_reference;
     if (!userId) {
-      console.error("[Webhook] Missing external_reference in preapproval", { preapprovalId });
+      logWebhookIgnored(payload.type, preapprovalId, "Missing external_reference in preapproval");
       return new Response("OK", { status: 200 });
     }
 
@@ -208,7 +215,7 @@ async function handleSubscriptionAuthorizedPayment(
       .maybeSingle();
 
     if (profileError || !profile) {
-      console.warn("[Webhook] User not found in profiles", { userId, preapprovalId });
+      logWebhookIgnored(payload.type, preapprovalId, `User not found in profiles: ${userId}`);
       return new Response("OK", { status: 200 });
     }
 
@@ -248,13 +255,15 @@ async function handleSubscriptionAuthorizedPayment(
       );
 
     if (error) {
-      console.error("[Webhook] Failed to update subscription payment", { error, preapprovalId });
+      logWebhookError(payload.type, preapprovalId, payload.action, `DB upsert failed: ${error.message}`);
       return new Response("OK", { status: 200 });
     }
 
+    logWebhookSuccess(payload.type, preapprovalId, payload.action, "active");
     return new Response("OK", { status: 200 });
   } catch (error) {
-    console.error("[Webhook] Error handling subscription_authorized_payment", { error, payload });
+    const message = error instanceof Error ? error.message : String(error);
+    logWebhookError(payload.type, payload.data.id, payload.action, `Unhandled error: ${message}`);
     return new Response("OK", { status: 200 });
   }
 }

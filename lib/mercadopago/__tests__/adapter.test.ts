@@ -160,6 +160,81 @@ describe("MercadoPagoAdapter", () => {
         body: { status: "cancelled" },
       });
     });
+
+    it("passes idempotencyKey via requestOptions when provided", async () => {
+      mockUpdate.mockResolvedValueOnce({ status: "cancelled" });
+
+      await adapter.cancelPreapproval("preapproval-to-cancel", "idem-key-123");
+
+      expect(mockUpdate).toHaveBeenCalledWith({
+        id: "preapproval-to-cancel",
+        body: { status: "cancelled" },
+        requestOptions: { idempotencyKey: "idem-key-123" },
+      });
+    });
+  });
+
+  describe("idempotencyKey", () => {
+    it("passes idempotencyKey via requestOptions in createPreapproval", async () => {
+      mockCreate.mockResolvedValueOnce({
+        id: "preapproval-idem",
+        status: "authorized",
+        init_point: "https://mp.com",
+        payer_email: "test@example.com",
+        external_reference: "user-456",
+      });
+
+      const request: CreatePreapprovalRequest = {
+        reason: "Plan Básico",
+        external_reference: "user-456",
+        back_url: "https://example.com/callback",
+        status: "pending",
+      };
+
+      await adapter.createPreapproval(request, "idem-key-456");
+
+      expect(mockCreate).toHaveBeenCalledWith({
+        body: {
+          reason: request.reason,
+          external_reference: request.external_reference,
+          payer_email: undefined,
+          auto_recurring: undefined,
+          back_url: request.back_url,
+          status: request.status,
+        },
+        requestOptions: { idempotencyKey: "idem-key-456" },
+      });
+    });
+
+    it("does not pass requestOptions when idempotencyKey is absent", async () => {
+      mockCreate.mockResolvedValueOnce({
+        id: "preapproval-no-idem",
+        status: "authorized",
+        init_point: "https://mp.com",
+        payer_email: "test@example.com",
+        external_reference: "user-456",
+      });
+
+      const request: CreatePreapprovalRequest = {
+        reason: "Plan Básico",
+        external_reference: "user-456",
+        back_url: "https://example.com/callback",
+        status: "pending",
+      };
+
+      await adapter.createPreapproval(request);
+
+      expect(mockCreate).toHaveBeenCalledWith({
+        body: {
+          reason: request.reason,
+          external_reference: request.external_reference,
+          payer_email: undefined,
+          auto_recurring: undefined,
+          back_url: request.back_url,
+          status: request.status,
+        },
+      });
+    });
   });
 
   describe("constructor", () => {

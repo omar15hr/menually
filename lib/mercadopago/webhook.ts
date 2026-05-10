@@ -53,15 +53,20 @@ export function validateHMAC(params: ValidateHMACParams): boolean {
   // 4. Compute HMAC-SHA256
   const computed = crypto.createHmac("sha256", secret).update(manifest).digest("hex");
 
-  // 5. Compare with v1
-  if (computed !== v1) {
+  // 5. Compare with v1 using timing-safe comparison
+  const computedBuffer = Buffer.from(computed, "hex");
+  const v1Buffer = Buffer.from(v1, "hex");
+  if (computedBuffer.length !== v1Buffer.length) {
+    return false;
+  }
+  if (!crypto.timingSafeEqual(computedBuffer, v1Buffer)) {
     return false;
   }
 
-  // 6. Replay protection: ts must be within 5 minutes
+  // 6. Replay protection: ts must be within 10 minutes
   const tsNum = parseInt(ts, 10);
   const now = Math.floor(Date.now() / 1000);
-  if (isNaN(tsNum) || Math.abs(now - tsNum) > 300) {
+  if (isNaN(tsNum) || Math.abs(now - tsNum) > 600) {
     return false;
   }
 

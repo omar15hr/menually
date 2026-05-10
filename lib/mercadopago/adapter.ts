@@ -21,6 +21,7 @@ export class MercadoPagoAdapter implements IMPClient {
 
   async createPreapproval(
     params: CreatePreapprovalRequest,
+    idempotencyKey?: string,
   ): Promise<CreatePreapprovalResponse> {
     const result = await this.preApproval.create({
       body: {
@@ -38,6 +39,7 @@ export class MercadoPagoAdapter implements IMPClient {
         back_url: params.back_url,
         status: params.status,
       },
+      requestOptions: idempotencyKey ? { idempotencyKey } : undefined,
     });
 
     return {
@@ -66,10 +68,11 @@ export class MercadoPagoAdapter implements IMPClient {
     };
   }
 
-  async cancelPreapproval(id: string): Promise<void> {
+  async cancelPreapproval(id: string, idempotencyKey?: string): Promise<void> {
     await this.preApproval.update({
       id,
       body: { status: "cancelled" },
+      requestOptions: idempotencyKey ? { idempotencyKey } : undefined,
     });
   }
 }

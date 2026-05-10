@@ -93,10 +93,12 @@ export class MercadoPagoClient {
 
   async createPreapproval(
     params: CreatePreapprovalRequest,
+    idempotencyKey?: string,
   ): Promise<CreatePreapprovalResponse> {
     return this.request<CreatePreapprovalResponse>("/preapproval", {
       method: "POST",
       body: JSON.stringify(params),
+      headers: idempotencyKey ? { "X-Idempotency-Key": idempotencyKey } : undefined,
     });
   }
 
@@ -106,10 +108,11 @@ export class MercadoPagoClient {
     });
   }
 
-  async cancelPreapproval(id: string): Promise<void> {
+  async cancelPreapproval(id: string, idempotencyKey?: string): Promise<void> {
     await this.request<void>(`/preapproval/${id}`, {
       method: "PUT",
       body: JSON.stringify({ status: "cancelled" }),
+      headers: idempotencyKey ? { "X-Idempotency-Key": idempotencyKey } : undefined,
     });
   }
 }

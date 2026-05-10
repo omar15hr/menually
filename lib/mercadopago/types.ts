@@ -62,7 +62,7 @@ export interface WebhookPayload {
 }
 
 export interface IMPClient {
-  createPreapproval(params: CreatePreapprovalRequest): Promise<CreatePreapprovalResponse>;
+  createPreapproval(params: CreatePreapprovalRequest, idempotencyKey?: string): Promise<CreatePreapprovalResponse>;
   getPreapproval(id: string): Promise<GetPreapprovalResponse>;
-  cancelPreapproval(id: string): Promise<void>;
+  cancelPreapproval(id: string, idempotencyKey?: string): Promise<void>;
 }
