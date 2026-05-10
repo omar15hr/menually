@@ -127,8 +127,8 @@ describe("validateHMAC", () => {
     expect(result).toBe(false);
   });
 
-  it("returns false when timestamp is outside 10-minute window (replay protection)", () => {
-    const oldTs = String(Math.floor(Date.now() / 1000) - 720); // 12 minutes ago
+  it("returns false when timestamp is outside 15-minute window (replay protection)", () => {
+    const oldTs = String(Math.floor(Date.now() / 1000) - 960); // 16 minutes ago
     const oldManifest = buildManifest(TEST_DATA_ID, TEST_X_REQUEST_ID, oldTs);
     const oldV1 = computeHMAC(TEST_SECRET, oldManifest);
     const oldXSignature = buildXSignature(oldTs, oldV1);
@@ -142,8 +142,8 @@ describe("validateHMAC", () => {
     expect(result).toBe(false);
   });
 
-  it("returns true when timestamp is within 10-minute window", () => {
-    const recentTs = String(Math.floor(Date.now() / 1000) - 540); // 9 minutes ago
+  it("returns true when timestamp is within 15-minute window", () => {
+    const recentTs = String(Math.floor(Date.now() / 1000) - 840); // 14 minutes ago
     const recentManifest = buildManifest(TEST_DATA_ID, TEST_X_REQUEST_ID, recentTs);
     const recentV1 = computeHMAC(TEST_SECRET, recentManifest);
     const recentXSignature = buildXSignature(recentTs, recentV1);

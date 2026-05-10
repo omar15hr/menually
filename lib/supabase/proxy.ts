@@ -72,27 +72,7 @@ export async function checkSubscriptionStatus(
     .maybeSingle();
 
   if (!subscription) {
-    // Auto-create trial subscription
-    const trialEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    const now = new Date().toISOString();
-    const trialEndIso = trialEnd.toISOString();
-
-    const { data: inserted } = await supabase
-      .from("subscriptions")
-      .insert({
-        user_id: userId,
-        status: "trial",
-        trial_ends_at: trialEndIso,
-        plan_type: "basic",
-        billing_cycle: "monthly",
-        amount: 0,
-        current_period_start: now,
-        current_period_end: trialEndIso,
-      })
-      .select()
-      .single();
-
-    return { isAllowed: true, subscription: inserted };
+    return { isAllowed: false, redirectTo: "/onboarding", subscription: null };
   }
 
   const access = resolveSubscriptionAccess(subscription);

@@ -13,6 +13,7 @@ interface PlanCardProps {
   isRecommended: boolean;
   isSelected: boolean;
   isCurrentPlan?: boolean;
+  showTrialBadge?: boolean;
   onSelect: () => void;
 }
 
@@ -30,6 +31,7 @@ export default function PlanCard({
   isRecommended,
   isSelected,
   isCurrentPlan,
+  showTrialBadge,
   onSelect,
 }: PlanCardProps) {
   const isAnnual = billingCycle === "annual";
@@ -90,6 +92,13 @@ export default function PlanCard({
         </span>
         <span className="text-base font-medium text-[#58606E]">{periodLabel}</span>
       </div>
+
+      {/* Badge prueba gratis */}
+      {showTrialBadge && (
+        <p className="mb-1 text-xs font-semibold text-[#3D7A4F]">
+          14 días de prueba gratis
+        </p>
+      )}
 
       {/* Nota anual */}
       {isAnnual && (

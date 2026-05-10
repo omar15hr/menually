@@ -150,11 +150,11 @@ describe("getPlanDescription", () => {
 });
 
 describe("calculateTrialEnd", () => {
-  it("returns date 30 days from now", () => {
+  it("returns date 14 days from now", () => {
     const before = Date.now();
     const result = calculateTrialEnd();
     const after = Date.now();
-    const expected = new Date(before + 30 * 24 * 60 * 60 * 1000);
+    const expected = new Date(before + 14 * 24 * 60 * 60 * 1000);
 
     expect(result.getTime()).toBeGreaterThanOrEqual(expected.getTime() - 1000);
     expect(result.getTime()).toBeLessThanOrEqual(expected.getTime() + 1000 + (after - before));

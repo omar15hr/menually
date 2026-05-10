@@ -27,12 +27,13 @@ vi.mock("@/lib/supabase/server", () => ({
 
 const mockGetPreapproval = vi.fn();
 
-vi.mock("@/lib/mercadopago/client", () => {
-  class MockMercadoPagoClient {
-    getPreapproval = mockGetPreapproval;
-  }
-  return { MercadoPagoClient: MockMercadoPagoClient };
-});
+vi.mock("@/lib/mercadopago/factory", () => ({
+  createMPClient: vi.fn(() => ({
+    getPreapproval: mockGetPreapproval,
+    createPreapproval: vi.fn(),
+    cancelPreapproval: vi.fn(),
+  })),
+}));
 
 vi.mock("@/lib/mercadopago/webhook-logger", () => ({
   logWebhookSuccess: vi.fn(),

@@ -63,10 +63,11 @@ export function validateHMAC(params: ValidateHMACParams): boolean {
     return false;
   }
 
-  // 6. Replay protection: ts must be within 10 minutes
+  // 6. Replay protection: ts must be within 15 minutes.
+  // Mercado Pago sends ts in milliseconds in x-signature.
   const tsNum = parseInt(ts, 10);
-  const now = Math.floor(Date.now() / 1000);
-  if (isNaN(tsNum) || Math.abs(now - tsNum) > 600) {
+  const nowMs = Date.now();
+  if (isNaN(tsNum) || Math.abs(nowMs - tsNum) > 15 * 60 * 1000) {
     return false;
   }
 

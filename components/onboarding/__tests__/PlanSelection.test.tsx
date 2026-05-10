@@ -23,7 +23,21 @@ describe("PlanSelection", () => {
 
   it("renders trial callout", () => {
     render(<PlanSelection />);
-    expect(screen.getByText(/30 días de prueba gratis/)).toBeInTheDocument();
+    expect(screen.getByText(/14 días de prueba gratis\. Cancelá cuando quieras/)).toBeInTheDocument();
+  });
+
+  it("shows trial badge on Pro plan card", () => {
+    render(<PlanSelection />);
+    const proCard = screen.getByText("Plan Pro").closest("button");
+    expect(proCard).not.toBeNull();
+    expect(proCard!.textContent).toContain("14 días de prueba gratis");
+  });
+
+  it("does not show trial badge on Basic plan card", () => {
+    render(<PlanSelection />);
+    const basicCard = screen.getByText("Plan Básico").closest("button");
+    expect(basicCard).not.toBeNull();
+    expect(basicCard!.textContent).not.toContain("14 días de prueba gratis");
   });
 
   it("toggles billing cycle to annual", async () => {

@@ -1,7 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { MercadoPagoClient } from "@/lib/mercadopago/client";
+import { createMPClient } from "@/lib/mercadopago/factory";
+import { generateIdempotencyKey } from "@/lib/mercadopago/idempotency";
 import { calculateTrialEnd, getPlanAmount, isTrialExpired, calculatePeriodDates } from "@/lib/subscription";
 import type { PlanId, BillingCycle } from "@/types/onboarding.types";
 
@@ -83,21 +84,24 @@ export async function createSubscription(
 
     const frequency = billingCycle === "annual" ? 12 : 1;
 
-    const mpClient = new MercadoPagoClient(process.env.MP_ACCESS_TOKEN!);
-    const preapproval = await mpClient.createPreapproval({
-      reason: `Menually ${planId} ${billingCycle}`,
-      external_reference: user.id,
-      payer_email: user.email,
-      auto_recurring: {
-        frequency,
-        frequency_type: "months",
-        transaction_amount: amount,
-        currency_id: "CLP",
+    const mpClient = createMPClient();
+    const preapproval = await mpClient.createPreapproval(
+      {
+        reason: `Menually ${planId} ${billingCycle}`,
+        external_reference: user.id,
+        payer_email: user.email,
+        auto_recurring: {
+          frequency,
+          frequency_type: "months",
+          transaction_amount: amount,
+          currency_id: "CLP",
+        },
+        back_url: `${siteUrl}/onboarding?status=success&plan=${planId}&cycle=${billingCycle}`,
+        status: "pending",
+        notification_url: `${siteUrl}/api/webhooks/mercadopago`,
       },
-      back_url: `${siteUrl}/onboarding?status=success&plan=${planId}&cycle=${billingCycle}`,
-      status: "pending",
-      notification_url: `${siteUrl}/api/webhooks/mercadopago`,
-    });
+      generateIdempotencyKey(`preapproval_create_${user.id}`),
+    );
 
     const trialEndsAt = calculateTrialEnd();
     const { current_period_start, current_period_end, next_billing_date } = calculatePeriodDates(billingCycle);
@@ -191,8 +195,11 @@ export async function cancelSubscription(): Promise<{
 
     if (existingSub.mp_preapproval_id) {
       try {
-        const mpClient = new MercadoPagoClient(process.env.MP_ACCESS_TOKEN!);
-        await mpClient.cancelPreapproval(existingSub.mp_preapproval_id);
+        const mpClient = createMPClient();
+        await mpClient.cancelPreapproval(
+          existingSub.mp_preapproval_id,
+          generateIdempotencyKey(`preapproval_cancel_${existingSub.mp_preapproval_id}`),
+        );
       } catch (mpError) {
         // Best effort — log and continue
         console.error("MP cancel failed:", mpError);
@@ -260,7 +267,7 @@ export async function handlePreapprovalCallback(
     }
 
     // Verify preapproval status with MP
-    const mpClient = new MercadoPagoClient(process.env.MP_ACCESS_TOKEN!);
+    const mpClient = createMPClient();
     const preapproval = await mpClient.getPreapproval(preapprovalId);
 
     // Optimistic update: update subscription status before webhook arrives
@@ -392,8 +399,11 @@ export async function upgradePlan(
 
     // Cancel old preapproval (best effort)
     try {
-      const mpClient = new MercadoPagoClient(process.env.MP_ACCESS_TOKEN!);
-      await mpClient.cancelPreapproval(existingSub.mp_preapproval_id);
+      const mpClient = createMPClient();
+      await mpClient.cancelPreapproval(
+        existingSub.mp_preapproval_id,
+        generateIdempotencyKey(`preapproval_cancel_${existingSub.mp_preapproval_id}`),
+      );
     } catch (mpError) {
       console.error("MP cancel failed:", mpError);
     }
@@ -401,21 +411,24 @@ export async function upgradePlan(
     const amount = getPlanAmount(newPlanId, newBillingCycle);
     const frequency = newBillingCycle === "annual" ? 12 : 1;
 
-    const mpClient = new MercadoPagoClient(process.env.MP_ACCESS_TOKEN!);
-    const preapproval = await mpClient.createPreapproval({
-      reason: `Menually ${newPlanId} ${newBillingCycle}`,
-      external_reference: user.id,
-      payer_email: user.email,
-      auto_recurring: {
-        frequency,
-        frequency_type: "months",
-        transaction_amount: amount,
-        currency_id: "CLP",
+    const mpClient = createMPClient();
+    const preapproval = await mpClient.createPreapproval(
+      {
+        reason: `Menually ${newPlanId} ${newBillingCycle}`,
+        external_reference: user.id,
+        payer_email: user.email,
+        auto_recurring: {
+          frequency,
+          frequency_type: "months",
+          transaction_amount: amount,
+          currency_id: "CLP",
+        },
+        back_url: `${siteUrl}/dashboard?status=success&plan=${newPlanId}&cycle=${newBillingCycle}`,
+        status: "pending",
+        notification_url: `${siteUrl}/api/webhooks/mercadopago`,
       },
-      back_url: `${siteUrl}/dashboard?status=success&plan=${newPlanId}&cycle=${newBillingCycle}`,
-      status: "pending",
-      notification_url: `${siteUrl}/api/webhooks/mercadopago`,
-    });
+      generateIdempotencyKey(`preapproval_create_${user.id}`),
+    );
 
     const { current_period_start, current_period_end, next_billing_date } = calculatePeriodDates(newBillingCycle);
 
@@ -523,7 +536,7 @@ export async function initiateRefund(): Promise<{
 
     return {
       success: true,
-      message: "Reembolso iniciado",
+      message: "Solicitud de reembolso registrada. Nuestro equipo la revisarÃ¡ y te contactarÃ¡.",
       errors: {},
     };
   } catch (error) {

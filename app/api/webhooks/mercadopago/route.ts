@@ -10,7 +10,8 @@ import {
   logWebhookIgnored,
   logWebhookError,
 } from "@/lib/mercadopago/webhook-logger";
-import { MercadoPagoClient } from "@/lib/mercadopago/client";
+import { createMPClient } from "@/lib/mercadopago/factory";
+import type { IMPClient } from "@/lib/mercadopago/types";
 import { mapMpStatusToDbStatus, calculatePeriodEndFromFrequency } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
@@ -77,8 +78,7 @@ export async function POST(request: NextRequest) {
     const topic = extractWebhookTopic(payload);
 
     // Initialize MP client
-    const sandbox = process.env.NEXT_PUBLIC_MP_SANDBOX === "true";
-    const client = new MercadoPagoClient(process.env.MP_ACCESS_TOKEN!, sandbox);
+    const client = createMPClient();
     const supabase = await createClient();
 
     if (topic === "subscription_preapproval") {
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
 
 async function handleSubscriptionPreapproval(
   payload: ReturnType<typeof parseWebhookPayload>,
-  client: MercadoPagoClient,
+  client: IMPClient,
   supabase: Awaited<ReturnType<typeof createClient>>,
 ) {
   try {
@@ -195,7 +195,7 @@ async function handleSubscriptionPreapproval(
 
 async function handleSubscriptionAuthorizedPayment(
   payload: ReturnType<typeof parseWebhookPayload>,
-  client: MercadoPagoClient,
+  client: IMPClient,
   supabase: Awaited<ReturnType<typeof createClient>>,
 ) {
   try {

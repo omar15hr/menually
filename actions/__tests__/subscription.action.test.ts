@@ -29,13 +29,13 @@ vi.mock("@/lib/supabase/server", () => ({
 const mockCreatePreapproval = vi.fn();
 const mockCancelPreapproval = vi.fn();
 
-vi.mock("@/lib/mercadopago/client", () => {
-  class MockMercadoPagoClient {
-    createPreapproval = mockCreatePreapproval;
-    cancelPreapproval = mockCancelPreapproval;
-  }
-  return { MercadoPagoClient: MockMercadoPagoClient };
-});
+vi.mock("@/lib/mercadopago/factory", () => ({
+  createMPClient: vi.fn(() => ({
+    createPreapproval: mockCreatePreapproval,
+    cancelPreapproval: mockCancelPreapproval,
+    getPreapproval: vi.fn(),
+  })),
+}));
 
 vi.mock("@/lib/subscription", () => ({
   calculateTrialEnd: vi.fn(() => new Date("2025-07-08T00:00:00.000Z")),

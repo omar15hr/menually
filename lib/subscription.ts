@@ -1,5 +1,6 @@
 import type { Database } from "@/types/database.types";
 import { PLANS } from "@/lib/plans";
+import { MP_TRIAL_DURATION_DAYS } from "@/lib/mercadopago/constants";
 
 type SubscriptionRow = Database["public"]["Tables"]["subscriptions"]["Row"];
 
@@ -49,7 +50,7 @@ export function getPlanDescription(planType: string, billingCycle: string): stri
 }
 
 export function calculateTrialEnd(): Date {
-  return new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  return new Date(Date.now() + MP_TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000);
 }
 
 export function getPlanAmount(planType: string, billingCycle: string): number {

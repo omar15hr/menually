@@ -1,10 +1,16 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import OnboardingPage from "@/app/onboarding/page";
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
+
+vi.mock("@/actions/subscription.action", () => ({
+  createSubscription: vi.fn(),
+  handlePreapprovalCallback: vi.fn(),
+}));
+
+import OnboardingPage from "@/app/onboarding/page";
 
 describe("OnboardingPage", () => {
   it("renders without errors", () => {

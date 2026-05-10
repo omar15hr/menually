@@ -57,7 +57,7 @@ export default function PlanSelection({ currentPlan }: PlanSelectionProps = {}) 
       </div>
 
       <p className="text-center text-sm text-[#58606E]">
-        30 días de prueba gratis. Cancelá cuando quieras.
+        14 días de prueba gratis. Cancelá cuando quieras.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2 max-w-4xl mx-auto">
@@ -85,6 +85,7 @@ export default function PlanSelection({ currentPlan }: PlanSelectionProps = {}) 
           isRecommended={PLANS.pro.isRecommended}
           isSelected={selectedPlan === "pro"}
           isCurrentPlan={currentPlan === "pro"}
+          showTrialBadge
           onSelect={() => handleSelect("pro")}
         />
       </div>
