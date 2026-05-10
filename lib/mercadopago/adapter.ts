@@ -1,0 +1,75 @@
+import { MercadoPagoConfig, PreApproval } from "mercadopago";
+import type { IMPClient } from "./types";
+import type {
+  CreatePreapprovalRequest,
+  CreatePreapprovalResponse,
+  GetPreapprovalResponse,
+} from "./types";
+
+export class MercadoPagoAdapter implements IMPClient {
+  private preApproval: PreApproval;
+
+  constructor(accessToken: string, _sandbox = false) {
+    const client = new MercadoPagoConfig({
+      accessToken,
+      options: {
+        timeout: 10000,
+      },
+    });
+    this.preApproval = new PreApproval(client);
+  }
+
+  async createPreapproval(
+    params: CreatePreapprovalRequest,
+  ): Promise<CreatePreapprovalResponse> {
+    const result = await this.preApproval.create({
+      body: {
+        reason: params.reason,
+        external_reference: params.external_reference,
+        payer_email: params.payer_email,
+        auto_recurring: params.auto_recurring
+          ? {
+              frequency: params.auto_recurring.frequency,
+              frequency_type: params.auto_recurring.frequency_type,
+              transaction_amount: params.auto_recurring.transaction_amount,
+              currency_id: params.auto_recurring.currency_id,
+            }
+          : undefined,
+        back_url: params.back_url,
+        status: params.status,
+      },
+    });
+
+    return {
+      id: result.id ?? "",
+      status: (result.status as import("./types").MpPreapprovalStatus) ?? "pending",
+      init_point: result.init_point ?? "",
+      payer_email: result.payer_email ?? "",
+      external_reference: result.external_reference ?? "",
+    };
+  }
+
+  async getPreapproval(id: string): Promise<GetPreapprovalResponse> {
+    const result = await this.preApproval.get({ id });
+
+    return {
+      id: result.id ?? "",
+      status: (result.status as import("./types").MpPreapprovalStatus) ?? "pending",
+      payer_email: result.payer_email ?? "",
+      external_reference: result.external_reference ? String(result.external_reference) : "",
+      auto_recurring: {
+        frequency: result.auto_recurring?.frequency ?? 1,
+        frequency_type: (result.auto_recurring?.frequency_type as "days" | "months") ?? "months",
+        transaction_amount: result.auto_recurring?.transaction_amount ?? 0,
+        currency_id: result.auto_recurring?.currency_id ?? "CLP",
+      },
+    };
+  }
+
+  async cancelPreapproval(id: string): Promise<void> {
+    await this.preApproval.update({
+      id,
+      body: { status: "cancelled" },
+    });
+  }
+}

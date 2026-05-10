@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import PlanCard from "./PlanCard";
 import { PLANS } from "@/lib/plans";
@@ -80,6 +81,46 @@ export default function PlanSelection() {
           isSelected={selectedPlan === "pro"}
           onSelect={() => handleSelect("pro")}
         />
+      </div>
+
+      {/* Mercado Pago branding */}
+      <div className="flex flex-col items-center gap-4 mt-2">
+        <a
+          href="https://www.mercadopago.cl"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col items-center gap-2"
+        >
+          <Image
+            src="/images/mp/logo.svg"
+            alt="Mercado Pago"
+            width={120}
+            height={40}
+          />
+          <span className="text-sm text-[#58606E]">
+            Pagos seguros con Mercado Pago
+          </span>
+        </a>
+        <div className="flex items-center gap-3">
+          <Image
+            src="/images/mp/payment-methods/visa.svg"
+            alt="Visa"
+            width={48}
+            height={32}
+          />
+          <Image
+            src="/images/mp/payment-methods/mastercard.svg"
+            alt="Mastercard"
+            width={48}
+            height={32}
+          />
+          <Image
+            src="/images/mp/payment-methods/amex.svg"
+            alt="American Express"
+            width={48}
+            height={32}
+          />
+        </div>
       </div>
     </div>
   );

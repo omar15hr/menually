@@ -414,8 +414,10 @@ export type Database = {
           current_period_end: string
           current_period_start: string
           id: string
+          last_payment_date: string | null
           mp_preapproval_id: string | null
           mp_subscription_id: string | null
+          next_billing_date: string | null
           plan_type: Database["public"]["Enums"]["plan_type"]
           status: Database["public"]["Enums"]["subscription_status"]
           trial_ends_at: string | null
@@ -429,8 +431,10 @@ export type Database = {
           current_period_end: string
           current_period_start?: string
           id?: string
+          last_payment_date?: string | null
           mp_preapproval_id?: string | null
           mp_subscription_id?: string | null
+          next_billing_date?: string | null
           plan_type?: Database["public"]["Enums"]["plan_type"]
           status?: Database["public"]["Enums"]["subscription_status"]
           trial_ends_at?: string | null
@@ -444,8 +448,10 @@ export type Database = {
           current_period_end?: string
           current_period_start?: string
           id?: string
+          last_payment_date?: string | null
           mp_preapproval_id?: string | null
           mp_subscription_id?: string | null
+          next_billing_date?: string | null
           plan_type?: Database["public"]["Enums"]["plan_type"]
           status?: Database["public"]["Enums"]["subscription_status"]
           trial_ends_at?: string | null
@@ -487,7 +493,14 @@ export type Database = {
         | "spicy"
         | "keto"
         | "aplv"
-      subscription_status: "trial" | "active" | "past_due" | "cancelled"
+      subscription_status:
+        | "trial"
+        | "active"
+        | "past_due"
+        | "cancelled"
+        | "pending_refund"
+        | "chargeback"
+        | "refunded"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -634,7 +647,15 @@ export const Constants = {
         "keto",
         "aplv",
       ],
-      subscription_status: ["trial", "active", "past_due", "cancelled"],
+      subscription_status: [
+        "trial",
+        "active",
+        "past_due",
+        "cancelled",
+        "pending_refund",
+        "chargeback",
+        "refunded",
+      ],
     },
   },
 } as const

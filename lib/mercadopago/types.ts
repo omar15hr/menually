@@ -60,3 +60,9 @@ export interface WebhookPayload {
   api_version: string;
   action: string;
 }
+
+export interface IMPClient {
+  createPreapproval(params: CreatePreapprovalRequest): Promise<CreatePreapprovalResponse>;
+  getPreapproval(id: string): Promise<GetPreapprovalResponse>;
+  cancelPreapproval(id: string): Promise<void>;
+}

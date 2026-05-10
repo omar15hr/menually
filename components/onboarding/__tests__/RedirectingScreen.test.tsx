@@ -16,7 +16,7 @@ describe("RedirectingScreen", () => {
   it("renders redirecting message when checkoutUrl is provided", () => {
     render(<RedirectingScreen checkoutUrl="https://mp.com/checkout" />);
     expect(
-      screen.getByText("Redirigiendo a Mercado Pago..."),
+      screen.getByText("Te estamos redirigiendo a Mercado Pago"),
     ).toBeInTheDocument();
   });
 
@@ -45,5 +45,17 @@ describe("RedirectingScreen", () => {
     const retryButton = screen.getByRole("button", { name: "Reintentar" });
     await user.click(retryButton);
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders Mercado Pago logo", () => {
+    render(<RedirectingScreen checkoutUrl="https://mp.com/checkout" />);
+    expect(screen.getByAltText("Mercado Pago")).toBeInTheDocument();
+  });
+
+  it("renders redirect text with MP attribution", () => {
+    render(<RedirectingScreen checkoutUrl="https://mp.com/checkout" />);
+    expect(
+      screen.getByText("Te estamos redirigiendo a Mercado Pago"),
+    ).toBeInTheDocument();
   });
 });

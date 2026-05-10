@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -22,9 +23,17 @@ export default function RedirectingScreen({
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-12">
       <Loader2 data-testid="loader-spinner" className="size-10 animate-spin text-[#114821]" />
+      {checkoutUrl && (
+        <Image
+          src="/images/mp/logo.svg"
+          alt="Mercado Pago"
+          width={120}
+          height={40}
+        />
+      )}
       <p className="text-lg font-medium text-[#114821]">
         {checkoutUrl
-          ? "Redirigiendo a Mercado Pago..."
+          ? "Te estamos redirigiendo a Mercado Pago"
           : "Serás redirigido en un momento..."}
       </p>
       {!checkoutUrl && onRetry && (

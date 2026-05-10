@@ -71,4 +71,21 @@ describe("PlanSelection", () => {
     const savingsTexts = screen.getAllByText(/Ahorras 15%/);
     expect(savingsTexts.length).toBe(2);
   });
+
+  it("renders Mercado Pago logo", () => {
+    render(<PlanSelection />);
+    expect(screen.getByAltText("Mercado Pago")).toBeInTheDocument();
+  });
+
+  it("renders 'Pagos seguros con Mercado Pago' text", () => {
+    render(<PlanSelection />);
+    expect(screen.getByText(/Pagos seguros con Mercado Pago/)).toBeInTheDocument();
+  });
+
+  it("renders payment method icons", () => {
+    render(<PlanSelection />);
+    expect(screen.getByAltText("Visa")).toBeInTheDocument();
+    expect(screen.getByAltText("Mastercard")).toBeInTheDocument();
+    expect(screen.getByAltText("American Express")).toBeInTheDocument();
+  });
 });
