@@ -473,6 +473,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_mp_webhook_events: {
+        Args: { p_days?: number }
+        Returns: number
+      }
       reorder_categories_batch: { Args: { updates: Json }; Returns: undefined }
     }
     Enums: {

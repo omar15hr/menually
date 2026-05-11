@@ -25,6 +25,8 @@ export function mapMpStatusToDbStatus(mpStatus: string): Database["public"]["Enu
   switch (mpStatus) {
     case "authorized":
       return "active";
+    case "pending":
+      return "trial";
     case "cancelled":
       return "cancelled";
     case "paused":

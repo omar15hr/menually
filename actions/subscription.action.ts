@@ -100,7 +100,7 @@ export async function createSubscription(
         status: "pending",
         notification_url: `${siteUrl}/api/webhooks/mercadopago`,
       },
-      generateIdempotencyKey(`preapproval_create_${user.id}`),
+      generateIdempotencyKey(`preapproval_create_${user.id}_${planId}_${billingCycle}`),
     );
 
     const trialEndsAt = calculateTrialEnd();
@@ -427,7 +427,7 @@ export async function upgradePlan(
         status: "pending",
         notification_url: `${siteUrl}/api/webhooks/mercadopago`,
       },
-      generateIdempotencyKey(`preapproval_create_${user.id}`),
+      generateIdempotencyKey(`preapproval_create_${user.id}_${newPlanId}_${newBillingCycle}`),
     );
 
     const { current_period_start, current_period_end, next_billing_date } = calculatePeriodDates(newBillingCycle);
@@ -518,6 +518,31 @@ export async function initiateRefund(): Promise<{
       };
     }
 
+    if (!existingSub.mp_preapproval_id) {
+      return {
+        success: false,
+        message: "No se encontró el identificador de suscripción en Mercado Pago",
+        errors: {},
+      };
+    }
+
+    try {
+      const mpClient = createMPClient();
+      await mpClient.cancelPreapproval(
+        existingSub.mp_preapproval_id,
+        generateIdempotencyKey(`preapproval_refund_cancel_${existingSub.mp_preapproval_id}`),
+      );
+    } catch (mpError) {
+      const message = mpError instanceof Error
+        ? mpError.message
+        : "No se pudo cancelar la suscripción en Mercado Pago";
+      return {
+        success: false,
+        message,
+        errors: {},
+      };
+    }
+
     const { error: updateError } = await supabase
       .from("subscriptions")
       .update({
@@ -536,7 +561,7 @@ export async function initiateRefund(): Promise<{
 
     return {
       success: true,
-      message: "Solicitud de reembolso registrada. Nuestro equipo la revisarÃ¡ y te contactarÃ¡.",
+      message: "Solicitud de reembolso registrada y suscripción cancelada en Mercado Pago. Nuestro equipo revisará el reembolso.",
       errors: {},
     };
   } catch (error) {

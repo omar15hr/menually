@@ -1,6 +1,6 @@
 import { MercadoPagoAdapter } from "./adapter";
 import type { IMPClient } from "./types";
-import { mpEnv } from "./env";
+import { getMPEnv } from "./env";
 
 function isRateLimitError(error: unknown): boolean {
   if (error && typeof error === "object") {
@@ -44,6 +44,7 @@ export function withRetry(client: IMPClient, maxRetries = 4): IMPClient {
 }
 
 export function createMPClient(accessToken?: string, sandbox?: boolean): IMPClient {
+  const mpEnv = getMPEnv();
   const token = accessToken ?? mpEnv.MP_ACCESS_TOKEN;
   const isSandbox = sandbox ?? mpEnv.NEXT_PUBLIC_MP_SANDBOX === "true";
 

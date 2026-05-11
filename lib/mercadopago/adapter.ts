@@ -9,11 +9,16 @@ import type {
 export class MercadoPagoAdapter implements IMPClient {
   private preApproval: PreApproval;
 
-  constructor(accessToken: string, _sandbox = false) {
+  constructor(accessToken: string, sandbox = false) {
+    const isTestToken = accessToken.startsWith("TEST-");
+    if (!sandbox && isTestToken) {
+      throw new Error("Invalid Mercado Pago config: TEST token cannot be used with sandbox=false.");
+    }
     const client = new MercadoPagoConfig({
       accessToken,
       options: {
         timeout: 10000,
+        testToken: sandbox || isTestToken,
       },
     });
     this.preApproval = new PreApproval(client);

@@ -9,7 +9,17 @@ const mpEnvSchema = z.object({
   MP_PLAN_BASIC_ANNUAL_ID: z.string().optional(),
   MP_PLAN_PRO_MONTHLY_ID: z.string().optional(),
   MP_PLAN_PRO_ANNUAL_ID: z.string().optional(),
-  MP_USE_SDK: z.enum(["true", "false"]).default("false"),
+  MP_USE_SDK: z.enum(["true", "false"]).default("true"),
 });
 
-export const mpEnv = mpEnvSchema.parse(process.env);
+export type MPEnv = z.infer<typeof mpEnvSchema>;
+
+let cachedEnv: MPEnv | null = null;
+
+export function getMPEnv(): MPEnv {
+  if (cachedEnv) {
+    return cachedEnv;
+  }
+  cachedEnv = mpEnvSchema.parse(process.env);
+  return cachedEnv;
+}
