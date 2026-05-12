@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createMPClient } from "@/lib/mercadopago/factory";
 import { generateIdempotencyKey } from "@/lib/mercadopago/idempotency";
 import { calculateTrialEnd, getPlanAmount, isTrialExpired, calculatePeriodDates } from "@/lib/subscription";
+import { getMPEnv } from "@/lib/mercadopago/env";
 import type { PlanId, BillingCycle } from "@/types/onboarding.types";
 
 export async function createSubscription(
@@ -84,6 +85,8 @@ export async function createSubscription(
 
     const frequency = billingCycle === "annual" ? 12 : 1;
 
+    const mpEnv = getMPEnv();
+
     const mpClient = createMPClient();
     const preapproval = await mpClient.createPreapproval(
       {
@@ -94,7 +97,7 @@ export async function createSubscription(
           frequency,
           frequency_type: "months",
           transaction_amount: amount,
-          currency_id: "CLP",
+          currency_id: mpEnv.MP_CURRENCY_ID,
         },
         back_url: `${siteUrl}/onboarding?status=success&plan=${planId}&cycle=${billingCycle}`,
         status: "pending",
@@ -410,6 +413,7 @@ export async function upgradePlan(
 
     const amount = getPlanAmount(newPlanId, newBillingCycle);
     const frequency = newBillingCycle === "annual" ? 12 : 1;
+    const mpEnv = getMPEnv();
 
     const mpClient = createMPClient();
     const preapproval = await mpClient.createPreapproval(
@@ -421,7 +425,7 @@ export async function upgradePlan(
           frequency,
           frequency_type: "months",
           transaction_amount: amount,
-          currency_id: "CLP",
+          currency_id: mpEnv.MP_CURRENCY_ID,
         },
         back_url: `${siteUrl}/dashboard?status=success&plan=${newPlanId}&cycle=${newBillingCycle}`,
         status: "pending",
@@ -432,6 +436,8 @@ export async function upgradePlan(
 
     const { current_period_start, current_period_end, next_billing_date } = calculatePeriodDates(newBillingCycle);
 
+    const hasValidTrial = existingSub?.trial_ends_at && !isTrialExpired(existingSub);
+
     const { error: upsertError } = await supabase
       .from("subscriptions")
       .upsert(
@@ -441,7 +447,7 @@ export async function upgradePlan(
           status: "trial",
           plan_type: newPlanId,
           billing_cycle: newBillingCycle,
-          trial_ends_at: null,
+          trial_ends_at: hasValidTrial ? existingSub.trial_ends_at : null,
           amount,
           current_period_start: current_period_start.toISOString(),
           current_period_end: current_period_end.toISOString(),

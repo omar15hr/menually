@@ -9,6 +9,7 @@ const mpEnvSchema = z.object({
   MP_PLAN_BASIC_ANNUAL_ID: z.string().optional(),
   MP_PLAN_PRO_MONTHLY_ID: z.string().optional(),
   MP_PLAN_PRO_ANNUAL_ID: z.string().optional(),
+  MP_CURRENCY_ID: z.string().default("CLP"),
   MP_USE_SDK: z.enum(["true", "false"]).default("true"),
 });
 

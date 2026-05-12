@@ -5,6 +5,7 @@ import type {
   CreatePreapprovalResponse,
   GetPreapprovalResponse,
 } from "./types";
+import { getMPEnv } from "./env";
 
 export class MercadoPagoAdapter implements IMPClient {
   private preApproval: PreApproval;
@@ -68,7 +69,7 @@ export class MercadoPagoAdapter implements IMPClient {
         frequency: result.auto_recurring?.frequency ?? 1,
         frequency_type: (result.auto_recurring?.frequency_type as "days" | "months") ?? "months",
         transaction_amount: result.auto_recurring?.transaction_amount ?? 0,
-        currency_id: result.auto_recurring?.currency_id ?? "CLP",
+        currency_id: result.auto_recurring?.currency_id ?? getMPEnv().MP_CURRENCY_ID,
       },
     };
   }

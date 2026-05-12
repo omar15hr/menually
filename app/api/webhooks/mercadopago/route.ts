@@ -177,6 +177,16 @@ export async function POST(request: NextRequest) {
       return await handleRefund(payload, supabase, eventKey, xRequestId);
     }
 
+    if (topic === "subscription_preapproval_plan") {
+      logWebhookIgnored(payload.type, payload.data.id, "Plan linking event — no action needed");
+      await persistWebhookLog(supabase, {
+        eventKey, topic: payload.type, dataId: payload.data.id, action: payload.action, xRequestId, status: "ignored",
+        details: { reason: "plan_linking_event" },
+      });
+      await markWebhookProcessed(supabase, eventKey);
+      return new Response("OK", { status: 200 });
+    }
+
     // Unknown topic — return 200 so MP doesn't retry
     logWebhookIgnored(topic, payload.data.id, `Unknown topic: ${topic}`);
     await persistWebhookLog(supabase, {
