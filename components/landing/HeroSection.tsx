@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -18,7 +19,7 @@ export function HeroSection() {
 
             <div className="space-y-2">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif italic text-[#1A1A1A] text-balance">
-                De PDF a menu digital.
+                Tu menú trabaja. Tú decides.
               </h1>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#1A1A1A] text-balance">
                 Crea y optimiza tu menu con IA
@@ -26,16 +27,23 @@ export function HeroSection() {
             </div>
 
             <p className="text-[#585858] text-lg max-w-xl text-pretty">
-              Crea menus en minutos. Actualiza platos, precios y disponibilidad
-              en tiempo real y transforma cada escaneo en insights para tomar
-              mejores decisiones
+              Convierte tu carta en un menú digital que analiza qué ven tus
+              clientes, qué los hace volver y qué productos venden más. Data
+              única, sin complicaciones
             </p>
 
-            <Link href="/auth/signin">
-              <button className="border border-[#CDF545] bg-[#CDF545] text-[#114821] px-4 py-2 rounded-lg font-bold text-base cursor-pointer">
-                Crear Mi Menú
-              </button>
-            </Link>
+            <div className="flex items-center gap-4 justify-center">
+              <Link href="/auth/signin">
+                <button className="px-4 py-2 rounded-lg text-base cursor-pointer text-[#114821 font-medium">
+                  Ver menú de ejemplo
+                </button>
+              </Link>
+              <Link href="/auth/signin">
+                <button className="border border-[#CDF545] bg-[#CDF545] text-[#114821] px-4 py-2 rounded-lg font-bold text-base cursor-pointer w-fit flex items-center gap-2">
+                  14 días gratis <ArrowRight className="size-4" />
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -45,7 +53,7 @@ export function HeroSection() {
           <div className="flex flex-col md:flex-row items-start justify-center gap-4 md:gap-6">
             <div className="w-full md:w-70 lg:w-[320px] aspect-3/4 relative rounded-2xl overflow-hidden shadow-lg order-2 md:order-1 md:mt-12 lg:mt-16">
               <Image
-                src="/images/imagen-example.png"
+                src="/images/image-landing-1.png"
                 alt="Cafe exterior with warm lighting"
                 fill
                 className="object-cover"
@@ -56,7 +64,7 @@ export function HeroSection() {
 
             <div className="w-full md:w-70 lg:w-[320px] aspect-3/4 relative rounded-2xl overflow-hidden shadow-lg order-1 md:order-2">
               <Image
-                src="/images/imagen-example.png"
+                src="/images/image-landing-1.png"
                 alt="Scanning QR code menu"
                 fill
                 className="object-cover"
@@ -67,7 +75,7 @@ export function HeroSection() {
 
             <div className="w-full md:w-70 lg:w-[320px] aspect-3/4 relative rounded-2xl overflow-hidden shadow-lg order-3 md:mt-12 lg:mt-16">
               <Image
-                src="/images/imagen-example.png"
+                src="/images/image-landing-3.png"
                 alt="Outdoor restaurant terrace"
                 fill
                 className="object-cover"
