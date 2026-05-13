@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -30,9 +30,12 @@ const MAX_SIZE_MB = 10;
 
 export function MenuImportDropzone() {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { setStep, setImportedData, setFile, setError, setConfidenceWarning } =
     useImportStore();
 
@@ -53,10 +56,12 @@ export function MenuImportDropzone() {
     async (file: File) => {
       const error = validateFile(file);
       if (error) {
+        setFileError(error);
         toast.error(error);
         return;
       }
 
+      setFileError(null);
       setFile(file);
       setUploadedFile(file);
       setIsLoading(true);
@@ -78,7 +83,6 @@ export function MenuImportDropzone() {
         if (result.data) {
           setImportedData(result.data);
 
-          // Set confidence warning if low
           if (
             result.data.confidence !== undefined &&
             result.data.confidence < 0.5
@@ -132,10 +136,16 @@ export function MenuImportDropzone() {
       const file = e.target.files?.[0];
       if (file) {
         handleFile(file);
+      } else {
+        setFileError("No has cargado tu menú todavía.");
       }
     },
     [handleFile],
   );
+
+  const handleDropzoneClick = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
     <div
@@ -146,11 +156,22 @@ export function MenuImportDropzone() {
     >
       <Empty>
         <div
-          className={`border-2 bg-[#FBFBFA] w-full flex flex-col justify-center items-center h-53 rounded-xl gap-6 transition-colors ${
+          className={cn(
+            "border-2 bg-[#FBFBFA] w-full flex flex-col justify-center items-center h-53 rounded-xl gap-6 transition-colors cursor-pointer relative",
             isDragOver
-              ? "border-[#CDF545] bg-[#CDF545]/5"
-              : "border-dashed border-[#E4E4E6] p-8"
-          }`}
+              ? "border-[#CDF545] bg-[#E5E7EA]"
+              : fileError
+                ? "border-[#AB0505]"
+                : "border-dashed border-[#E4E4E6] p-8",
+          )}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onClick={handleDropzoneClick}
+          style={
+            isHovered && !isDragOver && !fileError
+              ? { backgroundColor: "#E5E7EA" }
+              : undefined
+          }
         >
           <div className="bg-[#CDF5454D] p-5 rounded-full my-2">
             <DownloadCloudIcon />
@@ -161,7 +182,7 @@ export function MenuImportDropzone() {
                 ? "Soltá el archivo aquí"
                 : isLoading
                   ? "Procesando imagen..."
-                  : "Arrastra tu archivo aquí o haz clic en continuar para subirlo"}
+                  : "Arrastra tu archivo aquí o hacé clic para subirlo"}
             </EmptyTitle>
             <EmptyDescription>
               {isLoading
@@ -169,6 +190,11 @@ export function MenuImportDropzone() {
                 : `PDF, PNG, JPG o WEBP hasta ${MAX_SIZE_MB}MB`}
             </EmptyDescription>
           </div>
+          {fileError && (
+            <p className="text-sm text-[#A82E38] absolute bottom-4 left-4">
+              {fileError}
+            </p>
+          )}
         </div>
         <EmptyContent className="flex flex-row gap-4 justify-center items-center">
           <Link href="/dashboard/menu">
@@ -202,6 +228,7 @@ export function MenuImportDropzone() {
             </Button>
             <input
               id="file-upload"
+              ref={fileInputRef}
               type="file"
               accept={ALLOWED_TYPES.join(",")}
               onChange={handleInputChange}
@@ -212,7 +239,7 @@ export function MenuImportDropzone() {
         </EmptyContent>
       </Empty>
 
-      {isLoading && <MenuImportLoading fileName={uploadedFile?.name ?? "archivo.pdf"} onCancel={() => setIsLoading(false)} />}
+      {isLoading && <MenuImportLoading fileName={uploadedFile?.name ?? "archivo.pdf"} onCancel={() => setIsLoading(false)} error={fileError ?? undefined} />}
     </div>
   );
 }

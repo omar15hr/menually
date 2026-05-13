@@ -4,10 +4,12 @@ import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 import WandIcon from "../icons/WandIcon"
 import Image from "next/image"
+import { cn } from "@/lib/utils"
 
 interface AIFileUploadProps {
   fileName?: string
   onCancel?: () => void
+  error?: string
 }
 
 const AI_STATUS_MESSAGES = [
@@ -23,12 +25,12 @@ const AI_STATUS_MESSAGES = [
 
 export function MenuImportLoading({
   fileName = "nombre.pdf",
-  onCancel
+  onCancel,
+  error
 }: AIFileUploadProps) {
   const [progress, setProgress] = useState(0)
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
 
-  // Progress bar animation
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -43,7 +45,6 @@ export function MenuImportLoading({
     return () => clearInterval(interval)
   }, [])
 
-  // AI status message rotation
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentMessageIndex((prev) =>
@@ -54,8 +55,13 @@ export function MenuImportLoading({
     return () => clearInterval(interval)
   }, [])
 
+  const isSizeError = error?.includes("demasiado grande") || error?.includes("muy grande")
+
   return (
-    <div className="w-full max-w-6xl mx-auto rounded-xl border border-[#E2E8F0] bg-card p-6 h-53">
+    <div className={cn(
+      "w-full max-w-6xl mx-auto rounded-xl border bg-card p-6 h-53",
+      isSizeError ? "border-[#AB0505]" : "border-[#E2E8F0]"
+    )}>
       {/* AI Processing Badge */}
       <div className="mb-4 w-fit rounded-lg border border-[#CDF545]">
         <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#F8FFE1] px-4 py-2">
@@ -75,9 +81,15 @@ export function MenuImportLoading({
           {/* File Name and Status */}
           <div className="flex flex-col text-sm">
             <span className="font-medium text-[#1C1C1C]">{fileName}</span>
-            <span className="text-[#58606E]">
-              El archivo se está subiendo
-            </span>
+            {isSizeError ? (
+              <span className="text-[#AB0505]">
+                El archivo es muy grande (el máximo es de 10MB)
+              </span>
+            ) : (
+              <span className="text-[#58606E]">
+                El archivo se está subiendo
+              </span>
+            )}
           </div>
         </div>
 
@@ -102,12 +114,14 @@ export function MenuImportLoading({
       </div>
 
       {/* AI Status Message */}
-      <div className="mt-4 flex items-center gap-2">
-        <span className="h-2 w-2 shrink-0 rounded-full bg-foreground" />
-        <span className="text-sm text-muted-foreground">
-          {AI_STATUS_MESSAGES[currentMessageIndex]}
-        </span>
-      </div>
+      {!isSizeError && (
+        <div className="mt-4 flex items-center gap-2">
+          <span className="h-2 w-2 shrink-0 rounded-full bg-foreground" />
+          <span className="text-sm text-muted-foreground">
+            {AI_STATUS_MESSAGES[currentMessageIndex]}
+          </span>
+        </div>
+      )}
     </div>
   )
 }
