@@ -80,9 +80,9 @@ export default function OnboardingWizard() {
 
   const renderStepContent = () => {
     switch (step) {
-      case "plan":
-        return <PlanSelection />;
       case "redirecting":
+        return <PlanSelection />;
+      case "plan":
         return (
           <RedirectingScreen
             checkoutUrl={checkoutUrl ?? undefined}
@@ -143,13 +143,13 @@ export default function OnboardingWizard() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div className="flex h-screen flex-col bg-white relative">
       <HeaderLogo />
-      <div className="px-4 py-6">
+      <div className="px-4 py-6 flex-1 overflow-y-auto pb-28">
         {renderStepContent()}
       </div>
 
-      <div className="bg-white px-4 py-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-white px-4 py-4 border-t border-[#DDE3ED]">
         <OnboardingProgress {...getProgressProps()} />
       </div>
     </div>

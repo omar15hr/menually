@@ -31,7 +31,7 @@ export default function OnboardingProgress({
   const progressPercent = currentStep === 1 ? "25%" : "100%";
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-2">
       <div
         role="progressbar"
         aria-valuenow={currentStep}
