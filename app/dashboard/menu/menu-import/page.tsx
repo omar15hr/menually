@@ -20,13 +20,13 @@ export default function MenuImportPage() {
         return <MenuImportDropzone />;
 
       case "processing":
-        return <MenuImportLoading />;
+        return <MenuImportLoading fileName={useImportStore.getState().file?.name ?? "archivo.pdf"} />;
 
       case "preview":
         return <MenuImportPreview />;
 
       case "importing":
-        return <MenuImportLoading />;
+        return <MenuImportLoading fileName={useImportStore.getState().file?.name ?? "archivo.pdf"} />;
 
       case "error":
         return (

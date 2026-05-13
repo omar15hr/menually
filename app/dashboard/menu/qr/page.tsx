@@ -1,6 +1,9 @@
 import { QrDisplay } from "@/components/menu/QrDisplay";
+import { MenuPreview } from "@/components/menu/MenuPreview";
 import { getAuthUser } from "@/lib/queries/auth.queries";
 import { getMenuByUserId } from "@/lib/queries/menu.queries";
+import { getCategoriesByMenuId } from "@/lib/queries/categories.queries";
+import { getProfileByUserId } from "@/lib/queries/profile.queries";
 import { generateQrCode } from "@/actions/generateQrCode.action";
 
 export default async function QrPage() {
@@ -29,22 +32,33 @@ export default async function QrPage() {
     qrUrl = result.qrUrl;
   }
 
+  const categories = await getCategoriesByMenuId(menu.id);
+  const profile = await getProfileByUserId(user.id);
+
   return (
-    <div className="flex flex-col w-full max-w-md bg-white border border-[#E4E4E6] h-screen">
-      <div className="flex flex-col p-4 border-b">
-        <h2 className="text-[#0F172A] text-base font-extrabold">QR y enlace</h2>
-        <p className="text-[#58606E] text-sm">
-          Listo para compartir: usa tu QR o envía el link.
-        </p>
+    <div className="flex gap-6 items-start">
+      <div className="flex flex-col w-full max-w-md bg-white border border-[#E4E4E6] h-screen">
+        <div className="flex flex-col p-4 border-b">
+          <h2 className="text-[#0F172A] text-base font-extrabold">QR y enlace</h2>
+          <p className="text-[#58606E] text-sm">
+            Listo para compartir: usa tu QR o envía el link.
+          </p>
+        </div>
+
+        {qrUrl ? (
+          <QrDisplay qrUrl={qrUrl} menuSlug={menu.slug} />
+        ) : (
+          <div className="flex flex-col gap-4 p-4">
+            <p className="text-[#58606E] text-sm text-center">Generando QR...</p>
+          </div>
+        )}
       </div>
 
-      {qrUrl ? (
-        <QrDisplay qrUrl={qrUrl} menuSlug={menu.slug} />
-      ) : (
-        <div className="flex flex-col gap-4 p-4">
-          <p className="text-[#58606E] text-sm text-center">Generando QR...</p>
-        </div>
-      )}
+      <MenuPreview
+        menu={menu}
+        categories={categories}
+        businessName={profile?.business_name ?? null}
+      />
     </div>
   );
 }

@@ -40,6 +40,7 @@ export interface CreatePreapprovalResponse {
   id: string;
   status: MpPreapprovalStatus;
   init_point: string;
+  sandbox_init_point?: string;
   payer_email: string;
   external_reference: string;
 }

@@ -141,7 +141,7 @@ export async function createSubscription(
       success: true,
       message: "Suscripción creada",
       errors: {},
-      checkoutUrl: preapproval.init_point,
+      checkoutUrl: preapproval.sandbox_init_point ?? preapproval.init_point,
       subscription: {
         id: preapproval.id,
         planId,
@@ -470,7 +470,7 @@ export async function upgradePlan(
       success: true,
       message: "Plan actualizado",
       errors: {},
-      checkoutUrl: preapproval.init_point,
+      checkoutUrl: preapproval.sandbox_init_point ?? preapproval.init_point,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error desconocido";

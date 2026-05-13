@@ -48,10 +48,13 @@ export class MercadoPagoAdapter implements IMPClient {
       requestOptions: idempotencyKey ? { idempotencyKey } : undefined,
     });
 
+    const raw = result as unknown as Record<string, unknown>;
+
     return {
       id: result.id ?? "",
       status: (result.status as import("./types").MpPreapprovalStatus) ?? "pending",
       init_point: result.init_point ?? "",
+      sandbox_init_point: (raw.sandbox_init_point as string | undefined) ?? undefined,
       payer_email: result.payer_email ?? "",
       external_reference: result.external_reference ?? "",
     };

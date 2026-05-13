@@ -32,6 +32,7 @@ export function MenuImportDropzone() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const { setStep, setImportedData, setFile, setError, setConfidenceWarning } =
     useImportStore();
 
@@ -57,6 +58,7 @@ export function MenuImportDropzone() {
       }
 
       setFile(file);
+      setUploadedFile(file);
       setIsLoading(true);
       setLoadingMessage("Analizando menú con IA...");
 
@@ -210,7 +212,7 @@ export function MenuImportDropzone() {
         </EmptyContent>
       </Empty>
 
-      {isLoading && <MenuImportLoading />}
+      {isLoading && <MenuImportLoading fileName={uploadedFile?.name ?? "archivo.pdf"} onCancel={() => setIsLoading(false)} />}
     </div>
   );
 }

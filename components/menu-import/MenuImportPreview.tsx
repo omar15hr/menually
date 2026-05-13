@@ -25,6 +25,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { importMenu } from "@/actions/ai-import-menu.action";
 import { useImportStore } from "@/store/useImportStore";
 import type {
@@ -308,16 +314,25 @@ export function MenuImportPreview() {
                         {category.products.map((product, prodIndex) => (
                           <TableRow key={prodIndex} className="group">
                             <TableCell className="py-3 px-2 text-center pl-6">
-                              <Input
-                                value={product.name}
-                                onChange={(e) =>
-                                  updateProduct(catIndex, prodIndex, {
-                                    name: e.target.value,
-                                  })
-                                }
-                                placeholder="Nombre del producto"
-                                className="font-medium w-full"
-                              />
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Input
+                                      value={product.name}
+                                      onChange={(e) =>
+                                        updateProduct(catIndex, prodIndex, {
+                                          name: e.target.value,
+                                        })
+                                      }
+                                      placeholder="Nombre del producto"
+                                      className="font-medium w-full"
+                                    />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{product.name || "Sin nombre"}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </TableCell>
                             <TableCell className="py-3 text-center">
                               {(() => {
@@ -356,16 +371,25 @@ export function MenuImportPreview() {
                               })()}
                             </TableCell>
                             <TableCell className="py-3 px-2 text-center">
-                              <Input
-                                value={product.description ?? ""}
-                                onChange={(e) =>
-                                  updateProduct(catIndex, prodIndex, {
-                                    description: e.target.value || undefined,
-                                  })
-                                }
-                                placeholder="Descripción (opcional)"
-                                className="w-full"
-                              />
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Input
+                                      value={product.description ?? ""}
+                                      onChange={(e) =>
+                                        updateProduct(catIndex, prodIndex, {
+                                          description: e.target.value || undefined,
+                                        })
+                                      }
+                                      placeholder="Descripción (opcional)"
+                                      className="w-full"
+                                    />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{product.description || "Sin descripción"}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </TableCell>
                             <TableCell className="py-3 text-center">
                               <div className="relative w-fit mx-auto">

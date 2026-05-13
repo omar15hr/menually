@@ -1,7 +1,8 @@
 "use client";
 
-import { useTransition, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTransition, useEffect, useState } from "react";
+
 import ErrorScreen from "./ErrorScreen";
 import PlanSelection from "./PlanSelection";
 import SuccessScreen from "./SuccessScreen";
@@ -9,7 +10,10 @@ import HeaderLogo from "../shared/HeaderLogo";
 import RedirectingScreen from "./RedirectingScreen";
 import OnboardingProgress from "./OnboardingProgress";
 import { useOnboardingStore } from "@/store/useOnboardingStore";
-import { createSubscription, handlePreapprovalCallback } from "@/actions/subscription.action";
+import {
+  createSubscription,
+  handlePreapprovalCallback,
+} from "@/actions/subscription.action";
 
 export default function OnboardingWizard() {
   const {
@@ -47,7 +51,9 @@ export default function OnboardingWizard() {
           if (result.success) {
             goToStep("success");
           } else {
-            setError(result.message || "El pago no se completó. Intentalo de nuevo.");
+            setError(
+              result.message || "El pago no se completó. Intentalo de nuevo.",
+            );
             goToStep("error");
           }
         } catch {
@@ -80,9 +86,9 @@ export default function OnboardingWizard() {
 
   const renderStepContent = () => {
     switch (step) {
-      case "redirecting":
-        return <PlanSelection />;
       case "plan":
+        return <PlanSelection />;
+      case "redirecting":
         return (
           <RedirectingScreen
             checkoutUrl={checkoutUrl ?? undefined}
